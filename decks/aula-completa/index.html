@@ -1485,25 +1485,25 @@ resp = client.extract(texto, schema=NotaClinica)</pre>
   <!-- cadeia -->
   <section class="content-slide">
     <span class="label-tag">A cadeia</span>
-    <h2>Vamos abrir a caixa</h2>
+    <h2>Do texto ao vetor, em cinco passos</h2>
     <div class="separator"></div>
     <div class="stage">
       <div class="chain">
         <span class="node">texto</span>
         <span class="arrow"></span>
-        <div class="chain-col"><div class="chain-box"><span class="q">?</span><span class="lbl fragment" data-fragment-index="1">tokenização</span></div><div class="cap">texto → tiles de sub-palavra</div></div>
+        <div class="chain-col"><div class="chain-box fill">tokenização</div><div class="cap">texto → peças de sub-palavra</div></div>
         <span class="arrow"></span>
-        <div class="chain-col"><div class="chain-box"><span class="q">?</span><span class="lbl fragment" data-fragment-index="2">matriz</span></div><div class="cap">cada token → um vetor (lookup)</div></div>
+        <div class="chain-col"><div class="chain-box fill">matriz</div><div class="cap">cada token → um vetor (lookup)</div></div>
         <span class="arrow"></span>
-        <div class="chain-col"><div class="chain-box"><span class="q">?</span><span class="lbl fragment" data-fragment-index="3">atenção</span></div><div class="cap">o vetor depende do contexto</div></div>
+        <div class="chain-col"><div class="chain-box fill">atenção</div><div class="cap">o vetor depende do contexto</div></div>
         <span class="arrow"></span>
-        <div class="chain-col"><div class="chain-box"><span class="q">?</span><span class="lbl fragment" data-fragment-index="4">pooling</span></div><div class="cap">muitos tokens → 1 vetor por chunk</div></div>
+        <div class="chain-col"><div class="chain-box fill">pooling</div><div class="cap">muitos tokens → 1 vetor</div></div>
         <span class="arrow"></span>
-        <div class="chain-col"><div class="chain-box"><span class="q">?</span><span class="lbl fragment" data-fragment-index="5">treino</span></div><div class="cap">perto = parecido, por design</div></div>
+        <div class="chain-col"><div class="chain-box fill">treino</div><div class="cap">perto = parecido, por desenho</div></div>
         <span class="arrow"></span>
         <span class="node">vetor</span>
       </div>
-      <p class="chain-hint">Cinco passos. Cada clique acende uma caixa — fecha-se aberta na síntese.</p>
+      <p class="chain-hint">Cinco passos, do texto livre a um vetor. Abrimos cada um a seguir.</p>
     </div>
     <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">56</span></div>
   </section>
@@ -1511,7 +1511,7 @@ resp = client.extract(texto, schema=NotaClinica)</pre>
   <!-- tokenização -->
   <section class="content-slide">
     <span class="label-tag">Passo 1 · Tokenização</span>
-    <h2>O modelo não vê palavras</h2>
+    <h2>O texto vira tokens — as peças que o modelo processa</h2>
     <div class="separator"></div>
     <div class="stage">
       <div class="hcenter" style="gap:28px; justify-content:center; flex-wrap:wrap;">
@@ -1528,7 +1528,8 @@ resp = client.extract(texto, schema=NotaClinica)</pre>
           <div class="tile">tensor<span class="id">id 6612</span></div>
         </div>
       </div>
-      <p class="lead" style="margin:0 auto; text-align:center; max-width:86%;">Antes de haver significado, o texto é cortado em <strong>sub-palavras</strong>. Os pedaços reutilizam-se — <span class="mono">hiper</span> volta em <em>antihipertensor</em>, e palavras nunca vistas recompõem-se dos mesmos tiles.</p>
+      <p class="lead" style="margin:0 auto; text-align:center; max-width:88%;">O modelo não trabalha com palavras nem com letras: trabalha com <strong>tokens</strong>, peças de um vocabulário fixo (umas dezenas de milhares). As comuns são um token; as outras partem-se em sub-palavras que se reutilizam — <span class="mono">hiper</span> volta em <em>anti-hipertensor</em>, e palavras nunca vistas recompõem-se das mesmas peças.</p>
+      <p class="why"><b>E não há um só tokenizador.</b> Modelos diferentes partem o mesmo texto de formas diferentes — e isso tem consequências: o português e o código são muitas vezes partidos em mais peças do que o inglês, o que gasta mais contexto e custa mais por token.</p>
     </div>
     <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">57</span></div>
   </section>
@@ -1575,6 +1576,7 @@ resp = client.extract(texto, schema=NotaClinica)</pre>
         </div>
         <div class="cos">cosseno(banco¹, banco²) = <b>0.21</b> &nbsp;·&nbsp; baixo</div>
       </div>
+      <p class="lead" style="margin:0 auto; text-align:center; max-width:88%;">É a <strong>self-attention</strong> — o mecanismo do Transformer (2017) — que faz cada palavra depender das vizinhas. O mesmo "banco", dois contextos, dois vetores distantes.</p>
     </div>
     <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">59</span></div>
   </section>
@@ -1600,7 +1602,7 @@ resp = client.extract(texto, schema=NotaClinica)</pre>
           <circle cx="720" cy="300" r="18" fill="#74808D"/><text x="720" y="348" class="svg-label" text-anchor="middle">chunk gigante · 4 assuntos</text>
         </svg>
       </div>
-      <p class="lead" style="margin:0 auto; text-align:center; max-width:84%;">Misturar muitos assuntos num só chunk → um vetor "morno", no centro de massa, perto de nada. <strong>Como parte o texto decide se a busca funciona.</strong></p>
+      <p class="lead" style="margin:0 auto; text-align:center; max-width:86%;">O modelo dá <strong>um vetor por token</strong>; para pesquisar precisamos de <strong>um por frase</strong>, e juntam-se por <strong>média</strong>. Mas a média trata todas as palavras por igual: um texto com muitos assuntos fica "morno", no centro de tudo e perto de nada.</p>
     </div>
     <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">60</span></div>
   </section>
@@ -1644,7 +1646,7 @@ resp = client.extract(texto, schema=NotaClinica)</pre>
   <!-- consequências DE -->
   <section class="content-slide">
     <span class="label-tag">Embeddings · consequências de engenharia</span>
-    <h2>É aqui que deixa de ser ML e passa a ser dados</h2>
+    <h2>Para a engenharia, o vetor é mais um dado</h2>
     <div class="separator"></div>
     <div class="stage">
       <div class="points two">
@@ -1667,12 +1669,12 @@ resp = client.extract(texto, schema=NotaClinica)</pre>
       <div class="contrast">
         <div class="c"><h3>Saber o que é um embedding</h3><p>texto → vetor, perto = parecido.</p></div>
         <div class="c weight">
-          <h3>Ser engenheiro de dados de IA</h3>
-          <p style="margin-bottom:22px;">tratar o vetor como dado derivado —</p>
-          <div class="chips"><span>versionado</span><span>com custo</span><span>com linhagem</span><span>que apodrece</span></div>
+          <h3>Tratá-lo como dado</h3>
+          <p style="margin-bottom:22px;">o vetor é um dado derivado, como qualquer coluna calculada —</p>
+          <div class="chips"><span>versionado</span><span>com custo</span><span>com linhagem</span><span>que desatualiza</span></div>
         </div>
       </div>
-      <p class="lead" style="max-width:88%;">A intuição é o bilhete de entrada. O que paga o ordenado é a card da direita — e é a mentalidade que aplicamos a seguir: <strong>um RAG inteiro é um pipeline de dados</strong>.</p>
+      <p class="lead" style="max-width:88%;">A intuição chega para perceber o conceito; o que distingue o engenheiro é a card da direita. É a mentalidade que aplicamos a seguir: <strong>um RAG inteiro é um pipeline de dados</strong>.</p>
     </div>
     <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">63</span></div>
   </section>
@@ -1750,9 +1752,9 @@ resp = client.extract(texto, schema=NotaClinica)</pre>
       <span class="arrow"></span>
       <div class="chain-col"><div class="chain-box fill">embeddings</div><div class="cap">cada chunk → vetor</div></div>
       <span class="arrow"></span>
-      <div class="chain-col"><div class="chain-box fill">vector store</div><div class="cap">indexar (HNSW)</div></div>
+      <div class="chain-col"><div class="chain-box fill">vector store</div><div class="cap">guardar os vetores</div></div>
       <span class="arrow"></span>
-      <div class="chain-col"><div class="chain-box fill">retrieval</div><div class="cap">top-k por cosseno</div></div>
+      <div class="chain-col"><div class="chain-box fill">retrieval</div><div class="cap">buscar os mais parecidos</div></div>
       <span class="arrow"></span>
       <div class="chain-col"><div class="chain-box fill">geração</div><div class="cap">o LLM responde</div></div>
     </div>
@@ -1764,22 +1766,22 @@ resp = client.extract(texto, schema=NotaClinica)</pre>
 
 <!-- DUAS PIPELINES · OFFLINE / ONLINE -->
 <section class="content-slide">
-  <span class="label-tag">RAG · duas pipelines, dois ritmos</span>
-  <h2>Offline indexa; online consulta</h2>
+  <span class="label-tag">RAG · dois momentos</span>
+  <h2>Preparar antes, responder na hora</h2>
   <div class="separator"></div>
   <div class="stage">
     <div class="doors">
       <div class="door a">
-        <span class="kick">Offline · indexação</span>
-        <h3>Ingerir → partir → embeber → guardar</h3>
-        <p>Corre em lote, ou por CDC quando a fonte muda. Constrói e mantém o índice fresco. Pode demorar — ninguém está à espera.</p>
-        <div class="foot">throughput · é aqui que vive o trabalho de dados</div>
+        <span class="kick">Antes · preparar</span>
+        <h3>Transformar os documentos em vetores</h3>
+        <p>Ingerir, partir em pedaços, transformar cada pedaço em vetor e guardar. Faz-se de uma vez — e repete-se quando a fonte muda. Ninguém está à espera.</p>
+        <div class="foot">é aqui que vive o trabalho de dados</div>
       </div>
       <div class="door b">
-        <span class="kick">Online · consulta</span>
-        <h3>Recuperar → reordenar → gerar</h3>
-        <p>Corre a cada pergunta. Busca híbrida, rerank e geração com um utilizador à espera. Cada milissegundo conta.</p>
-        <div class="foot">latência · por pedido</div>
+        <span class="kick">Na hora · responder</span>
+        <h3>Buscar os pedaços certos e gerar</h3>
+        <p>A cada pergunta: buscar os pedaços mais parecidos e entregá-los ao LLM para escrever a resposta — com o utilizador à espera.</p>
+        <div class="foot">tem de ser rápido</div>
       </div>
     </div>
   </div>
