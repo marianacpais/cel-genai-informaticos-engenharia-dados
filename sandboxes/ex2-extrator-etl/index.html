@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>O extrator — sandbox (EX-2)</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;600;700&family=Open+Sans:wght@400;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+  :root{--primary:#2F4E5E;--secondary:#6D6D3E;--light:#B8B59D;--slate:#74808D;--text:#3A3838;--bg:#F3F3F3;--white:#FFFFFF;
+    --head:"Libre Franklin",Helvetica,sans-serif;--body:"Open Sans",Helvetica,sans-serif;--mono:"JetBrains Mono","Courier New",monospace;}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--body);line-height:1.55}
+  header{background:var(--primary);color:#fff;padding:26px 40px;position:relative}
+  .header-logo{position:absolute;top:18px;right:34px;height:30px;background:#fff;padding:8px 12px;border-radius:6px}
+  header .kick{font-family:var(--head);text-transform:uppercase;letter-spacing:.08em;font-size:13px;color:var(--light);font-weight:600}
+  header h1{font-family:var(--head);font-weight:700;font-size:30px;margin:6px 0 0}
+  header p{margin:8px 0 0;color:#cfd6da;font-size:15px;max-width:940px}
+  header code{color:var(--light);font-family:var(--mono)}
+  main{max-width:1140px;margin:0 auto;padding:24px 40px 90px}
+  h2{font-family:var(--head);font-weight:600;color:var(--primary);font-size:20px;margin:0 0 4px}
+  .sub{font-size:14px;color:var(--slate);margin:0 0 14px}
+  section.block{margin-top:30px;border-top:1px solid var(--light);padding-top:22px}
+  textarea{width:100%;font-family:var(--mono);font-size:14px;padding:12px;border:1px solid #cfcfc6;background:#fbfbf8;color:var(--primary);resize:vertical;line-height:1.6}
+  label{font-size:13px;color:var(--slate);display:block;margin-bottom:5px;font-family:var(--head);text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+  .btn{font-family:var(--head);font-weight:600;font-size:14px;border:none;background:var(--primary);color:#fff;padding:11px 20px;cursor:pointer;margin-top:12px;margin-right:10px}
+  .btn.ghost{background:transparent;color:var(--primary);border:1px solid var(--primary)}
+  .btn.sm{font-size:13px;padding:8px 14px}
+  select{font-family:var(--body);font-size:14px;padding:8px 12px;border:1px solid #cfcfc6;background:var(--white);color:var(--primary)}
+  .lvl{display:inline-block;font-family:var(--head);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;padding:3px 9px;margin-left:10px}
+  .lvl.l1{background:#e3ebe4;color:var(--primary)} .lvl.l2{background:#e7e6cf;color:var(--secondary)} .lvl.l3{background:#dfe2e7;color:var(--primary)}
+  .cols{display:grid;grid-template-columns:1.2fr .8fr;gap:30px}
+  .toast{font-size:13px;color:var(--secondary);margin-left:8px}
+  pre{font-family:var(--mono);font-size:13px;background:#f6f6f1;padding:14px 16px;margin:8px 0 0;white-space:pre-wrap;color:var(--primary);line-height:1.5}
+  table.schema{border-collapse:collapse;font-family:var(--mono);font-size:13.5px;margin-top:6px;width:100%}
+  table.schema td,table.schema th{border:1px solid #e2e2da;padding:6px 10px;text-align:left}
+  table.schema th{background:#eef0ee;color:var(--slate);font-size:11px;text-transform:uppercase}
+  .req{color:var(--secondary)}
+  table.val{border-collapse:collapse;width:100%;margin-top:8px;font-size:14px}
+  table.val th,table.val td{border:1px solid #e2e2da;padding:7px 12px;text-align:left;vertical-align:top}
+  table.val th{background:#eef0ee;color:var(--slate);font-size:11px;text-transform:uppercase}
+  table.val td.f{font-family:var(--mono);color:var(--primary)}
+  .ok{color:var(--primary)} .bad{color:var(--secondary);font-weight:600}
+  .flags{margin-top:14px;display:flex;flex-direction:column;gap:8px}
+  .flag{border-left:4px solid var(--secondary);background:rgba(184,181,157,.30);padding:11px 16px;font-size:14px}
+  .flag .ftag{font-family:var(--head);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--secondary);display:block;margin-bottom:3px}
+  .flag b{color:var(--primary)}
+  .verdict{margin-top:14px;padding:16px 20px;border-left:5px solid var(--primary);background:#e9efea;font-family:var(--head);font-weight:600;color:var(--primary);font-size:16px}
+  .verdict.bad{border-left-color:var(--secondary);background:rgba(184,181,157,.30);color:var(--secondary)}
+  details{margin-top:12px} summary{cursor:pointer;color:var(--primary);font-family:var(--head);font-weight:600;font-size:14px}
+  .note{font-size:13px;color:var(--slate);margin-top:8px}
+  code{font-family:var(--mono);color:var(--primary)}
+  .hide{display:none}
+</style>
+</head>
+<body>
+<header>
+  <img class="header-logo" src="assets/logo-cel-horizontal.svg" alt="Ciência e Letras"><div class="kick">GenAI · Engenharia de Dados · Sandbox EX-2</div>
+  <h1>O extrator (LLM-como-ETL)</h1>
+  <p>O <code>T</code> do ETL pode ser um LLM: texto livre → registo estruturado. Escolha um caso, leve o texto e o schema ao seu chatbot, traga o <b>JSON</b> e cole-o aqui. O sandbox compara com uma extração de referência e mostra onde a extração escorrega — tipos errados, campos inventados, e os erros de <b>significado</b> (escopo da negação, inferência, raciocínio temporal) que só se apanham a ler com atenção. Os casos sobem de complexidade — e quanto mais denso o texto, mais o LLM tropeça.</p>
+</header>
+<main>
+
+  <section>
+    <h2>1 · O texto e o schema-alvo</h2>
+    <p class="sub">Escolha um caso (sobem de nível). O schema define os campos e os tipos do JSON.</p>
+    <label>Caso</label>
+    <select id="caso"></select> <span id="lvlbadge"></span>
+    <div class="cols" style="margin-top:12px">
+      <div><label>Texto livre (a fonte)</label><textarea id="texto" style="height:210px"></textarea></div>
+      <div><label>Schema-alvo</label><div id="schema"></div></div>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>2 · Leve ao seu chatbot</h2>
+    <p class="sub">Copie o texto + o schema, peça a extração ao seu chatbot e traga o JSON de volta.</p>
+    <button class="btn sm" id="copyp">Copiar texto + schema para o chatbot</button><span class="toast hide" id="toast">copiado ✓</span>
+    <details><summary>ver o prompt</summary><pre id="promptpre"></pre></details>
+  </section>
+
+  <section class="block">
+    <h2>3 · Cole o JSON e valide</h2>
+    <textarea id="json" style="height:160px" placeholder="Cole aqui o JSON que o chatbot devolveu…"></textarea>
+    <button class="btn" id="valbtn">Validar</button>
+    <button class="btn ghost sm" id="loadgood">Carregar a extração de referência</button>
+    <button class="btn ghost sm" id="loadbad">Carregar uma extração típica de LLM</button>
+    <div id="valout"></div>
+  </section>
+</main>
+
+<script>
+const $=s=>document.querySelector(s);
+
+// ---------- casos (crescentemente complexos) ----------
+const CASOS={
+  // ---- nível 1 ----
+  clinico:{nivel:1,nome:'Saúde · nota de triagem',
+    texto:`Homem, 54 anos, com hipertensão arterial (HTA). Sem alergias medicamentosas conhecidas. Medicado com ramipril 5mg.`,
+    schema:[['idade','number',true],['sexo','string',true],['diagnosticos','array',true],['alergias','array',true],['medicacao','array',true]],
+    gold:{idade:54,sexo:"M",diagnosticos:["hipertensão arterial"],alergias:[],medicacao:["ramipril 5mg"]},
+    typical:{idade:54,sexo:"M",diagnosticos:["hipertensão arterial"],alergias:["medicamentosas"],medicacao:["ramipril 5mg"],observacoes:"doente colaborante"},
+    notes:{alergias:['Negação','"Sem alergias medicamentosas conhecidas" → lista vazia <code>[]</code>. Não é uma alergia chamada "medicamentosas".']}},
+  suporte:{nivel:1,nome:'Suporte · e-mail de cliente',
+    texto:`Boa tarde. Desde a atualização de ontem, a vossa aplicação fecha sozinha sempre que exporto um PDF, no Windows 11. Já reinstalei e não resolveu. É urgente.`,
+    schema:[['categoria','string',true],['severidade','string',true],['plataforma','string',true],['pedido_reembolso','boolean',true]],
+    gold:{categoria:"bug",severidade:"alta",plataforma:"Windows 11",pedido_reembolso:false},
+    typical:{categoria:"bug",severidade:"alta",plataforma:"Windows 11",pedido_reembolso:true},
+    notes:{pedido_reembolso:['Inferência indevida','O cliente diz que é urgente, mas <b>nunca pede reembolso</b>. Inferir <code>true</code> é alucinar uma intenção que o texto não tem.']}},
+  recibo:{nivel:1,nome:'Finanças · recibo (OCR ruidoso)',
+    texto:`MERCADO XPTO LDA\nFATURA SIMPLIFICADA\nTOTAL  23,90 EUR\nIVA 6%\n2026-06-12`,
+    schema:[['comerciante','string',true],['total','number',true],['moeda','string',true],['iva_pct','number',true],['data','string',true]],
+    gold:{comerciante:"MERCADO XPTO LDA",total:23.90,moeda:"EUR",iva_pct:6,data:"2026-06-12"},
+    typical:{comerciante:"MERCADO XPTO LDA",total:2390,moeda:"EUR",iva_pct:6,data:"2026-06-12"},
+    notes:{total:['Unidades','A vírgula decimal portuguesa: <code>23,90</code> são 23,90 €, não 2390. Ler como inteiro é um erro de unidades clássico.']}},
+
+  // ---- nível 2 ----
+  juridico:{nivel:2,nome:'Jurídico · cláusula de renovação',
+    texto:`O presente contrato tem a duração inicial de 12 (doze) meses, renovável automaticamente por períodos iguais e sucessivos, salvo se qualquer das partes o denunciar, por escrito, com a antecedência mínima de 60 dias relativamente ao termo do período em curso.`,
+    schema:[['duracao_meses','number',true],['renovacao_automatica','boolean',true],['pre_aviso_dias','number',true]],
+    gold:{duracao_meses:12,renovacao_automatica:true,pre_aviso_dias:60},
+    typical:{duracao_meses:60,renovacao_automatica:false,pre_aviso_dias:12},
+    notes:{
+      renovacao_automatica:['Escopo da condição','"salvo se… denunciar" é uma <b>exceção</b>: o contrato renova-se sozinho até alguém o denunciar. Muitos LLMs leem "salvo" como negação e põem <code>false</code>.'],
+      duracao_meses:['Confusão de grandezas','12 meses é a duração; 60 dias é o pré-aviso. É fácil trocá-los — números diferentes, unidades diferentes.'],
+      pre_aviso_dias:['Confusão de grandezas','60 dias é o pré-aviso de denúncia, não a duração do contrato.']}},
+  rh:{nivel:2,nome:'RH · CV denso',
+    texto:`Engenheiro de software com 7 anos de experiência, dos quais os últimos 3 a liderar uma equipa de 5 pessoas. Sólido em Python e Go; experiência pontual em Rust. Mestrado em Engenharia Informática em conclusão (defesa prevista para dezembro). Inglês fluente, francês básico.`,
+    schema:[['anos_experiencia','number',true],['gere_equipa','boolean',true],['linguagens_solidas','array',true],['grau_concluido',['string','null'],true]],
+    gold:{anos_experiencia:7,gere_equipa:true,linguagens_solidas:["Python","Go"],grau_concluido:null},
+    typical:{anos_experiencia:3,gere_equipa:true,linguagens_solidas:["Python","Go","Rust"],grau_concluido:"Mestrado em Engenharia Informática"},
+    notes:{
+      anos_experiencia:['Coreferência numérica','7 anos é a experiência total; os "3" são há quanto tempo lidera. Apanhar o número errado é colar a métrica à frase errada.'],
+      linguagens_solidas:['Qualificador ignorado','Rust é "experiência pontual", não sólida — não pertence à lista de linguagens sólidas.'],
+      grau_concluido:['Raciocínio temporal','O mestrado está "em conclusão" (defesa prevista) → ainda NÃO concluído. O campo deve ser <code>null</code>.']}},
+
+  // ---- nível 3 ----
+  altaclinica:{nivel:3,nome:'Saúde · nota clínica longa',
+    texto:`Mulher de 68 anos, recorre ao serviço de urgência por dispneia de agravamento progressivo. Antecedentes pessoais de diabetes mellitus tipo 2 e fibrilhação auricular. Nega febre, tosse ou dor torácica. Sem alergias medicamentosas conhecidas. Encontrava-se medicada com varfarina, que foi suspensa nesta admissão; iniciou-se apixabano 5 mg de 12/12h. Teve alta clínica com indicação para consulta de cardiologia dentro de 2 semanas.`,
+    schema:[['idade','number',true],['sexo','string',true],['antecedentes','array',true],['sintomas','array',true],['alergias','array',true],['medicacao_atual','array',true],['seguimento','string',true]],
+    gold:{idade:68,sexo:"F",antecedentes:["diabetes mellitus tipo 2","fibrilhação auricular"],sintomas:["dispneia"],alergias:[],medicacao_atual:["apixabano 5 mg 12/12h"],seguimento:"consulta de cardiologia em 2 semanas"},
+    typical:{idade:68,sexo:"F",antecedentes:["diabetes mellitus tipo 2","fibrilhação auricular"],sintomas:["dispneia","febre","tosse","dor torácica"],alergias:["medicamentosas"],medicacao_atual:["varfarina","apixabano 5 mg 12/12h"],seguimento:"cardiologia"},
+    notes:{
+      sintomas:['Escopo da negação','"Nega febre, tosse ou dor torácica" → nenhum destes é sintoma. A negação aplica-se aos três (escopo), e o LLM tende a listá-los na mesma.'],
+      alergias:['Negação','"Sem alergias medicamentosas conhecidas" → <code>[]</code>, não <code>["medicamentosas"]</code>.'],
+      medicacao_atual:['Raciocínio temporal','A varfarina foi SUSPENSA; o apixabano foi INICIADO. A medicação atual é só o apixabano — é preciso seguir a linha do tempo, não juntar tudo o que é mencionado.']}},
+  imovel:{nivel:3,nome:'Imobiliário · anúncio denso',
+    texto:`Vende-se T2+1 em Cedofeita, com 92 m² de área útil (110 m² de área bruta), no 2.º andar de um prédio sem elevador. Totalmente remodelado em 2021. Inclui lugar de garagem. Preço: 320.000 € (ligeiramente negociável). Certificado energético B-.`,
+    schema:[['tipologia','string',true],['area_util_m2','number',true],['tem_elevador','boolean',true],['ano_remodelacao','number',true],['garagem','boolean',true],['preco_eur','number',true]],
+    gold:{tipologia:"T2+1",area_util_m2:92,tem_elevador:false,ano_remodelacao:2021,garagem:true,preco_eur:320000},
+    typical:{tipologia:"T2",area_util_m2:110,tem_elevador:true,ano_remodelacao:2021,garagem:true,preco_eur:320000},
+    notes:{
+      area_util_m2:['Campo ambíguo','São dadas DUAS áreas: 92 m² útil e 110 m² bruta. O schema pede a útil — escolher a bruta é responder à pergunta errada.'],
+      tem_elevador:['Negação','"prédio sem elevador" → <code>false</code>. A negação está colada à palavra "elevador".'],
+      tipologia:['Parsing','"T2+1" (dois quartos + uma divisão extra) não é "T2".']}},
+};
+const ORDER=['clinico','suporte','recibo','juridico','rh','altaclinica','imovel'];
+
+let CUR='clinico';
+function tipoStr(t){ return Array.isArray(t)?t.join('|'):t; }
+function loadCaso(){
+  const c=CASOS[CUR];
+  $('#lvlbadge').innerHTML=`<span class="lvl l${c.nivel}">nível ${c.nivel}</span>`;
+  $('#texto').value=c.texto;
+  $('#schema').innerHTML='<table class="schema"><tr><th>campo</th><th>tipo</th><th>obrig.</th></tr>'+
+    c.schema.map(([f,t,r])=>`<tr><td>${f}</td><td>${tipoStr(t)}</td><td>${r?'<span class="req">sim</span>':'não'}</td></tr>`).join('')+'</table>';
+  $('#promptpre').textContent=buildPrompt();
+  $('#json').value=''; $('#valout').innerHTML='';
+}
+function buildPrompt(){
+  const c=CASOS[CUR];
+  const sch=c.schema.map(([f,t,r])=>`  "${f}": ${tipoStr(t)}${r?'  (obrigatório)':''}`).join(',\n');
+  return `Extraia a informação do texto seguinte para JSON, segundo este schema:\n\n{\n${sch}\n}\n\nTexto:\n"""\n${$('#texto').value}\n"""\n\nRegras: devolva apenas JSON válido; use null (ou []) se um campo não estiver presente no texto; não invente valores.`;
+}
+function copyPrompt(){
+  const t=buildPrompt(); const done=()=>{const el=$('#toast');el.classList.remove('hide');setTimeout(()=>el.classList.add('hide'),1600);};
+  if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(done).catch(done); else done();
+}
+
+// ---------- validação ----------
+function typeOk(v,t){
+  const types=Array.isArray(t)?t:[t];
+  return types.some(tt=>{
+    if(tt==='null') return v===null;
+    if(v===null||v===undefined) return false;
+    if(tt==='array') return Array.isArray(v);
+    if(tt==='number') return typeof v==='number';
+    if(tt==='string') return typeof v==='string';
+    if(tt==='boolean') return typeof v==='boolean';
+    return true;
+  });
+}
+function canon(v){
+  if(Array.isArray(v)) return JSON.stringify(v.map(x=>String(x).toLowerCase().replace(/\s+/g,' ').trim()).sort());
+  if(typeof v==='string') return JSON.stringify(v.toLowerCase().replace(/\s+/g,' ').trim());
+  return JSON.stringify(v);
+}
+const eq=(a,b)=>canon(a)===canon(b);
+
+function validate(){
+  const c=CASOS[CUR]; let data;
+  try{ data=JSON.parse($('#json').value); }
+  catch(e){ $('#valout').innerHTML=`<div class="verdict bad">JSON inválido: ${e.message}</div>`; return; }
+  const fields=c.schema.map(s=>s[0]);
+  const flags=[];
+  // conformidade estrutural
+  let rows='';
+  for(const [f,t,req] of c.schema){
+    const has=Object.prototype.hasOwnProperty.call(data,f);
+    const v=data[f];
+    let st;
+    if(!has){ st='<span class="bad">em falta</span>'; if(req) flags.push(['Schema',`<b>${f}</b> é obrigatório e não veio.`]); }
+    else if(!typeOk(v,t)){ st='<span class="bad">tipo errado</span>'; flags.push(['Tipo',`<b>${f}</b> devia ser <code>${tipoStr(t)}</code>.`]); }
+    else st='<span class="ok">ok</span>';
+    rows+=`<tr><td class="f">${f}</td><td class="f">${has?JSON.stringify(v):'—'}</td><td>${tipoStr(t)}</td><td>${st}</td></tr>`;
+  }
+  // campos inventados
+  for(const k of Object.keys(data)) if(!fields.includes(k)) flags.push(['Campo inventado',`<b>${k}</b> não está no schema. Pedir "apenas os campos do schema" evita isto.`]);
+  // semântica: comparar com a referência nos campos curados
+  for(const [f,note] of Object.entries(c.notes||{})){
+    if(Object.prototype.hasOwnProperty.call(data,f) && !eq(data[f],c.gold[f]))
+      flags.push([note[0], note[1]+` <span style="color:var(--slate)">(referência: <code>${JSON.stringify(c.gold[f])}</code>)</span>`]);
+  }
+
+  const clean=flags.length===0;
+  $('#valout').innerHTML=
+    `<table class="val"><tr><th>campo</th><th>valor</th><th>tipo</th><th>estado</th></tr>${rows}</table>`+
+    (clean
+      ? `<div class="verdict">✓ Conforme ao schema e alinhado com a referência.</div>`
+      : `<div class="verdict bad">✗ ${flags.length} problema(s) — o JSON corre, mas a extração escorrega.</div>`
+        +`<div class="flags">${flags.map(([tag,txt])=>`<div class="flag"><span class="ftag">${tag}</span>${txt}</div>`).join('')}</div>`)
+    +`<details><summary>ver a extração de referência</summary><pre>${JSON.stringify(c.gold,null,2)}</pre></details>`
+    +`<p class="note">A resposta de engenharia: schema-constrain (Pydantic), validação de tipos e de domínio, "null se ausente", e uma bandeira de baixa confiança para revisão humana.</p>`;
+}
+
+$('#caso').innerHTML=ORDER.map(k=>`<option value="${k}">${CASOS[k].nome}</option>`).join('');
+$('#caso').onchange=e=>{CUR=e.target.value;loadCaso();};
+$('#texto').addEventListener('input',()=>{$('#promptpre').textContent=buildPrompt();});
+$('#copyp').onclick=copyPrompt;
+$('#valbtn').onclick=validate;
+$('#loadgood').onclick=()=>{$('#json').value=JSON.stringify(CASOS[CUR].gold,null,2);};
+$('#loadbad').onclick=()=>{$('#json').value=JSON.stringify(CASOS[CUR].typical,null,2);};
+loadCaso();
+</script>
+</body>
+</html>

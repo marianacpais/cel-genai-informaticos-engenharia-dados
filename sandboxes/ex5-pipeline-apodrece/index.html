@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>O pipeline que apodrece — sandbox (EX-5)</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;600;700&family=Open+Sans:wght@400;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+  :root{
+    --primary:#2F4E5E; --secondary:#6D6D3E; --light:#B8B59D; --slate:#74808D;
+    --text:#3A3838; --bg:#F3F3F3; --white:#FFFFFF;
+    --head:"Libre Franklin",Helvetica,sans-serif; --body:"Open Sans",Helvetica,sans-serif;
+    --mono:"JetBrains Mono","Courier New",monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--body);line-height:1.55}
+  header{background:var(--primary);color:#fff;padding:26px 40px;position:relative}
+  .header-logo{position:absolute;top:18px;right:34px;height:30px;background:#fff;padding:8px 12px;border-radius:6px}
+  header .kick{font-family:var(--head);text-transform:uppercase;letter-spacing:.08em;font-size:13px;color:var(--light);font-weight:600}
+  header h1{font-family:var(--head);font-weight:700;font-size:30px;margin:6px 0 0}
+  header p{margin:8px 0 0;color:#cfd6da;font-size:15px;max-width:920px}
+  header code{color:var(--light);font-family:var(--mono)}
+  main{max-width:1140px;margin:0 auto;padding:24px 40px 90px}
+  h2{font-family:var(--head);font-weight:600;color:var(--primary);font-size:20px;margin:0 0 4px}
+  .sub{font-size:14px;color:var(--slate);margin:0 0 14px}
+  .status{font-family:var(--mono);font-size:14px;color:var(--slate);padding:10px 14px;background:#eaeae3;border-left:3px solid var(--secondary);margin:6px 0}
+  .status.err{color:#7a3b2e;border-left-color:#7a3b2e} .status.ok{border-left-color:var(--primary)}
+  section.block{margin-top:30px;border-top:1px solid var(--light);padding-top:22px}
+  textarea,input[type=text]{width:100%;font-family:var(--mono);font-size:14px;padding:11px 12px;border:1px solid #cfcfc6;background:#fbfbf8;color:var(--primary);resize:vertical}
+  textarea{height:150px;line-height:1.7}
+  label{font-size:13px;color:var(--slate);display:block;margin-bottom:5px;font-family:var(--head);text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+  .btn{font-family:var(--head);font-weight:600;font-size:14px;border:none;background:var(--primary);color:#fff;padding:11px 20px;cursor:pointer;margin-top:12px;margin-right:10px}
+  .btn:disabled{opacity:.45;cursor:default}
+  .btn.ghost{background:transparent;color:var(--primary);border:1px solid var(--primary)}
+  .row{display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap}
+  .row > .grow{flex:1;min-width:260px}
+  /* banner de drift */
+  .drift{margin-top:14px;padding:14px 18px;border-left:5px solid var(--secondary);background:rgba(184,181,157,.30);font-size:15px}
+  .drift.clean{border-left-color:var(--primary);background:#e9efea}
+  .drift b{color:var(--primary)}
+  /* índice */
+  table.idx{border-collapse:collapse;width:100%;margin-top:12px;font-size:14px}
+  table.idx th,table.idx td{border:1px solid #e2e2da;padding:8px 12px;text-align:left;vertical-align:top}
+  table.idx th{background:#eef0ee;color:var(--slate);font-size:12px;text-transform:uppercase;letter-spacing:.04em;font-weight:600}
+  table.idx td.txt{font-family:var(--mono);color:var(--primary);max-width:540px}
+  table.idx td.h{font-family:var(--mono);color:var(--slate);font-size:12px}
+  .pill{font-family:var(--head);font-weight:600;font-size:12px;padding:3px 9px;white-space:nowrap}
+  .pill.ok{background:#e3ebe4;color:var(--primary)}
+  .pill.stale{background:#e7e6cf;color:var(--secondary)}
+  .pill.new{background:#dfe7ef;color:var(--primary)}
+  /* resposta */
+  .answer{margin-top:14px;background:var(--white);border:1px solid #e2e2da;border-left:4px solid var(--primary);padding:18px 22px}
+  .answer .lab{font-family:var(--head);text-transform:uppercase;letter-spacing:.06em;font-size:12px;color:var(--slate);font-weight:600}
+  .answer .ret{font-family:var(--mono);font-size:15px;color:var(--primary);margin:8px 0}
+  .answer .sim{font-family:var(--mono);font-size:13px;color:var(--slate)}
+  .stalebox{margin-top:12px;border-left:4px solid var(--secondary);background:rgba(184,181,157,.30);padding:14px 18px}
+  .stalebox .lab{font-family:var(--head);font-weight:600;color:var(--secondary);font-size:14px}
+  .stalebox .now{font-family:var(--mono);font-size:14px;color:var(--text);margin-top:6px}
+  .note{font-size:13px;color:var(--slate);margin-top:8px}
+  code{font-family:var(--mono);color:var(--primary)}
+  .hide{display:none}
+</style>
+</head>
+<body>
+<header>
+  <img class="header-logo" src="assets/logo-cel-horizontal.svg" alt="Ciência e Letras"><div class="kick">GenAI · Engenharia de Dados · Sandbox EX-5</div>
+  <h1>O pipeline que apodrece</h1>
+  <p>Um mini-RAG real, no browser. Indexe a base de conhecimento, faça perguntas — e depois <b>edite a fonte sem reindexar</b>. As respostas continuam a vir do índice antigo, com confiança e sem erro: corrupção silenciosa. No fim, aplique <b>CDC</b> (re-embeber só o que mudou) e veja a resposta corrigir-se. O embedding é um dado derivado — e, como qualquer dado derivado, apodrece.</p>
+</header>
+<main>
+  <div id="status" class="status">A carregar o modelo de embeddings (transformers.js)…</div>
+
+  <!-- 1 · FONTE + ÍNDICE -->
+  <section>
+    <h2>1 · A base de conhecimento (a fonte)</h2>
+    <p class="sub">Um chunk por linha. Edite à vontade. O índice é uma <b>fotografia</b> do momento em que indexa — não acompanha as edições sozinho.</p>
+    <textarea id="src">Por predefinição são permitidas 5 tentativas de login antes do bloqueio da conta.
+O horário de suporte é das 9h às 18h, de segunda a sexta-feira.
+As faturas são emitidas no dia 1 de cada mês e os pagamentos processados em euros.
+A reposição da palavra-passe é feita por email, com um link válido durante 30 minutos.</textarea>
+    <button class="btn" id="indexbtn" disabled>Indexar (construir o índice)</button>
+    <div id="drift"></div>
+    <div id="idxtable"></div>
+  </section>
+
+  <!-- 2 · PERGUNTA -->
+  <section class="block">
+    <h2>2 · Pergunta ao RAG</h2>
+    <p class="sub">O retrieval procura no <b>índice</b> (os embeddings guardados), não na fonte atual.</p>
+    <div class="row">
+      <div class="grow"><label>Pergunta</label><input type="text" id="q" value="quantas tentativas de login são permitidas?"></div>
+      <div><button class="btn" id="askbtn" disabled>Perguntar</button></div>
+    </div>
+    <div id="answer"></div>
+  </section>
+
+  <!-- 3 · ATUALIZAR -->
+  <section class="block">
+    <h2>3 · Atualizar o índice</h2>
+    <p class="sub">Depois de a fonte mudar, há duas formas de pôr o índice em dia.</p>
+    <button class="btn ghost" id="rebuildbtn" disabled>Reconstruir tudo</button>
+    <button class="btn" id="cdcbtn" disabled>CDC — re-embeber só o delta</button>
+    <div id="cdcout" class="note"></div>
+    <p class="note">Numa base com milhões de chunks, reconstruir tudo a cada alteração é caro e lento. O CDC re-processa apenas o que mudou — e a versão/hash de cada embedding faz parte da sua linhagem.</p>
+  </section>
+</main>
+
+<script type="module">
+const $ = s => document.querySelector(s);
+const status = $('#status');
+let extractor = null;
+
+import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2';
+env.allowLocalModels = false;
+async function boot(){
+  try{
+    extractor = await pipeline('feature-extraction', 'Xenova/paraphrase-multilingual-MiniLM-L12-v2',
+      { progress_callback: p => { if(p && p.status==='progress' && p.file && /onnx/.test(p.file))
+          status.textContent = `A descarregar o modelo (multilingue, ~1ª vez)… ${Math.round(p.progress||0)}%`; } });
+    status.className='status ok';
+    status.textContent='Modelo pronto (paraphrase-multilingual-MiniLM-L12-v2 · a correr no browser).';
+    $('#indexbtn').disabled=false;
+  }catch(e){
+    status.className='status err';
+    status.innerHTML='Não foi possível carregar o modelo. Sirva a página por http (ex.: <code>python3 -m http.server</code>) e confirme o acesso à internet. Detalhe: '+(e&&e.message);
+    console.error(e);
+  }
+}
+async function embed(list){ const o=await extractor(list,{pooling:'mean',normalize:true}); return o.tolist(); }
+const dot=(a,b)=>{let s=0;for(let i=0;i<a.length;i++)s+=a[i]*b[i];return s;};
+function hash(str){ let h=5381; for(let i=0;i<str.length;i++) h=((h<<5)+h+str.charCodeAt(i))>>>0; return h.toString(16).padStart(8,'0'); }
+function lines(){ return $('#src').value.split('\n').map(s=>s.trim()).filter(Boolean); }
+
+// índice = fotografia [{id,text,hash,emb,ver}]
+let INDEX=[]; let VER=0;
+
+async function buildIndex(){
+  const L=lines(); $('#indexbtn').disabled=true; $('#indexbtn').textContent='A indexar…';
+  const embs=await embed(L); VER++;
+  INDEX=L.map((t,i)=>({id:i,text:t,hash:hash(t),emb:embs[i],ver:VER}));
+  $('#indexbtn').disabled=false; $('#indexbtn').textContent='Reindexar (reconstruir o índice)';
+  for(const b of ['askbtn','rebuildbtn','cdcbtn']) $('#'+b).disabled=false;
+  $('#cdcout').textContent=''; $('#answer').innerHTML='';
+  renderDrift(); renderIndex();
+}
+
+// deteção de deriva entre fonte atual e índice
+function drift(){
+  const L=lines(); const changed=[]; const removed=[];
+  L.forEach((t,i)=>{ if(i>=INDEX.length) changed.push({i,type:'novo'}); else if(hash(t)!==INDEX[i].hash) changed.push({i,type:'alterado'}); });
+  for(let i=L.length;i<INDEX.length;i++) removed.push(i);
+  return {changed, removed, n:changed.length+removed.length};
+}
+function renderDrift(){
+  if(!INDEX.length){ $('#drift').innerHTML=''; return; }
+  const d=drift();
+  if(d.n===0){ $('#drift').innerHTML=`<div class="drift clean">Índice <b>atual</b> — reflete a fonte. ${INDEX.length} chunks, versão v${VER}.</div>`; }
+  else{ $('#drift').innerHTML=`<div class="drift">⚠ A fonte mudou desde a última indexação: <b>${d.n}</b> chunk(s) por re-embeber. As respostas vão sair <b>desatualizadas</b> até atualizar o índice (passo 3).</div>`; }
+}
+function renderIndex(){
+  const L=lines(); const d=drift();
+  const chg=new Map(d.changed.map(c=>[c.i,c.type]));
+  const trunc=s=>s.length>72?s.slice(0,71)+'…':s;
+  let h='<table class="idx"><thead><tr><th>#</th><th>texto no índice (fotografia)</th><th>estado</th><th>hash · versão</th></tr></thead><tbody>';
+  INDEX.forEach((e,i)=>{
+    const isChg = chg.get(i)==='alterado';
+    const pill = isChg?'<span class="pill stale">⚠ desatualizado</span>':'<span class="pill ok">✓ atual</span>';
+    h+=`<tr><td>${i+1}</td><td class="txt">${trunc(e.text)}</td><td>${pill}</td><td class="h">${e.hash} · v${e.ver}</td></tr>`;
+  });
+  // linhas novas na fonte ainda não indexadas
+  d.changed.filter(c=>c.type==='novo').forEach(c=>{ h+=`<tr><td>${c.i+1}</td><td class="txt" style="color:var(--slate)">${trunc(L[c.i])}</td><td><span class="pill new">＋ por indexar</span></td><td class="h">—</td></tr>`; });
+  h+='</tbody></table>';
+  $('#idxtable').innerHTML=h;
+}
+
+async function ask(){
+  if(!INDEX.length) return;
+  const q=$('#q').value.trim(); if(!q) return;
+  $('#askbtn').disabled=true;
+  const qv=(await embed([q]))[0];
+  $('#askbtn').disabled=false;
+  let best=-1,bi=0; INDEX.forEach((e,i)=>{const s=dot(qv,e.emb); if(s>best){best=s;bi=i;}});
+  const e=INDEX[bi]; const L=lines();
+  const sourceNow = bi<L.length ? L[bi] : '(o chunk já não existe na fonte)';
+  const isStale = hash(sourceNow)!==e.hash;
+  let html=`<div class="answer">
+    <div class="lab">Chunk recuperado (o contexto que o LLM receberia)</div>
+    <div class="ret">${e.text}</div>
+    <div class="sim">semelhança ${best.toFixed(3)} · chunk #${bi+1} · embedding v${e.ver} (${e.hash})</div>
+  </div>`;
+  if(isStale){
+    html+=`<div class="stalebox">
+      <div class="lab">⚠ Resposta desatualizada (stale)</div>
+      <div class="now">A fonte atual diz: <b>${sourceNow}</b></div>
+      <div class="now" style="color:var(--slate)">O índice ainda guarda a versão antiga — e responde com ela, sem erro. É a corrupção silenciosa do RAG. Atualize o índice no passo 3.</div>
+    </div>`;
+  }
+  $('#answer').innerHTML=html;
+}
+
+async function rebuildAll(){
+  $('#rebuildbtn').disabled=true; $('#rebuildbtn').textContent='A reconstruir…';
+  await buildIndex();   // reindexa tudo
+  $('#rebuildbtn').textContent='Reconstruir tudo';
+  $('#cdcout').innerHTML=`Reconstrução total: re-embebidos <b>${INDEX.length} / ${INDEX.length}</b> chunks.`;
+}
+async function cdc(){
+  const d=drift(); if(d.n===0){ $('#cdcout').textContent='Nada a fazer — o índice já está atual.'; return; }
+  $('#cdcbtn').disabled=true; $('#cdcbtn').textContent='A re-embeber o delta…';
+  const L=lines(); VER++;
+  // re-embeber só os alterados/novos
+  const toEmbed=d.changed.map(c=>c.i);
+  if(toEmbed.length){ const embs=await embed(toEmbed.map(i=>L[i]));
+    toEmbed.forEach((i,k)=>{ INDEX[i]={id:i,text:L[i],hash:hash(L[i]),emb:embs[k],ver:VER}; }); }
+  // remover os que já não existem
+  if(d.removed.length){ INDEX=INDEX.filter((_,i)=>i<L.length); }
+  $('#cdcbtn').disabled=false; $('#cdcbtn').textContent='CDC — re-embeber só o delta';
+  $('#cdcout').innerHTML=`CDC: re-embebidos apenas <b>${toEmbed.length} / ${L.length}</b> chunks (os que mudaram). Índice agora na versão v${VER}.`;
+  renderDrift(); renderIndex();
+}
+
+$('#indexbtn').onclick=buildIndex;
+$('#askbtn').onclick=ask;
+$('#rebuildbtn').onclick=rebuildAll;
+$('#cdcbtn').onclick=cdc;
+$('#src').addEventListener('input', ()=>{ if(INDEX.length){ renderDrift(); renderIndex(); } });
+boot();
+</script>
+</body>
+</html>

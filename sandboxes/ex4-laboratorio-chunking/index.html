@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Laboratório de chunking — sandbox (EX-4)</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;600;700&family=Open+Sans:wght@400;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+  :root{--primary:#2F4E5E;--secondary:#6D6D3E;--light:#B8B59D;--slate:#74808D;--text:#3A3838;--bg:#F3F3F3;--white:#FFFFFF;
+    --head:"Libre Franklin",Helvetica,sans-serif;--body:"Open Sans",Helvetica,sans-serif;--mono:"JetBrains Mono","Courier New",monospace;}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--body);line-height:1.55}
+  header{background:var(--primary);color:#fff;padding:26px 40px;position:relative}
+  .header-logo{position:absolute;top:18px;right:34px;height:30px;background:#fff;padding:8px 12px;border-radius:6px}
+  header .kick{font-family:var(--head);text-transform:uppercase;letter-spacing:.08em;font-size:13px;color:var(--light);font-weight:600}
+  header h1{font-family:var(--head);font-weight:700;font-size:30px;margin:6px 0 0}
+  header p{margin:8px 0 0;color:#cfd6da;font-size:15px;max-width:920px}
+  header code{color:var(--light);font-family:var(--mono)}
+  main{max-width:1140px;margin:0 auto;padding:24px 40px 90px}
+  h2{font-family:var(--head);font-weight:600;color:var(--primary);font-size:20px;margin:0 0 4px}
+  .sub{font-size:14px;color:var(--slate);margin:0 0 14px}
+  .status{font-family:var(--mono);font-size:14px;color:var(--slate);padding:10px 14px;background:#eaeae3;border-left:3px solid var(--secondary);margin:6px 0}
+  .status.err{color:#7a3b2e;border-left-color:#7a3b2e} .status.ok{border-left-color:var(--primary)}
+  section.block{margin-top:28px;border-top:1px solid var(--light);padding-top:20px}
+  textarea,input[type=text],input[type=number],select{font-family:var(--mono);font-size:14px;padding:9px 11px;border:1px solid #cfcfc6;background:#fbfbf8;color:var(--primary)}
+  textarea{width:100%;height:140px;line-height:1.7;resize:vertical}
+  select{font-family:var(--body)}
+  label{font-size:13px;color:var(--slate);display:block;margin-bottom:5px;font-family:var(--head);text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+  .btn{font-family:var(--head);font-weight:600;font-size:14px;border:none;background:var(--primary);color:#fff;padding:11px 20px;cursor:pointer;margin-top:6px;margin-right:10px}
+  .btn:disabled{opacity:.45;cursor:default}
+  .controls{display:flex;gap:18px;align-items:flex-end;flex-wrap:wrap;margin-top:10px}
+  .controls > div{display:flex;flex-direction:column}
+  input[type=number]{width:90px}
+  /* chunks */
+  .chunks{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+  .chunk{font-family:var(--mono);font-size:13.5px;background:var(--white);border:1px solid #e2e2da;border-left:3px solid var(--light);padding:10px 14px;color:var(--primary);position:relative}
+  .chunk .tag{font-family:var(--head);font-size:11px;color:var(--slate);text-transform:uppercase;letter-spacing:.04em;float:right}
+  .chunk.hit{border-left-color:var(--primary);background:#eef0ee}
+  .chunk mark{background:#e7e6cf;color:var(--secondary);padding:0 2px}
+  /* resposta */
+  .answer{margin-top:14px;padding:16px 20px;border-left:5px solid var(--primary);background:#e9efea}
+  .answer.fail{border-left-color:var(--secondary);background:rgba(184,181,157,.30)}
+  .answer .k{font-family:var(--head);font-weight:600;font-size:16px}
+  .answer.fail .k{color:var(--secondary)} .answer .k{color:var(--primary)}
+  .answer .d{font-size:14px;margin-top:6px;color:var(--text)}
+  .answer .d b{color:var(--primary)}
+  .note{font-size:13px;color:var(--slate);margin-top:8px}
+  code{font-family:var(--mono);color:var(--primary)}
+</style>
+</head>
+<body>
+<header>
+  <img class="header-logo" src="assets/logo-cel-horizontal.svg" alt="Ciência e Letras"><div class="kick">GenAI · Engenharia de Dados · Sandbox EX-4</div>
+  <h1>Laboratório de chunking</h1>
+  <p>Um documento, várias formas de o partir. Mude a estratégia de chunking, indexe, faça a pergunta — e veja o chunk recuperado mudar. <b>Mesmo documento, mesmo modelo, resultado oposto</b>: se o corte parte a resposta a meio, o retrieval falha. O chunking é uma decisão de engenharia de dados, não do modelo.</p>
+</header>
+<main>
+  <div id="status" class="status">A carregar o modelo de embeddings (transformers.js)…</div>
+
+  <section>
+    <h2>1 · O documento</h2>
+    <p class="sub">O facto-chave ("<span id="factlabel">5 tentativas</span>") está a meio de um parágrafo — de propósito, para o corte fixo o poder partir.</p>
+    <textarea id="doc">A nossa aplicação corre em Windows, macOS e Linux. O suporte técnico funciona das 9h às 18h, de segunda a sexta-feira.
+
+A conta bloqueia após tentativas de login falhadas. O limite é configurável pelo administrador. Por predefinição são permitidas 5 tentativas antes do bloqueio da conta. O desbloqueio é automático ao fim de 15 minutos.
+
+As faturas são emitidas no dia 1 de cada mês e os pagamentos são processados em euros.</textarea>
+  </section>
+
+  <section class="block">
+    <h2>2 · A estratégia de chunking</h2>
+    <div class="controls">
+      <div><label>Estratégia</label>
+        <select id="strat">
+          <option value="fixo">Tamanho fixo · sem overlap</option>
+          <option value="overlap">Tamanho fixo · com overlap</option>
+          <option value="paragrafo">Por parágrafo</option>
+          <option value="frase">Por frase</option>
+        </select>
+      </div>
+      <div><label>Tamanho (carateres)</label><input type="number" id="size" value="90" min="20" step="10"></div>
+      <div><label>Overlap</label><input type="number" id="ov" value="30" min="0" step="10"></div>
+      <div><button class="btn" id="chunkbtn" disabled>Partir e indexar</button></div>
+    </div>
+    <div id="chunks" class="chunks"></div>
+  </section>
+
+  <section class="block">
+    <h2>3 · Pergunta</h2>
+    <div class="controls">
+      <div style="flex:1;min-width:280px"><label>Pergunta</label><input type="text" id="q" value="quantas tentativas de login são permitidas?" style="width:100%"></div>
+      <div><label>Facto a encontrar</label><input type="text" id="fact" value="5 tentativas" style="width:160px"></div>
+      <div><button class="btn" id="askbtn" disabled>Recuperar</button></div>
+    </div>
+    <div id="answer"></div>
+  </section>
+</main>
+
+<script type="module">
+const $=s=>document.querySelector(s);
+const status=$('#status');
+let extractor=null;
+import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2';
+env.allowLocalModels=false;
+async function boot(){
+  try{
+    extractor=await pipeline('feature-extraction','Xenova/paraphrase-multilingual-MiniLM-L12-v2',
+      {progress_callback:p=>{if(p&&p.status==='progress'&&p.file&&/onnx/.test(p.file)) status.textContent=`A descarregar o modelo (~1ª vez)… ${Math.round(p.progress||0)}%`;}});
+    status.className='status ok'; status.textContent='Modelo pronto (paraphrase-multilingual-MiniLM-L12-v2 · no browser).';
+    $('#chunkbtn').disabled=false; $('#askbtn').disabled=false;
+  }catch(e){ status.className='status err'; status.innerHTML='Não foi possível carregar o modelo. Sirva por http (<code>python3 -m http.server</code>) com internet. Detalhe: '+(e&&e.message); console.error(e);}
+}
+async function embed(list){ const o=await extractor(list,{pooling:'mean',normalize:true}); return o.tolist(); }
+const dot=(a,b)=>{let s=0;for(let i=0;i<a.length;i++)s+=a[i]*b[i];return s;};
+
+// ---------- chunkers ----------
+function chunkFixed(t,size,ov=0){ const out=[]; const step=Math.max(1,size-ov); for(let i=0;i<t.length;i+=step){ out.push(t.slice(i,i+size).trim()); if(i+size>=t.length) break; } return out.filter(Boolean); }
+function chunkParagraph(t){ return t.split(/\n\s*\n/).map(s=>s.replace(/\s+/g,' ').trim()).filter(Boolean); }
+function chunkSentence(t){ return t.replace(/\s+/g,' ').split(/(?<=[.!?])\s+/).map(s=>s.trim()).filter(Boolean); }
+function makeChunks(){
+  const t=$('#doc').value, strat=$('#strat').value, size=+$('#size').value, ov=+$('#ov').value;
+  if(strat==='fixo') return chunkFixed(t,size,0);
+  if(strat==='overlap') return chunkFixed(t,size,ov);
+  if(strat==='paragrafo') return chunkParagraph(t);
+  return chunkSentence(t);
+}
+
+let CHUNKS=[], VECS=[];
+async function chunkIndex(){
+  CHUNKS=makeChunks();
+  $('#chunkbtn').disabled=true; $('#chunkbtn').textContent='A indexar…';
+  VECS=await embed(CHUNKS);
+  $('#chunkbtn').disabled=false; $('#chunkbtn').textContent='Partir e indexar';
+  renderChunks(-1); $('#answer').innerHTML='';
+}
+function esc(s){ return s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+function renderChunks(hit){
+  const fact=$('#fact').value.trim();
+  $('#chunks').innerHTML=CHUNKS.map((c,i)=>{
+    let html=esc(c);
+    if(fact){ const re=new RegExp('('+fact.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','i'); html=html.replace(re,'<mark>$1</mark>'); }
+    return `<div class="chunk ${i===hit?'hit':''}"><span class="tag">chunk ${i+1} · ${c.length} car</span>${html}</div>`;
+  }).join('');
+}
+async function ask(){
+  if(!CHUNKS.length){ $('#answer').innerHTML='<div class="answer fail"><div class="k">Indexe primeiro (passo 2).</div></div>'; return; }
+  const q=$('#q').value.trim(), fact=$('#fact').value.trim();
+  $('#askbtn').disabled=true;
+  const qv=(await embed([q]))[0];
+  $('#askbtn').disabled=false;
+  let best=-1,bi=0; VECS.forEach((v,i)=>{const s=dot(qv,v); if(s>best){best=s;bi=i;}});
+  renderChunks(bi);
+  const has = fact && CHUNKS[bi].toLowerCase().includes(fact.toLowerCase());
+  const anyHas = fact && CHUNKS.some(c=>c.toLowerCase().includes(fact.toLowerCase()));
+  $('#answer').innerHTML = `<div class="answer ${has?'':'fail'}">
+    <div class="k">${has?'✓ A resposta está no chunk recuperado.':'✗ O chunk recuperado não contém a resposta.'}</div>
+    <div class="d">Recuperado o <b>chunk ${bi+1}</b> (semelhança ${best.toFixed(3)}). ${has
+       ? 'O facto «'+esc(fact)+'» está inteiro neste pedaço.'
+       : (anyHas ? 'O facto «'+esc(fact)+'» <b>existe no documento</b>, mas o corte separou-o do contexto que a pergunta puxa — ficou noutro chunk.' : 'O facto «'+esc(fact)+'» não aparece inteiro em nenhum chunk: o corte partiu-o.')}</div>
+    <div class="note">Mude a estratégia para <b>por parágrafo</b> ou aumente o overlap e volte a indexar — mesma pergunta, mesmo modelo.</div>
+  </div>`;
+}
+$('#chunkbtn').onclick=chunkIndex;
+$('#askbtn').onclick=ask;
+$('#fact').addEventListener('input',()=>{ $('#factlabel').textContent=$('#fact').value||'…'; if(CHUNKS.length) renderChunks(-1); });
+boot();
+</script>
+</body>
+</html>

@@ -1,0 +1,141 @@
+/* Diagramas — Aula 5 Embeddings. Assenta sobre cel-base.css (tokens da marca). */
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root { --mono: "JetBrains Mono", "Courier New", monospace; }
+
+/* ---------- preencher a tela: corpo centra-se na altura disponível ---------- */
+/* !important porque o reveal injeta display:block inline no slide ativo */
+.reveal .slides section.content-slide { display: flex !important; flex-direction: column; }
+.reveal .content-slide .separator { margin-bottom: 0; }
+.reveal .content-slide .stage {
+  flex: 1 1 auto; min-height: 0;
+  display: flex; flex-direction: column; justify-content: center;
+  gap: 28px;
+  padding: 34px 0 56px;
+}
+.stage .lead { font-size: 22pt; max-width: 80%; }
+
+/* ---------- pílula-vetor ---------- */
+.vec {
+  font-family: var(--mono);
+  font-size: 19pt;
+  background: var(--cel-white);
+  border: 1px solid var(--cel-slate);
+  border-radius: 999px;
+  padding: 14px 28px;
+  color: var(--cel-primary);
+  display: inline-block;
+  white-space: nowrap;
+  letter-spacing: 0.04em;
+}
+.vec.warm { border-color: var(--cel-secondary); box-shadow: inset 4px 0 0 var(--cel-secondary); }
+.vec.cool { border-color: var(--cel-slate); box-shadow: inset 4px 0 0 var(--cel-slate); }
+
+/* ---------- tiles de token (subpalavra) ---------- */
+.tiles { display: flex; gap: 14px; align-items: flex-start; flex-wrap: wrap; }
+.tile {
+  font-family: var(--mono);
+  font-size: 28pt;
+  background: var(--cel-white);
+  border: 1px solid var(--cel-light);
+  padding: 20px 26px;
+  color: var(--cel-primary);
+  text-align: center;
+  line-height: 1.1;
+}
+.tile .id { display: block; font-size: 14pt; color: var(--cel-slate); margin-top: 10px; }
+.tile.hl { border-color: var(--cel-secondary); background: #fbfbf6; }
+.tile.big { font-size: 34pt; padding: 24px 32px; }
+.word-arrow { font-size: 30pt; color: var(--cel-slate); align-self: center; }
+
+/* ---------- cadeia que se preenche (com legendas) ---------- */
+.chain { display: flex; align-items: flex-start; justify-content: center; gap: 0; }
+.chain .node {
+  font-family: var(--mono); font-size: 22pt; color: var(--cel-slate);
+  padding: 0 12px; margin-top: 54px;
+}
+.chain-col { display: flex; flex-direction: column; align-items: center; gap: 18px; width: 188px; }
+.chain-box {
+  position: relative;
+  width: 188px; height: 132px;
+  border: 2px solid var(--cel-light);
+  background: var(--cel-white);
+  display: flex; align-items: center; justify-content: center;
+  text-align: center;
+  font-family: var(--heading-font); font-weight: 600; font-size: 22pt;
+  color: var(--cel-primary);
+  padding: 8px 12px; box-sizing: border-box;
+}
+.chain-box .q { font-size: 46pt; color: var(--cel-light); }
+.chain-box .lbl { display: none; }
+.chain-box .lbl.visible { display: block; }
+.chain-box:has(.lbl.visible) { background: var(--cel-primary); border-color: var(--cel-primary); color: var(--cel-white); }
+.chain-box:has(.lbl.visible) .q { display: none; }
+.chain-col .cap { font-size: 15pt; color: var(--cel-slate); text-align: center; line-height: 1.32; }
+.chain .arrow { width: 44px; height: 2px; background: var(--cel-secondary); position: relative; flex: 0 0 auto; margin-top: 65px; }
+.chain .arrow::after {
+  content: ""; position: absolute; right: -1px; top: -6px;
+  border-left: 11px solid var(--cel-secondary);
+  border-top: 7px solid transparent; border-bottom: 7px solid transparent;
+}
+.chain-hint { text-align: center; font-size: 17pt; color: var(--cel-slate); }
+
+/* ---------- fluxo "banco" (atenção) ---------- */
+.attn { display: flex; flex-direction: column; align-items: center; gap: 22px; }
+.attn .phrase {
+  font-family: var(--mono); font-size: 22pt; color: var(--cel-text);
+  background: var(--cel-white); border: 1px solid var(--cel-light);
+  padding: 18px 28px; width: 880px; text-align: center; box-sizing: border-box;
+}
+.attn .phrase b { color: var(--cel-primary); background: #ece9da; padding: 2px 10px; border-radius: 3px; }
+.attn .box {
+  background: var(--cel-primary); color: var(--cel-white);
+  font-family: var(--heading-font); font-weight: 600; font-size: 24pt;
+  letter-spacing: 0.06em; padding: 18px 64px;
+}
+.attn .down { color: var(--cel-secondary); font-size: 30pt; line-height: 1; }
+.attn .outs { display: flex; gap: 90px; align-items: flex-start; }
+.attn .outs .cap { font-size: 16pt; color: var(--cel-slate); margin-top: 12px; }
+.attn .cos {
+  font-family: var(--heading-font); font-weight: 600; font-size: 20pt;
+  color: var(--cel-primary); border: 1px dashed var(--cel-slate);
+  padding: 12px 24px; margin-top: 6px;
+}
+.attn .cos b { color: var(--cel-secondary); }
+
+/* ---------- diagramas SVG (scatter, forças) ---------- */
+.figure { margin: 0 auto; max-width: 1040px; width: 100%; }
+.figure svg { width: 100%; height: auto; display: block; }
+.svg-label { font-family: var(--body-font); font-size: 18px; fill: var(--cel-text); paint-order: stroke; stroke: var(--cel-bg); stroke-width: 5px; stroke-linejoin: round; }
+.svg-label.muted { fill: var(--cel-slate); font-size: 16px; }
+.svg-mono { font-family: var(--mono); font-size: 16px; fill: var(--cel-primary); }
+
+/* ---------- painel de síntese escuro ---------- */
+.panel-dark {
+  background: var(--cel-primary); color: var(--cel-white);
+  border-left: 5px solid var(--cel-secondary);
+  padding: 40px 48px;
+}
+.panel-dark .big { font-family: var(--heading-font); font-weight: 600; font-size: 33pt; line-height: 1.25; margin: 0; color: var(--cel-white); }
+.panel-dark .tags { font-family: var(--mono); font-size: 20pt; color: var(--cel-light); margin-top: 20px; letter-spacing: 0.04em; }
+
+/* ---------- cards de contraste (fecho) ---------- */
+.contrast { display: grid; grid-template-columns: 1fr 1.25fr; gap: 32px; align-items: stretch; }
+.contrast .c {
+  background: var(--cel-white); border-left: 4px solid var(--cel-secondary);
+  padding: 44px 48px; min-height: 320px;
+  display: flex; flex-direction: column; justify-content: center;
+}
+.contrast .c.weight { background: var(--cel-primary); border-left-color: var(--cel-secondary); color: var(--cel-white); }
+.contrast .c h3 { font-size: 28pt; margin-bottom: 20px; }
+.contrast .c.weight h3 { color: var(--cel-white); }
+.contrast .c p { font-size: 21pt; color: var(--cel-text); margin: 0; }
+.contrast .c.weight p { color: var(--cel-light); }
+.contrast .c.weight .chips { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 4px; }
+.contrast .c.weight .chips span {
+  font-family: var(--mono); font-size: 17pt; color: var(--cel-white);
+  border: 1px solid rgba(255,255,255,0.4); padding: 10px 16px;
+}
+
+/* fragmentos SVG entram suaves */
+.reveal .fragment { transition: opacity 600ms var(--cel-ease), transform 600ms var(--cel-ease); }

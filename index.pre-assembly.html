@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GenAI na Engenharia de Dados — Aula 5</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reset.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/theme/white.css" id="theme">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="cel-base.css">
+  <link rel="stylesheet" href="diagrams.css">
+  <style>
+    .mono { font-family: var(--mono); color: var(--cel-primary); }
+    .hcenter { display: flex; align-items: center; }
+  </style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+  <!-- ===================== CAPA ===================== -->
+  <section class="cover">
+    <div class="accent-line"></div>
+    <h1>GenAI na Engenharia de Dados</h1>
+    <p class="subtitle">Aula 5 · GenAI para Informáticos — da fábrica de dados às pipelines que alimentam a IA</p>
+    <img class="cover-logo" src="assets/logo-cel-horizontal.svg" alt="Ciência e Letras">
+  </section>
+
+  <!-- ===================== ABERTURA ===================== -->
+  <section class="section-divider" data-transition="fade" data-background-transition="fade">
+    <p class="label">Abertura</p>
+    <h2>De onde veio o Excel?</h2>
+  </section>
+
+  <section class="content-slide">
+    <span class="label-tag">O buraco entre as aulas</span>
+    <h2>Vocês analisaram um dataset. Quem o fez?</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="chain">
+        <span class="node">fontes</span>
+        <span class="arrow"></span>
+        <div class="chain-col">
+          <div class="chain-box"><span class="q">?</span></div>
+          <div class="cap">engenharia de dados</div>
+        </div>
+        <span class="arrow"></span>
+        <div class="chain-col">
+          <div class="chain-box fill">dataset limpo</div>
+          <div class="cap">a tal "BD Partos"</div>
+        </div>
+        <span class="arrow"></span>
+        <div class="chain-col">
+          <div class="chain-box fill">análise</div>
+          <div class="cap">aulas 3–4</div>
+        </div>
+      </div>
+      <p class="chain-hint">As aulas 3–4 começaram aqui à direita. Hoje é sobre a caixa do "?".</p>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">01</span></div>
+    <aside class="notes">As aulas 3–4 trataram os dados como um dado adquirido. Mas alguém produziu, limpou e mantém fresco aquele ficheiro. Isso é engenharia de dados — a canalização antes da água.</aside>
+  </section>
+
+  <section class="content-slide">
+    <span class="label-tag">Engenharia de dados em 5 minutos</span>
+    <h2>A fábrica, não o produto</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="chain">
+        <div class="chain-col"><div class="chain-box fill">fontes</div><div class="cap">apps, APIs, ficheiros, sensores</div></div>
+        <span class="arrow"></span>
+        <div class="chain-col"><div class="chain-box fill">ingestão</div><div class="cap">batch vs streaming</div></div>
+        <span class="arrow"></span>
+        <div class="chain-col"><div class="chain-box fill">armazém</div><div class="cap">warehouse · lake</div></div>
+        <span class="arrow"></span>
+        <div class="chain-col"><div class="chain-box fill">transformar</div><div class="cap">ETL vs ELT</div></div>
+        <span class="arrow"></span>
+        <div class="chain-col"><div class="chain-box fill">serviço</div><div class="cap">análise, BI, modelos</div></div>
+      </div>
+      <div class="callout" style="max-width:80%; margin:0 auto;">
+        <span class="k">A propriedade que vai assombrar a aula toda</span>
+        <p>A engenharia de dados vive de <strong>idempotência</strong> e <strong>reprodutibilidade</strong>. Guardem isto — vai colidir de frente com os LLMs.</p>
+      </div>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">02</span></div>
+    <aside class="notes">Público informático: assumir base. Fixar só o vocabulário. O que importa reter é a propriedade: correr a mesma pipeline duas vezes dá o mesmo resultado. Os LLMs são estocásticos — partem isto.</aside>
+  </section>
+
+  <!-- ===================== AS DUAS PORTAS ===================== -->
+  <section class="section-divider" data-transition="fade" data-background-transition="fade">
+    <p class="label">A tese</p>
+    <h2>Duas portas opostas</h2>
+  </section>
+
+  <section class="content-slide">
+    <span class="label-tag">Como a GenAI entra na engenharia de dados</span>
+    <h2>Duas portas — e a segunda mudou tudo</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="doors">
+        <div class="door a">
+          <span class="kick">Porta A</span>
+          <h3>GenAI como copiloto <em>do</em> engenheiro de dados</h3>
+          <p>Acelera as tarefas clássicas — escrever SQL, ETL, modelar, documentar.</p>
+          <div class="foot">é o esperado · atravessar com firmeza</div>
+        </div>
+        <div class="door b">
+          <span class="kick">Porta B</span>
+          <h3>O engenheiro de dados a construir <em>para</em> a GenAI</h3>
+          <p>Categoria de trabalho que quase não existia: alimentar RAG, embeddings, extrair estrutura com o próprio LLM.</p>
+          <div class="foot">a estrela · o coração da aula</div>
+        </div>
+      </div>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">03</span></div>
+    <aside class="notes">Espelha a Aula 1 ("escrever → orientar → validar"). Aqui é a evolução do pipeline. Agentes ficam para outra aula — aviso honesto.</aside>
+  </section>
+
+  <!-- ===================== PORTA A ===================== -->
+  <section class="section-divider" data-transition="fade" data-background-transition="fade">
+    <p class="label">Porta A</p>
+    <h2>O copiloto do engenheiro de dados</h2>
+  </section>
+
+  <section class="content-slide">
+    <span class="label-tag">O mito</span>
+    <h2>"Já não é preciso escrever SQL — os LLMs escrevem-no"</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="zeitgeist">
+        <p class="quote">Vamos provar, por A + B, que isto é <em>perigosamente</em> falso.</p>
+        <p class="src">O SQL gerado corre sem erro. Dá o número errado. E ninguém vê.</p>
+      </div>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">04</span></div>
+  </section>
+
+  <!-- SQL #1 grain -->
+  <section class="content-slide">
+    <span class="label-tag">O SQL que mente · 1/4</span>
+    <h2>"Quantos clientes temos?"</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="qbar"><span class="ico">NL →</span> Quantos clientes temos?</div>
+      <div class="sql-grid">
+        <div class="sql-card wrong">
+          <span class="tag">⟶ o que o LLM gera</span>
+          <pre>SELECT COUNT(*)
+FROM encomendas;</pre>
+          <p class="res">→ <b>14 820</b> <span style="color:var(--cel-slate)">(encomendas)</span></p>
+        </div>
+        <div class="sql-card right">
+          <span class="tag">⟶ o que estava certo</span>
+          <pre>SELECT COUNT(DISTINCT cliente_id)
+FROM clientes;</pre>
+          <p class="res">→ <b>3 102</b> <span style="color:var(--cel-slate)">(clientes)</span></p>
+        </div>
+      </div>
+      <p class="why"><b>Pitfall: grain.</b> A tabela tem uma linha por encomenda. Um cliente com 5 compras conta 5×. O LLM não conhece o <em>grão</em> da tua tabela.</p>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">05</span></div>
+  </section>
+
+  <!-- SQL #2 missing rows -->
+  <section class="content-slide">
+    <span class="label-tag">O SQL que mente · 2/4</span>
+    <h2>"Tempo médio de resolução de tickets"</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="qbar"><span class="ico">NL →</span> Qual o tempo médio de resolução de tickets?</div>
+      <div class="sql-grid">
+        <div class="sql-card wrong">
+          <span class="tag">⟶ o que o LLM gera</span>
+          <pre>SELECT AVG(fechado_em - aberto_em)
+FROM tickets;</pre>
+          <p class="res">→ <b>1.8 dias</b> <span style="color:var(--cel-slate)">(parece ótimo)</span></p>
+        </div>
+        <div class="sql-card right">
+          <span class="tag">⟶ a realidade</span>
+          <pre>-- tickets ABERTOS (fechado_em IS NULL)
+-- nem entram na média</pre>
+          <p class="res">→ <b>muitos</b> <span style="color:var(--cel-slate)">há semanas em aberto</span></p>
+        </div>
+      </div>
+      <p class="why"><b>Pitfall: linhas em falta.</b> Os tickets ainda abertos não têm data de fecho → caem fora. A média parece melhor do que a realidade.</p>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">06</span></div>
+  </section>
+
+  <!-- SQL #3 NOT IN NULL -->
+  <section class="content-slide">
+    <span class="label-tag">O SQL que mente · 3/4</span>
+    <h2>"Produtos que nunca foram vendidos"</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="qbar"><span class="ico">NL →</span> Que produtos nunca foram vendidos?</div>
+      <div class="sql-grid">
+        <div class="sql-card wrong">
+          <span class="tag">⟶ o que o LLM gera</span>
+          <pre>SELECT * FROM produtos
+WHERE id NOT IN (
+  SELECT produto_id FROM vendas);</pre>
+          <p class="res">→ <b>0 linhas</b> <span style="color:var(--cel-slate)">(sem erro!)</span></p>
+        </div>
+        <div class="sql-card right">
+          <span class="tag">⟶ o que estava certo</span>
+          <pre>SELECT * FROM produtos p
+WHERE NOT EXISTS (
+  SELECT 1 FROM vendas v
+  WHERE v.produto_id = p.id);</pre>
+          <p class="res">→ <b>37 produtos</b></p>
+        </div>
+      </div>
+      <p class="why"><b>Pitfall: NOT IN + NULL.</b> Basta um <span class="mono">produto_id</span> a NULL na subquery para <strong>NOT IN</strong> devolver conjunto vazio. Footgun clássico de SQL.</p>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">07</span></div>
+  </section>
+
+  <!-- SQL #4 fan-out -->
+  <section class="content-slide">
+    <span class="label-tag">O SQL que mente · 4/4</span>
+    <h2>"Receita total por região"</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="qbar"><span class="ico">NL →</span> Qual a receita total por região?</div>
+      <div class="sql-grid">
+        <div class="sql-card wrong">
+          <span class="tag">⟶ o que o LLM gera</span>
+          <pre>SELECT regiao, SUM(valor)
+FROM encomendas e
+JOIN linhas_encomenda l
+  ON l.encomenda_id = e.id
+GROUP BY regiao;</pre>
+          <p class="res">→ receita <b>inflada</b></p>
+        </div>
+        <div class="sql-card right">
+          <span class="tag">⟶ o que estava certo</span>
+          <pre>-- agregar ao grão certo PRIMEIRO,
+-- depois juntar à região
+-- (senão o valor multiplica
+--  pelo nº de linhas da encomenda)</pre>
+          <p class="res">→ receita <b>real</b></p>
+        </div>
+      </div>
+      <p class="why"><b>Pitfall: fan-out do join.</b> Várias linhas por encomenda → o valor é contado em dobro (ou triplo). O join "parece" certo.</p>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">08</span></div>
+  </section>
+
+  <!-- SQL síntese -->
+  <section class="content-slide">
+    <span class="label-tag">O SQL que mente · síntese</span>
+    <h2>Porque é que isto é pior do que um bug</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="points">
+        <div class="point"><span class="m"></span><p>O SQL é <b>sintaticamente perfeito</b> e <b>corre sem erro</b>.</p></div>
+        <div class="point"><span class="m"></span><p>O erro é <b>semântico e silencioso</b> — um número errado, não um crash.</p></div>
+        <div class="point"><span class="m"></span><p>Propaga-se a jusante durante semanas: <b>corrupção silenciosa de dados</b>.</p></div>
+      </div>
+      <div class="panel-dark" style="margin-top:8px;">
+        <p class="big">O LLM não conhece o teu grão, as tuas definições de negócio, nem os teus NULLs.</p>
+        <p class="tags">o copiloto acelera quem sabe ler SQL · é armadilha para quem o usa para não aprender</p>
+      </div>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">09</span></div>
+  </section>
+
+  <!-- resto do copiloto -->
+  <section class="content-slide">
+    <span class="label-tag">Porta A · o resto do copiloto</span>
+    <h2>Onde a GenAI acelera mesmo o engenheiro de dados</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="points two">
+        <div class="point"><span class="m"></span><p><b>Geração de ETL / dbt</b><span class="sub">modelos, testes e descrições a partir de uma frase</span></p></div>
+        <div class="point"><span class="m"></span><p><b>Migração e tradução de SQL</b><span class="sub">Oracle → BigQuery, legacy → moderno (tarefa bem definida)</span></p></div>
+        <div class="point"><span class="m"></span><p><b>Catalogação e metadados</b><span class="sub">auto-descrição de tabelas e colunas</span></p></div>
+        <div class="point"><span class="m"></span><p><b>Qualidade de dados semântica</b><span class="sub">erros contextuais de uma linha, para além de regras</span></p></div>
+        <div class="point"><span class="m"></span><p><b>Lineage automático</b><span class="sub">lê SQL/dbt/DAGs e constrói o grafo de linhagem</span></p></div>
+        <div class="point"><span class="m"></span><p><b>Documentação</b><span class="sub">resumir pipelines, gerar READMEs do data stack</span></p></div>
+      </div>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">10</span></div>
+  </section>
+
+  <!-- copilotos de plataforma -->
+  <section class="content-slide">
+    <span class="label-tag">Porta A · copilotos de plataforma</span>
+    <h2>Já estão dentro das ferramentas que usam</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="tiles-grid">
+        <div class="tcard"><i class="fa-solid fa-bolt"></i><h4>Databricks Genie</h4><p>NL → SQL e pipelines sobre o lakehouse.</p></div>
+        <div class="tcard"><i class="fa-regular fa-snowflake"></i><h4>Snowflake Cortex</h4><p>Cortex Analyst / Code: queries e workflows.</p></div>
+        <div class="tcard"><i class="fa-brands fa-google"></i><h4>BigQuery + Gemini</h4><p>Assistente de dados e geração de SQL.</p></div>
+        <div class="tcard"><i class="fa-solid fa-layer-group"></i><h4>MS Fabric Copilot</h4><p>Pipelines e notebooks assistidos.</p></div>
+      </div>
+      <div class="callout" style="max-width:84%; margin:0 auto;">
+        <span class="k">O problema real (citação da comunidade)</span>
+        <p>"Nenhum conhece o modelo de dados completo — e pelo menos metade vai escrever, com confiança, SQL que faz join na coluna errada."</p>
+      </div>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">11</span></div>
+  </section>
+
+  <!-- lição porta A -->
+  <section class="content-slide">
+    <span class="label-tag">Porta A · a lição</span>
+    <h2>O ciclo fecha-se na validação</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="chain center-x">
+        <div class="chain-col"><div class="chain-box fill">escrever</div><div class="cap">o que fazíamos</div></div>
+        <span class="arrow"></span>
+        <div class="chain-col"><div class="chain-box fill">orientar</div><div class="cap">o que fazemos hoje</div></div>
+        <span class="arrow"></span>
+        <div class="chain-col"><div class="chain-box fill">validar</div><div class="cap">onde está o valor</div></div>
+      </div>
+      <p class="lead" style="text-align:center; margin:0 auto; max-width:80%;">Em 2026 o <strong>code review vale mais, não menos</strong>. Escrever SQL que corre deixou de impressionar; ler SQL e apanhar o erro semântico é que distingue.</p>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">12</span></div>
+  </section>
+
+  <!-- ===================== PORTA B ===================== -->
+  <section class="section-divider" data-transition="fade" data-background-transition="fade">
+    <p class="label">Porta B</p>
+    <h2>Engenharia de dados para a GenAI</h2>
+  </section>
+
+  <!-- LLM como ETL -->
+  <section class="content-slide">
+    <span class="label-tag">Porta B · LLM-como-ETL</span>
+    <h2>O <span class="mono">T</span> do ETL pode ser um LLM</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="etl">
+        <div class="doc">"Homem, 54 anos, HTA,<br><span class="neg">sem alergias conhecidas</span>,<br>medicado com ramipril."</div>
+        <span class="ar">→</span>
+        <div class="llm">LLM<span class="sch">+ schema (Pydantic)</span></div>
+        <span class="ar">→</span>
+        <div class="out">{<br>&nbsp;&nbsp;idade: 54,<br>&nbsp;&nbsp;sexo: "M",<br>&nbsp;&nbsp;diagnosticos: ["hipertensão"],<br>&nbsp;&nbsp;alergias: <span class="ok">[]</span>,<br>&nbsp;&nbsp;medicacao: ["ramipril"]<br>}</div>
+      </div>
+      <p class="lead" style="text-align:center; margin:0 auto; max-width:84%;">Texto livre não-estruturado → registo estruturado com schema. O passo de <strong>transformação</strong> deixou de ser só regras.</p>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">13</span></div>
+  </section>
+
+  <!-- ETL exemplos diversos -->
+  <section class="content-slide">
+    <span class="label-tag">Porta B · LLM-como-ETL</span>
+    <h2>Funciona em todo o lado onde os dados são "sujos"</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="tiles-grid">
+        <div class="tcard"><i class="fa-solid fa-headset"></i><h4>Suporte</h4><p>E-mails → {categoria, severidade, plataforma}</p></div>
+        <div class="tcard"><i class="fa-solid fa-file-contract"></i><h4>Jurídico</h4><p>Cláusulas → {renovação, prazo, pré-aviso}</p></div>
+        <div class="tcard"><i class="fa-solid fa-receipt"></i><h4>Recibos (OCR)</h4><p>Texto ruidoso → {total, IVA, data}</p></div>
+        <div class="tcard"><i class="fa-solid fa-id-card"></i><h4>RH</h4><p>CVs → {anos, linguagens, grau}</p></div>
+        <div class="tcard"><i class="fa-solid fa-comment-dots"></i><h4>Reviews</h4><p>Texto → sentimento por aspeto</p></div>
+        <div class="tcard"><i class="fa-solid fa-location-dot"></i><h4>Moradas</h4><p>Texto livre → {rua, nº, CP, cidade}</p></div>
+        <div class="tcard"><i class="fa-solid fa-house"></i><h4>Anúncios</h4><p>"T2 78m² 2ºandar" → campos</p></div>
+        <div class="tcard"><i class="fa-solid fa-terminal"></i><h4>Logs</h4><p>Linha → campos <span class="mono-tag">(aqui um regex chega!)</span></p></div>
+      </div>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">14</span></div>
+    <aside class="notes">O caso dos logs é de propósito: é onde um regex bate o LLM (determinístico, barato, auditável). Serve o "quando NÃO usar LLM".</aside>
+  </section>
+
+  <!-- ETL falhas -->
+  <section class="content-slide">
+    <span class="label-tag">Porta B · o lado crítico</span>
+    <h2>As falhas que tornam isto engenharia</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="points two">
+        <div class="point"><span class="m"></span><p><b>Negação</b><span class="sub">"sem alergias" → [], não ["alergias"]</span></p></div>
+        <div class="point"><span class="m"></span><p><b>Normalização</b><span class="sub">"HTA" / "hipertensão" → uma forma canónica</span></p></div>
+        <div class="point"><span class="m"></span><p><b>Alucinação de campos</b><span class="sub">preenche o que o texto não diz</span></p></div>
+        <div class="point"><span class="m sq2"></span><p><b>Não-determinismo</b><span class="sub">corre 2× → saídas diferentes</span></p></div>
+      </div>
+      <div class="callout" style="max-width:86%; margin:0 auto;">
+        <span class="k">A colisão</span>
+        <p>O não-determinismo bate de frente com a <strong>idempotência</strong> do slide 02. Meter um LLM no pipeline parte a garantia de reprodutibilidade.</p>
+      </div>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">15</span></div>
+  </section>
+
+  <!-- ETL resposta -->
+  <section class="content-slide">
+    <span class="label-tag">Porta B · a resposta de engenharia</span>
+    <h2>O LLM exige o contrato de dados, não o dispensa</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="points">
+        <div class="point"><span class="m sq2"></span><p><b>Schema-constrain</b> (Pydantic / structured output) — o JSON não pode partir.</p></div>
+        <div class="point"><span class="m sq2"></span><p><b>Validação</b> de tipos e domínios à saída.</p></div>
+        <div class="point"><span class="m sq2"></span><p><b>"null se ausente"</b> — instrução explícita contra alucinação.</p></div>
+        <div class="point"><span class="m sq2"></span><p><b>Flag de baixa confiança</b> para revisão humana.</p></div>
+      </div>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">16</span></div>
+  </section>
+
+  <!-- ===================== EMBEDDINGS (núcleo) ===================== -->
+  <section class="section-divider" data-transition="fade" data-background-transition="fade">
+    <p class="label">Porta B · núcleo</p>
+    <h2>Embeddings, a fundo</h2>
+  </section>
+
+  <!-- cadeia -->
+  <section class="content-slide">
+    <span class="label-tag">A cadeia</span>
+    <h2>Vamos abrir a caixa</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="chain">
+        <span class="node">texto</span>
+        <span class="arrow"></span>
+        <div class="chain-col"><div class="chain-box"><span class="q">?</span><span class="lbl fragment" data-fragment-index="1">tokenização</span></div><div class="cap">texto → tiles de sub-palavra</div></div>
+        <span class="arrow"></span>
+        <div class="chain-col"><div class="chain-box"><span class="q">?</span><span class="lbl fragment" data-fragment-index="2">matriz</span></div><div class="cap">cada token → um vetor (lookup)</div></div>
+        <span class="arrow"></span>
+        <div class="chain-col"><div class="chain-box"><span class="q">?</span><span class="lbl fragment" data-fragment-index="3">atenção</span></div><div class="cap">o vetor depende do contexto</div></div>
+        <span class="arrow"></span>
+        <div class="chain-col"><div class="chain-box"><span class="q">?</span><span class="lbl fragment" data-fragment-index="4">pooling</span></div><div class="cap">muitos tokens → 1 vetor por chunk</div></div>
+        <span class="arrow"></span>
+        <div class="chain-col"><div class="chain-box"><span class="q">?</span><span class="lbl fragment" data-fragment-index="5">treino</span></div><div class="cap">perto = parecido, por design</div></div>
+        <span class="arrow"></span>
+        <span class="node">vetor</span>
+      </div>
+      <p class="chain-hint">Cinco passos. Cada clique acende uma caixa — fecha-se aberta na síntese.</p>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">17</span></div>
+  </section>
+
+  <!-- tokenização -->
+  <section class="content-slide">
+    <span class="label-tag">Passo 1 · Tokenização</span>
+    <h2>O modelo não vê palavras</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="hcenter" style="gap:28px; justify-content:center; flex-wrap:wrap;">
+        <div class="tile big">hipertensão</div>
+        <span class="word-arrow">→</span>
+        <div class="tiles">
+          <div class="tile hl">hiper<span class="id">id 8421</span></div>
+          <div class="tile hl">tensão<span class="id">id 553</span></div>
+        </div>
+        <span class="word-arrow" style="margin:0 8px;">·</span>
+        <div class="tiles">
+          <div class="tile">anti<span class="id">id 904</span></div>
+          <div class="tile hl">hiper<span class="id">id 8421</span></div>
+          <div class="tile">tensor<span class="id">id 6612</span></div>
+        </div>
+      </div>
+      <p class="lead" style="margin:0 auto; text-align:center; max-width:86%;">Antes de haver significado, o texto é cortado em <strong>sub-palavras</strong>. Os pedaços reutilizam-se — <span class="mono">hiper</span> volta em <em>antihipertensor</em>, e palavras nunca vistas recompõem-se dos mesmos tiles.</p>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">18</span></div>
+  </section>
+
+  <!-- matriz / estático -->
+  <section class="content-slide">
+    <span class="label-tag">Passo 2 · Matriz de embeddings</span>
+    <h2>Um vetor por token — mas estático</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="cols2">
+        <div>
+          <p>Existe uma tabela <span class="mono">vocabulário × d</span> (ex.: 50 000 × 768). Cada token tem a sua linha — o vetor inicial. Ir buscá-lo é um <strong>lookup</strong>, não uma conta.</p>
+          <p>O problema: <span class="mono">banco</span> tem <strong>um só</strong> vetor, dê no que der. É o nível word2vec, de 2013.</p>
+        </div>
+        <div class="center-x">
+          <div style="text-align:center;">
+            <div class="tile big" style="margin:0 auto 16px;">banco</div>
+            <div style="font-size:30pt; color:var(--cel-secondary);">↓</div>
+            <span class="vec" style="margin-top:16px;">[ 0.30  0.11  −0.07  … ]</span>
+            <p style="font-size:16pt; color:var(--cel-slate); margin-top:14px;">o mesmo vetor para 🏦 e para 🪑</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">19</span></div>
+  </section>
+
+  <!-- banco contextual -->
+  <section class="content-slide">
+    <span class="label-tag">Passo 3 · Contextualização</span>
+    <h2>A mesma palavra, dois vetores</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="attn">
+        <div class="phrase">fui ao <b>banco</b> levantar dinheiro</div>
+        <div class="phrase">sentei-me no <b>banco</b> do jardim</div>
+        <div class="down">↓</div>
+        <div class="box">ATENÇÃO</div>
+        <div class="down">↓</div>
+        <div class="outs">
+          <div style="text-align:center;"><span class="vec warm">[ 0.81  −0.12  0.44  … ]</span><div class="cap">banco¹ · dinheiro</div></div>
+          <div style="text-align:center;"><span class="vec cool">[ −0.22  0.67  0.09  … ]</span><div class="cap">banco² · jardim</div></div>
+        </div>
+        <div class="cos">cosseno(banco¹, banco²) = <b>0.21</b> &nbsp;·&nbsp; baixo</div>
+      </div>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">20</span></div>
+  </section>
+
+  <!-- média dilui -->
+  <section class="content-slide">
+    <span class="label-tag">Passo 4 · Pooling</span>
+    <h2>A média dilui</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="figure" style="max-width:1320px;">
+        <svg viewBox="0 0 1000 430" role="img" aria-label="Espaço semântico: chunk focado perto, chunk gigante longe">
+          <rect x="8" y="8" width="984" height="414" rx="10" fill="none" stroke="#B8B59D" stroke-opacity="0.5"/>
+          <text x="24" y="36" class="svg-label muted">espaço semântico (2D)</text>
+          <line x1="246" y1="250" x2="318" y2="180" stroke="#6D6D3E" stroke-width="2" stroke-dasharray="3 5"/>
+          <text x="296" y="206" class="svg-label muted" text-anchor="middle">perto</text>
+          <line x1="246" y1="252" x2="700" y2="298" stroke="#74808D" stroke-width="2" stroke-dasharray="3 7"/>
+          <text x="480" y="290" class="svg-label muted" text-anchor="middle">longe</text>
+          <g stroke="#B8B59D" stroke-width="1.5"><line x1="650" y1="250" x2="720" y2="300"/><line x1="800" y1="250" x2="720" y2="300"/><line x1="650" y1="360" x2="720" y2="300"/><line x1="800" y1="360" x2="720" y2="300"/></g>
+          <g fill="#B8B59D"><circle cx="650" cy="250" r="7"/><circle cx="800" cy="250" r="7"/><circle cx="650" cy="360" r="7"/><circle cx="800" cy="360" r="7"/></g>
+          <circle cx="230" cy="250" r="16" fill="#2F4E5E"/><text x="230" y="296" class="svg-label" text-anchor="middle">pergunta</text>
+          <circle cx="330" cy="172" r="13" fill="#6D6D3E"/><text x="330" y="146" class="svg-label" text-anchor="middle">chunk focado</text>
+          <circle cx="720" cy="300" r="18" fill="#74808D"/><text x="720" y="348" class="svg-label" text-anchor="middle">chunk gigante · 4 assuntos</text>
+        </svg>
+      </div>
+      <p class="lead" style="margin:0 auto; text-align:center; max-width:84%;">Misturar muitos assuntos num só chunk → um vetor "morno", no centro de massa, perto de nada. <strong>Como partes o texto decide se a busca funciona.</strong></p>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">21</span></div>
+  </section>
+
+  <!-- treino contrastivo -->
+  <section class="content-slide">
+    <span class="label-tag">Passo 5 · Treino</span>
+    <h2>Porque é que perto = parecido?</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="figure" style="max-width:1000px;">
+        <svg viewBox="0 0 1000 320" role="img" aria-label="Aprendizagem contrastiva">
+          <defs>
+            <marker id="ah-olive" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#6D6D3E"/></marker>
+            <marker id="ah-slate" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#74808D"/></marker>
+          </defs>
+          <g fill="#B8B59D"><circle cx="120" cy="70" r="5"/><circle cx="500" cy="50" r="5"/><circle cx="540" cy="280" r="5"/><circle cx="880" cy="80" r="5"/><circle cx="930" cy="240" r="5"/><circle cx="210" cy="270" r="5"/></g>
+          <g class="fragment" data-fragment-index="1">
+            <line x1="352" y1="132" x2="326" y2="176" stroke="#6D6D3E" stroke-width="2.5" marker-end="url(#ah-olive)"/>
+            <line x1="312" y1="240" x2="334" y2="200" stroke="#6D6D3E" stroke-width="2.5" marker-end="url(#ah-olive)"/>
+            <circle cx="360" cy="124" r="12" fill="#6D6D3E"/><circle cx="300" cy="248" r="12" fill="#6D6D3E"/>
+            <text x="250" y="116" class="svg-label" text-anchor="end" style="fill:#6D6D3E;">positivo:</text>
+            <text x="250" y="140" class="svg-label muted" text-anchor="end">querem dizer o mesmo</text>
+          </g>
+          <g class="fragment" data-fragment-index="2">
+            <line x1="652" y1="108" x2="624" y2="68" stroke="#74808D" stroke-width="2.5" marker-end="url(#ah-slate)"/>
+            <line x1="788" y1="252" x2="816" y2="292" stroke="#74808D" stroke-width="2.5" marker-end="url(#ah-slate)"/>
+            <circle cx="660" cy="116" r="12" fill="#74808D"/><circle cx="780" cy="244" r="12" fill="#74808D"/>
+            <text x="706" y="192" class="svg-label muted">negativo: sentidos diferentes</text>
+          </g>
+        </svg>
+      </div>
+      <div class="panel-dark fragment" data-fragment-index="3">
+        <p class="big">A geometria do espaço <em>foi o objetivo de otimização</em>.</p>
+        <p class="tags">não emergente &nbsp;·&nbsp; não acidental &nbsp;·&nbsp; desenhado</p>
+      </div>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">22</span></div>
+  </section>
+
+  <!-- consequências DE -->
+  <section class="content-slide">
+    <span class="label-tag">Embeddings · consequências de engenharia</span>
+    <h2>É aqui que deixa de ser ML e passa a ser dados</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="points two">
+        <div class="point"><span class="m sq2"></span><p><b>Modelo = decisão de schema</b><span class="sub">trocar de modelo = re-embeber TUDO; espaços não se misturam</span></p></div>
+        <div class="point"><span class="m sq2"></span><p><b>Dimensão = custo</b><span class="sub">storage + índice escalam com d × nº de vetores</span></p></div>
+        <div class="point"><span class="m sq2"></span><p><b>Versão = linhagem</b><span class="sub">com que modelo foi feito cada vetor?</span></p></div>
+        <div class="point"><span class="m sq2"></span><p><b>Ficam rançosos</b><span class="sub">dado derivado → CDC, re-embeber só o delta</span></p></div>
+        <div class="point"><span class="m sq2"></span><p><b>Idioma e domínio</b><span class="sub">trata bem o teu PT? o teu jargão?</span></p></div>
+      </div>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">23</span></div>
+  </section>
+
+  <!-- fecho embeddings -->
+  <section class="content-slide">
+    <span class="label-tag">Embeddings · síntese</span>
+    <h2>O que distingue os dois</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="contrast">
+        <div class="c"><h3>Saber o que é um embedding</h3><p>texto → vetor, perto = parecido.</p></div>
+        <div class="c weight">
+          <h3>Ser engenheiro de dados de IA</h3>
+          <p style="margin-bottom:22px;">tratar o vetor como dado derivado —</p>
+          <div class="chips"><span>versionado</span><span>com custo</span><span>com linhagem</span><span>que apodrece</span></div>
+        </div>
+      </div>
+      <p class="lead" style="max-width:88%;">A intuição é o bilhete de entrada. O que paga o ordenado é a card da direita — e é a mentalidade que aplicamos a seguir: <strong>um RAG inteiro é um pipeline de dados</strong>.</p>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">24</span></div>
+  </section>
+
+  <!-- ===================== RAG ===================== -->
+  <section class="section-divider" data-transition="fade" data-background-transition="fade">
+    <p class="label">Porta B · RAG</p>
+    <h2>RAG é um pipeline de dados</h2>
+  </section>
+
+  <section class="content-slide">
+    <span class="label-tag">O sentimento de 2026</span>
+    <h2>Disfarçado de IA</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="zeitgeist">
+        <p class="quote">"RAG é um problema de engenharia de dados <em>disfarçado de IA</em>."</p>
+        <p class="src">frase repetida à exaustão pela comunidade de dados em 2025–26 (várias formulações; não atribuível a um autor)</p>
+      </div>
+      <div class="callout" style="max-width:82%; margin:0 auto;">
+        <span class="k">O que faz um RAG falhar</span>
+        <p>Não é o modelo nem o prompt. É <strong>dados rançosos, schema drift, backfills inconsistentes e ausência de contratos</strong> — failure modes de dados.</p>
+      </div>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">25</span></div>
+  </section>
+
+  <!-- RAG pipeline -->
+  <section class="content-slide">
+    <span class="label-tag">RAG · a pipeline</span>
+    <h2>Ingerir, partir, embeber, indexar, recuperar</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="chain">
+        <div class="chain-col"><div class="chain-box fill">ingestão</div><div class="cap">conectar às fontes</div></div>
+        <span class="arrow"></span>
+        <div class="chain-col"><div class="chain-box fill">chunking</div><div class="cap">partir em pedaços</div></div>
+        <span class="arrow"></span>
+        <div class="chain-col"><div class="chain-box fill">embeddings</div><div class="cap">cada chunk → vetor</div></div>
+        <span class="arrow"></span>
+        <div class="chain-col"><div class="chain-box fill">vector store</div><div class="cap">indexar (HNSW)</div></div>
+        <span class="arrow"></span>
+        <div class="chain-col"><div class="chain-box fill">retrieval</div><div class="cap">top-k por cosseno</div></div>
+        <span class="arrow"></span>
+        <div class="chain-col"><div class="chain-box fill">geração</div><div class="cap">o LLM responde</div></div>
+      </div>
+      <p class="chain-hint">Só a última caixa é "IA". As cinco primeiras são engenharia de dados.</p>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">26</span></div>
+  </section>
+
+  <!-- duas pipelines -->
+  <section class="content-slide">
+    <span class="label-tag">RAG · duas pipelines</span>
+    <h2>Offline indexa; online consulta</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="doors">
+        <div class="door a">
+          <span class="kick">Offline · indexação</span>
+          <h3>Ingerir → partir → embeber → guardar</h3>
+          <p>Corre em lote (ou por CDC). Constrói e mantém o índice fresco.</p>
+          <div class="foot">é aqui que vive o trabalho de dados</div>
+        </div>
+        <div class="door b">
+          <span class="kick">Online · consulta</span>
+          <h3>Recuperar → reordenar → gerar</h3>
+          <p>Corre por pergunta. Busca híbrida (vetor + BM25) e rerank antes do LLM.</p>
+          <div class="foot">latência baixa, por pedido</div>
+        </div>
+      </div>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">27</span></div>
+  </section>
+
+  <!-- chunking importa -->
+  <section class="content-slide">
+    <span class="label-tag">RAG · o chunking importa</span>
+    <h2>Um corte mau parte a resposta ao meio</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="center-x" style="gap:0; align-items:stretch; max-width:980px; margin:0 auto;">
+        <div class="sql-card wrong" style="flex:1; border-left-width:5px;">
+          <span class="tag">chunk 1 · corte fixo</span>
+          <pre>…o limite é configurável.
+Por predefinição são</pre>
+          <p class="res" style="color:var(--cel-secondary);">✂ a frase corta aqui</p>
+        </div>
+        <div class="sql-card wrong" style="flex:1; border-left-width:5px;">
+          <span class="tag">chunk 2 · corte fixo</span>
+          <pre>5 tentativas antes do
+bloqueio da conta…</pre>
+          <p class="res" style="color:var(--cel-secondary);">o facto ficou dividido</p>
+        </div>
+      </div>
+      <div class="callout" style="max-width:84%; margin:0 auto;">
+        <span class="k">Mesma pergunta, mesmo modelo, resultado oposto</span>
+        <p>"Quantas tentativas por predefinição?" — com corte fixo, nenhum chunk tem o facto inteiro. Com overlap ou corte por parágrafo, acerta. <strong>Mudou a engenharia de dados, não a IA.</strong></p>
+      </div>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">28</span></div>
+  </section>
+
+  <!-- base vetorial no stack -->
+  <section class="content-slide">
+    <span class="label-tag">RAG · o novo membro do stack</span>
+    <h2>A base de dados vetorial</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="cols2 l-wide">
+        <div class="layers">
+          <div class="layer l1"><span>Data Warehouse</span><span class="tag">factos, tabelas, SQL</span></div>
+          <div class="layer l2"><span>Data Lake</span><span class="tag">bruto, ficheiros, não-estruturado</span></div>
+          <div class="layer l3"><span>Vector Store</span><span class="tag">embeddings · busca semântica</span></div>
+        </div>
+        <div class="points">
+          <div class="point"><span class="m"></span><p>Índice <b>HNSW</b> para busca aproximada rápida</p></div>
+          <div class="point"><span class="m"></span><p>Busca <b>híbrida</b>: vetor + BM25</p></div>
+          <div class="point"><span class="m"></span><p><b>Rerank</b> melhora a relevância</p></div>
+        </div>
+      </div>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">29</span></div>
+  </section>
+
+  <!-- ===================== FIO CRÍTICO ===================== -->
+  <section class="section-divider" data-transition="fade" data-background-transition="fade">
+    <p class="label">Transversal</p>
+    <h2>O fio crítico</h2>
+  </section>
+
+  <section class="content-slide">
+    <span class="label-tag">Fio crítico · 1</span>
+    <h2>Estocástico vs determinístico</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="cols2">
+        <div class="door a" style="min-height:300px;">
+          <span class="kick">Engenharia de dados</span>
+          <h3>Determinística</h3>
+          <p>Idempotente, reprodutível, auditável. A mesma entrada dá sempre a mesma saída.</p>
+        </div>
+        <div class="door b" style="min-height:300px;">
+          <span class="kick">LLM</span>
+          <h3>Estocástico</h3>
+          <p>Corre 2× → saídas diferentes. Mete-lo no meio do pipeline parte a garantia.</p>
+        </div>
+      </div>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">30</span></div>
+  </section>
+
+  <section class="content-slide">
+    <span class="label-tag">Fio crítico · 2</span>
+    <h2>O custo de uma alucinação em dados</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="panel-dark" style="max-width:90%; margin:0 auto;">
+        <p class="big">Não é um crash. É um número errado que propaga a jusante durante semanas.</p>
+        <p class="tags">corrupção silenciosa · invisível · pior do que um bug</p>
+      </div>
+      <div class="callout" style="max-width:84%; margin:0 auto;">
+        <span class="k">Quando NÃO usar um LLM</span>
+        <p>Se uma regra determinística resolve (parsing de logs, formatos fixos), é <strong>mais barata, mais rápida e auditável</strong>. O LLM é para onde as regras não chegam.</p>
+      </div>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">31</span></div>
+  </section>
+
+  <!-- ===================== SÍNTESE ===================== -->
+  <section class="section-divider" data-transition="fade" data-background-transition="fade">
+    <p class="label">Síntese</p>
+    <h2>O que muda no teu trabalho</h2>
+  </section>
+
+  <section class="content-slide">
+    <span class="label-tag">Como muda o papel</span>
+    <h2>De escrever pipelines a desenhar ecossistemas</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="points">
+        <div class="point"><span class="m"></span><p>O valor sai de <b>escrever pipelines individuais</b> e entra em <b>desenhar o ecossistema</b> e validar.</p></div>
+        <div class="point"><span class="m"></span><p><b>Code review vale mais, não menos</b> — correção, performance, intenção de negócio.</p></div>
+        <div class="point"><span class="m"></span><p>Em mundo AI-first, a diferença é <b>clareza, não esperteza</b>: entradas claras, restrições explícitas.</p></div>
+        <div class="point"><span class="m"></span><p>Embeddings, contratos e linhagem passam a fazer parte do <b>dia-a-dia de dados</b>.</p></div>
+      </div>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">32</span></div>
+  </section>
+
+  <section class="content-slide">
+    <span class="label-tag">A seguir</span>
+    <h2>O próximo passo: pipelines que se auto-curam</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="panel-dark" style="max-width:88%; margin:0 auto;">
+        <p class="big">Agentes que leem logs, propõem migrações e validam-nas contra políticas antes de executar.</p>
+        <p class="tags">fica para as próximas aulas — hoje pusemos os alicerces</p>
+      </div>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">33</span></div>
+  </section>
+
+  <!-- ===================== FECHO ===================== -->
+  <section class="closing" data-transition="fade" data-background-transition="fade">
+    <div class="accent-line"></div>
+    <h2>Obrigada</h2>
+    <p>Mariana Canelas Pais · GenAI para Informáticos · Aula 5</p>
+  </section>
+
+</div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.js"></script>
+<script>
+  Reveal.initialize({
+    controls: true, progress: true, slideNumber: false, hash: true,
+    transition: 'slide', transitionSpeed: 'slow', center: false,
+    width: 1920, height: 1080, margin: 0,
+  });
+</script>
+</body>
+</html>

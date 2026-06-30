@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>O espaço dos embeddings — sandbox (EX-3)</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;600;700&family=Open+Sans:wght@400;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+  :root{
+    --primary:#2F4E5E; --secondary:#6D6D3E; --light:#B8B59D; --slate:#74808D;
+    --text:#3A3838; --bg:#F3F3F3; --white:#FFFFFF;
+    --head:"Libre Franklin",Helvetica,sans-serif; --body:"Open Sans",Helvetica,sans-serif;
+    --mono:"JetBrains Mono","Courier New",monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--body);line-height:1.55}
+  header{background:var(--primary);color:#fff;padding:26px 40px;position:relative}
+  .header-logo{position:absolute;top:18px;right:34px;height:30px;background:#fff;padding:8px 12px;border-radius:6px}
+  header .kick{font-family:var(--head);text-transform:uppercase;letter-spacing:.08em;font-size:13px;color:var(--light);font-weight:600}
+  header h1{font-family:var(--head);font-weight:700;font-size:30px;margin:6px 0 0}
+  header p{margin:8px 0 0;color:#cfd6da;font-size:15px;max-width:900px}
+  header code{color:var(--light);font-family:var(--mono)}
+  main{max-width:1180px;margin:0 auto;padding:24px 40px 90px}
+  h2{font-family:var(--head);font-weight:600;color:var(--primary);font-size:20px;margin:0 0 4px}
+  h3{font-family:var(--head);font-weight:600;color:var(--primary);font-size:16px;margin:22px 0 8px}
+  .sub{font-size:14px;color:var(--slate);margin:0 0 14px}
+  .status{font-family:var(--mono);font-size:14px;color:var(--slate);padding:10px 14px;background:#eaeae3;border-left:3px solid var(--secondary);margin:6px 0 4px}
+  .status.err{color:#7a3b2e;border-left-color:#7a3b2e}
+  .status.ok{border-left-color:var(--primary)}
+  section.block{margin-top:34px;border-top:1px solid var(--light);padding-top:24px}
+  textarea,input[type=text]{width:100%;font-family:var(--mono);font-size:14px;padding:11px 12px;border:1px solid #cfcfc6;background:#fbfbf8;color:var(--primary);resize:vertical}
+  textarea{height:150px}
+  input[type=text]{height:auto}
+  .btn{font-family:var(--head);font-weight:600;font-size:14px;border:none;background:var(--primary);color:#fff;padding:11px 20px;cursor:pointer;margin-top:12px}
+  .btn:disabled{opacity:.45;cursor:default}
+  .btn.ghost{background:transparent;color:var(--primary);border:1px solid var(--primary)}
+  .row{display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap}
+  .row > div{flex:1;min-width:240px}
+  label{font-size:13px;color:var(--slate);display:block;margin-bottom:5px;font-family:var(--head);text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+  /* tokens */
+  .tiles{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+  .tile{font-family:var(--mono);font-size:20px;background:var(--white);border:1px solid var(--light);padding:12px 16px;color:var(--primary);text-align:center}
+  .tile.hl{border-color:var(--secondary);background:#fbfbf6}
+  .tile .id{display:block;font-size:11px;color:var(--slate);margin-top:6px}
+  .tok-note{font-size:13px;color:var(--slate);margin-top:10px}
+  /* heatmap */
+  .heatwrap{overflow-x:auto;margin-top:8px}
+  table.heat{border-collapse:collapse;font-family:var(--mono);font-size:12px}
+  table.heat td,table.heat th{border:1px solid #e6e6df;padding:0;text-align:center}
+  table.heat th{background:transparent;color:var(--slate);font-weight:400;font-size:11px;padding:4px 8px;max-width:120px;text-align:left}
+  table.heat th.col{writing-mode:vertical-rl;transform:rotate(180deg);height:120px;vertical-align:bottom;text-align:left}
+  table.heat td .cell{width:52px;height:40px;display:flex;align-items:center;justify-content:center}
+  /* busca */
+  .rank{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+  .rankitem{display:flex;align-items:center;gap:14px}
+  .rankitem .bar{height:22px;background:var(--primary)}
+  .rankitem .sc{font-family:var(--mono);font-size:13px;color:var(--primary);width:54px}
+  .rankitem .tx{font-size:15px}
+  /* mapa */
+  #map svg{width:100%;max-width:760px;height:auto;display:block;margin:6px auto 0}
+  .maplegend{font-size:13px;color:var(--text);margin-top:8px;columns:2;column-gap:36px}
+  .maplegend span{font-family:var(--mono);color:var(--secondary)}
+  /* média dilui */
+  .dilui .barrow{display:flex;align-items:center;gap:14px;margin:10px 0}
+  .dilui .barrow .lab{width:150px;font-size:14px;color:var(--text)}
+  .dilui .barrow .bar{height:26px;background:var(--secondary)}
+  .dilui .barrow .bar.q{background:var(--primary)}
+  .dilui .barrow .sc{font-family:var(--mono);font-size:14px;color:var(--primary)}
+  .note{font-size:13px;color:var(--slate);margin-top:8px}
+  code{font-family:var(--mono);color:var(--primary)}
+  .hide{display:none}
+</style>
+</head>
+<body>
+<header>
+  <img class="header-logo" src="assets/logo-cel-horizontal.svg" alt="Ciência e Letras"><div class="kick">GenAI · Engenharia de Dados · Sandbox EX-3</div>
+  <h1>O espaço dos embeddings</h1>
+  <p>Escreva as suas frases. Um modelo de embeddings multilingue real (<code>paraphrase-multilingual-MiniLM-L12-v2</code>, 384 dimensões) transforma cada uma num vetor — tudo no browser, sem servidor. Explore a tokenização, a matriz de semelhança, a busca semântica e o mapa do espaço. Proximidade = significado, não palavras em comum.</p>
+</header>
+<main>
+  <div id="status" class="status">A carregar o modelo de embeddings (transformers.js) — pode demorar uns segundos na primeira vez…</div>
+
+  <!-- TOKENIZAÇÃO -->
+  <section>
+    <h2>1 · Tokenização</h2>
+    <p class="sub">O modelo não vê palavras — vê <b>tokens</b> (sub-palavras). Escreva algo e observe o corte.</p>
+    <div class="row">
+      <div><label>Texto</label><input type="text" id="toktext" value="hipertensão antihipertensor"></div>
+      <div style="flex:0"><button class="btn" id="tokbtn" disabled>Tokenizar</button></div>
+    </div>
+    <div id="tokout"></div>
+  </section>
+
+  <!-- ESPAÇO -->
+  <section class="block">
+    <h2>2 · O espaço semântico</h2>
+    <p class="sub">Uma frase por linha. Edite, acrescente as suas. Depois calcule os embeddings.</p>
+    <label>Frases</label>
+    <textarea id="sents">o carro não pega
+a viatura não arranca
+fui ao banco levantar dinheiro
+sentei-me no banco do jardim
+o doente tem dor no peito
+o paciente queixa-se de dor torácica
+amanhã vai chover muito
+o céu está nublado e ameaça tempestade</textarea>
+    <button class="btn" id="embedbtn" disabled>Calcular embeddings</button>
+
+    <div id="spaceout" class="hide">
+      <h3>2a · Matriz de semelhança (cosseno)</h3>
+      <p class="sub">Mais escuro = mais parecido. Repare: frases sem palavras em comum podem ficar perto; a mesma palavra ("banco") em sentidos diferentes fica longe.</p>
+      <div class="heatwrap" id="heat"></div>
+
+      <h3>2b · Busca semântica</h3>
+      <p class="sub">Escreva uma pergunta — o sistema ordena as frases por proximidade de significado.</p>
+      <div class="row">
+        <div><label>Pergunta</label><input type="text" id="query" value="problema no automóvel"></div>
+        <div style="flex:0"><button class="btn" id="searchbtn">Procurar</button></div>
+      </div>
+      <div id="searchout" class="rank"></div>
+
+      <h3>2c · O mapa do espaço (projeção 2D · PCA)</h3>
+      <p class="sub">As 384 dimensões projetadas em 2 para se verem os agrupamentos por significado.</p>
+      <div id="map"></div>
+      <div id="maplegend" class="maplegend"></div>
+    </div>
+  </section>
+
+  <!-- MÉDIA DILUI -->
+  <section class="block">
+    <h2>3 · A média dilui</h2>
+    <p class="sub">O embedding de um chunk é a <b>média</b> dos tokens. Um chunk focado fica perto da pergunta; um chunk enorme, que mistura assuntos, fica "morno" — perto de nada.</p>
+    <div class="row">
+      <div><label>Pergunta</label><input type="text" id="dq" value="quantas tentativas de login são permitidas?"></div>
+    </div>
+    <div class="row" style="margin-top:12px">
+      <div><label>Chunk focado</label><textarea id="dfoc" style="height:90px">Por predefinição são permitidas 5 tentativas de login antes do bloqueio da conta.</textarea></div>
+      <div><label>Chunk enorme (vários assuntos)</label><textarea id="dbig" style="height:90px">A empresa foi fundada em 1998 e tem escritórios em três países. O horário de suporte é das 9h às 18h. Por predefinição são permitidas 5 tentativas de login antes do bloqueio. A fatura é emitida no dia 1 de cada mês e os pagamentos são processados em euros.</textarea></div>
+    </div>
+    <button class="btn" id="dilbtn" disabled>Comparar proximidade</button>
+    <div id="dilout" class="dilui"></div>
+  </section>
+</main>
+
+<script type="module">
+const $ = s => document.querySelector(s);
+const status = $('#status');
+let extractor = null;
+
+// ---------- modelo ----------
+import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2';
+env.allowLocalModels = false;
+async function boot(){
+  try{
+    extractor = await pipeline('feature-extraction', 'Xenova/paraphrase-multilingual-MiniLM-L12-v2',
+      { progress_callback: p => { if(p && p.status==='progress' && p.file && /onnx/.test(p.file))
+          status.textContent = `A descarregar o modelo (multilingue, ~1ª vez)… ${Math.round(p.progress||0)}%`; } });
+    status.className = 'status ok';
+    status.textContent = 'Modelo pronto (paraphrase-multilingual-MiniLM-L12-v2, 384 dim · a correr no browser).';
+    for(const id of ['tokbtn','embedbtn','searchbtn','dilbtn']) $('#'+id).disabled = false;
+  }catch(e){
+    status.className = 'status err';
+    status.innerHTML = 'Não foi possível carregar o modelo. Sirva a página por http (ex.: <code>python3 -m http.server</code>) e confirme o acesso à internet. Detalhe: ' + (e && e.message);
+    console.error(e);
+  }
+}
+
+// ---------- embeddings ----------
+async function embed(list){
+  const out = await extractor(list, { pooling:'mean', normalize:true });
+  return out.tolist();           // N x 384, já normalizado (cosseno = produto interno)
+}
+const dot = (a,b) => { let s=0; for(let i=0;i<a.length;i++) s+=a[i]*b[i]; return s; };
+
+// ---------- 1 · tokenização ----------
+async function tokenize(){
+  try{
+    const txt = $('#toktext').value;
+    const tk = extractor.tokenizer;
+    let ids = tk.encode(txt);                              // number[] (inclui [CLS]/[SEP])
+    if(ids && ids.tolist) ids = ids.tolist();
+    const inner = ids.slice(1, ids.length-1);
+    let toks;
+    if(typeof tk.tokenize === 'function'){ toks = tk.tokenize(txt); }
+    else { toks = inner.map(id => tk.decode([id]).trim() || '·'); }
+    $('#tokout').innerHTML =
+      '<div class="tiles">' + toks.map((t,i)=>{
+        const sub = t.startsWith('##');
+        return `<div class="tile ${sub?'hl':''}">${t}<span class="id">id ${inner[i] ?? ''}</span></div>`;
+      }).join('') + '</div>' +
+      `<p class="tok-note">${toks.length} tokens. As sub-palavras (marca <code>##</code> ou continuação) mostram que o modelo parte as palavras em pedaços reutilizáveis.</p>`;
+  }catch(e){ $('#tokout').innerHTML = `<p class="tok-note">Erro a tokenizar: ${e.message}</p>`; console.error(e); }
+}
+
+// ---------- 2 · espaço ----------
+let SENTS = [], VECS = [];
+function readSents(){ return $('#sents').value.split('\n').map(s=>s.trim()).filter(Boolean); }
+async function computeSpace(){
+  SENTS = readSents();
+  if(SENTS.length < 2){ alert('Escreva pelo menos 2 frases.'); return; }
+  $('#embedbtn').disabled = true; $('#embedbtn').textContent = 'A calcular…';
+  VECS = await embed(SENTS);
+  $('#embedbtn').disabled = false; $('#embedbtn').textContent = 'Calcular embeddings';
+  $('#spaceout').classList.remove('hide');
+  renderHeat(); renderMap(); doSearch();
+}
+function lerpColor(t){ // t in [0,1] → bg(#F3F3F3) → primary(#2F4E5E)
+  const a=[243,243,243], b=[47,78,94];
+  const c=a.map((x,i)=>Math.round(x+(b[i]-x)*t));
+  return `rgb(${c[0]},${c[1]},${c[2]})`;
+}
+function renderHeat(){
+  const n=SENTS.length; let min=1,max=0;
+  const M=Array.from({length:n},(_,i)=>Array.from({length:n},(_,j)=>{ const v=dot(VECS[i],VECS[j]); if(i!==j){min=Math.min(min,v);max=Math.max(max,v);} return v;}));
+  const lab = s => s.length>22 ? s.slice(0,21)+'…' : s;
+  let h='<table class="heat"><thead><tr><th></th>';
+  for(let j=0;j<n;j++) h+=`<th class="col" title="${SENTS[j]}">${j+1}. ${lab(SENTS[j])}</th>`;
+  h+='</tr></thead><tbody>';
+  for(let i=0;i<n;i++){
+    h+=`<tr><th title="${SENTS[i]}">${i+1}. ${lab(SENTS[i])}</th>`;
+    for(let j=0;j<n;j++){
+      const v=M[i][j];
+      const t = i===j ? 1 : (max>min ? (v-min)/(max-min) : 0.5);
+      const fg = t>0.55 ? '#fff' : '#3A3838';
+      h+=`<td><div class="cell" style="background:${lerpColor(t)};color:${fg}" title="${v.toFixed(3)}">${v.toFixed(2)}</div></td>`;
+    }
+    h+='</tr>';
+  }
+  $('#heat').innerHTML = h+'</tbody></table>';
+}
+async function doSearch(){
+  const q = $('#query').value.trim(); if(!q || !VECS.length) return;
+  const qv = (await embed([q]))[0];
+  const scored = SENTS.map((s,i)=>({s, v:dot(qv,VECS[i])})).sort((a,b)=>b.v-a.v);
+  const max = Math.max(...scored.map(x=>x.v), 0.001);
+  $('#searchout').innerHTML = scored.map(x=>`
+    <div class="rankitem"><span class="sc">${x.v.toFixed(3)}</span>
+      <div class="bar" style="width:${Math.max(4,(x.v/max)*360)}px"></div>
+      <span class="tx">${x.s}</span></div>`).join('');
+}
+// PCA (top-2 componentes via power iteration)
+function pca2(X){
+  const n=X.length, d=X[0].length;
+  const mean=new Array(d).fill(0);
+  for(const r of X) for(let j=0;j<d;j++) mean[j]+=r[j]/n;
+  const C=X.map(r=>r.map((v,j)=>v-mean[j]));          // centrado, n×d
+  // matriz de covariância d×d  (d pequeno o suficiente: 384)
+  const cov=Array.from({length:d},()=>new Float64Array(d));
+  for(const r of C) for(let a=0;a<d;a++){ const ra=r[a]; if(ra) for(let b=0;b<d;b++) cov[a][b]+=ra*r[b]; }
+  for(let a=0;a<d;a++) for(let b=0;b<d;b++) cov[a][b]/=n;
+  function topEig(A){
+    let v=new Float64Array(d); for(let i=0;i<d;i++) v[i]=Math.sin(i+1); // init determinístico
+    let norm=Math.hypot(...v); for(let i=0;i<d;i++) v[i]/=norm;
+    for(let it=0; it<120; it++){
+      const w=new Float64Array(d);
+      for(let a=0;a<d;a++){ let s=0; const Aa=A[a]; for(let b=0;b<d;b++) s+=Aa[b]*v[b]; w[a]=s; }
+      norm=Math.hypot(...w)||1; for(let i=0;i<d;i++) w[i]/=norm; v=w;
+    }
+    let lam=0; for(let a=0;a<d;a++){ let s=0; for(let b=0;b<d;b++) s+=A[a][b]*v[b]; lam+=v[a]*s; }
+    return {v,lam};
+  }
+  const e1=topEig(cov);
+  for(let a=0;a<d;a++) for(let b=0;b<d;b++) cov[a][b]-=e1.lam*e1.v[a]*e1.v[b]; // deflação
+  const e2=topEig(cov);
+  return C.map(r=>[ r.reduce((s,x,j)=>s+x*e1.v[j],0), r.reduce((s,x,j)=>s+x*e2.v[j],0) ]);
+}
+function renderMap(){
+  const pts=pca2(VECS), n=SENTS.length;
+  const xs=pts.map(p=>p[0]), ys=pts.map(p=>p[1]);
+  const minx=Math.min(...xs),maxx=Math.max(...xs),miny=Math.min(...ys),maxy=Math.max(...ys);
+  const W=760,H=440,pad=46;
+  const sx=x=>pad+(maxx>minx?(x-minx)/(maxx-minx):.5)*(W-2*pad);
+  const sy=y=>H-pad-(maxy>miny?(y-miny)/(maxy-miny):.5)*(H-2*pad);
+  let svg=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Mapa 2D do espaço de embeddings">`;
+  svg+=`<rect x="8" y="8" width="${W-16}" height="${H-16}" rx="10" fill="none" stroke="#B8B59D" stroke-opacity="0.5"/>`;
+  for(let i=0;i<n;i++){ const x=sx(pts[i][0]),y=sy(pts[i][1]);
+    svg+=`<circle cx="${x}" cy="${y}" r="11" fill="#6D6D3E"/><title>${SENTS[i]}</title>`;
+    svg+=`<text x="${x}" y="${y+4}" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" fill="#fff">${i+1}</text>`;
+  }
+  svg+='</svg>';
+  $('#map').innerHTML=svg;
+  $('#maplegend').innerHTML = SENTS.map((s,i)=>`<div><span>${i+1}.</span> ${s}</div>`).join('');
+}
+
+// ---------- 3 · média dilui ----------
+async function dilui(){
+  $('#dilbtn').disabled=true;
+  const q=$('#dq').value, foc=$('#dfoc').value, big=$('#dbig').value;
+  const [qv,fv,bv]=await embed([q,foc,big]);
+  $('#dilbtn').disabled=false;
+  const sf=dot(qv,fv), sb=dot(qv,bv), mx=Math.max(sf,sb,0.001);
+  $('#dilout').innerHTML=`
+    <div class="barrow"><span class="lab">chunk focado</span><div class="bar" style="width:${(sf/mx)*420}px"></div><span class="sc">${sf.toFixed(3)}</span></div>
+    <div class="barrow"><span class="lab">chunk enorme</span><div class="bar" style="width:${(sb/mx)*420}px"></div><span class="sc">${sb.toFixed(3)}</span></div>
+    <p class="note">Mesma informação lá dentro — mas o chunk enorme dilui o sinal na média de tudo, e a proximidade à pergunta cai. <b>Como parte o texto decide se a busca funciona.</b></p>`;
+}
+
+$('#tokbtn').onclick=tokenize;
+$('#embedbtn').onclick=computeSpace;
+$('#searchbtn').onclick=doSearch;
+$('#dilbtn').onclick=dilui;
+boot();
+</script>
+</body>
+</html>

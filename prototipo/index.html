@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aula 5 · Embeddings — protótipo de diagramas (CeL)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reset.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/theme/white.css" id="theme">
+  <link rel="stylesheet" href="cel-base.css">
+  <link rel="stylesheet" href="diagrams.css">
+  <style>
+    .mono { font-family: var(--mono); color: var(--cel-primary); }
+    .hcenter { display: flex; align-items: center; }
+  </style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+  <!-- Capa -->
+  <section class="cover">
+    <div class="accent-line"></div>
+    <h1>Embeddings, a fundo</h1>
+    <p class="subtitle">Como o significado vira um número — e porque isso é engenharia de dados</p>
+    <img class="cover-logo" src="assets/logo-cel-horizontal.svg" alt="Ciência e Letras">
+  </section>
+
+  <!-- Separador -->
+  <section class="section-divider" data-transition="fade" data-background-transition="fade">
+    <p class="label">Porta B · Núcleo</p>
+    <h2>Embeddings</h2>
+  </section>
+
+  <!-- S4/S25 — A cadeia que se preenche -->
+  <section class="content-slide">
+    <span class="label-tag">A cadeia</span>
+    <h2>Vamos abrir a caixa</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="chain">
+        <span class="node">texto</span>
+        <span class="arrow"></span>
+        <div class="chain-col">
+          <div class="chain-box"><span class="q">?</span><span class="lbl fragment" data-fragment-index="1">tokenização</span></div>
+          <div class="cap">texto → tiles de sub-palavra</div>
+        </div>
+        <span class="arrow"></span>
+        <div class="chain-col">
+          <div class="chain-box"><span class="q">?</span><span class="lbl fragment" data-fragment-index="2">matriz</span></div>
+          <div class="cap">cada token → um vetor (lookup)</div>
+        </div>
+        <span class="arrow"></span>
+        <div class="chain-col">
+          <div class="chain-box"><span class="q">?</span><span class="lbl fragment" data-fragment-index="3">atenção</span></div>
+          <div class="cap">o vetor passa a depender do contexto</div>
+        </div>
+        <span class="arrow"></span>
+        <div class="chain-col">
+          <div class="chain-box"><span class="q">?</span><span class="lbl fragment" data-fragment-index="4">pooling</span></div>
+          <div class="cap">muitos tokens → 1 vetor por chunk</div>
+        </div>
+        <span class="arrow"></span>
+        <div class="chain-col">
+          <div class="chain-box"><span class="q">?</span><span class="lbl fragment" data-fragment-index="5">treino</span></div>
+          <div class="cap">perto = parecido, por design</div>
+        </div>
+        <span class="arrow"></span>
+        <span class="node">vetor</span>
+      </div>
+      <p class="chain-hint">Cinco passos. Cada clique acende uma caixa — fecha-se aberta na síntese.</p>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">03</span></div>
+  </section>
+
+  <!-- S5 — Tokenização -->
+  <section class="content-slide">
+    <span class="label-tag">Passo 1 · Tokenização</span>
+    <h2>O modelo não vê palavras</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="hcenter" style="gap:28px; justify-content:center; flex-wrap:wrap;">
+        <div class="tile big">hipertensão</div>
+        <span class="word-arrow">→</span>
+        <div class="tiles">
+          <div class="tile hl">hiper<span class="id">id 8421</span></div>
+          <div class="tile hl">tensão<span class="id">id 553</span></div>
+        </div>
+        <span class="word-arrow" style="margin:0 8px;">·</span>
+        <div class="tiles">
+          <div class="tile">anti<span class="id">id 904</span></div>
+          <div class="tile hl">hiper<span class="id">id 8421</span></div>
+          <div class="tile">tensor<span class="id">id 6612</span></div>
+        </div>
+      </div>
+      <p class="lead" style="margin:0 auto; text-align:center; max-width:86%;">Antes de haver significado, o texto é cortado em <strong>sub-palavras</strong>. Os pedaços reutilizam-se — <span class="mono">hiper</span> volta em <em>antihipertensor</em>, e palavras nunca vistas recompõem-se dos mesmos tiles.</p>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">04</span></div>
+  </section>
+
+  <!-- S11/S12 — "banco" contextual -->
+  <section class="content-slide">
+    <span class="label-tag">Passo 3 · Contextualização</span>
+    <h2>A mesma palavra, dois vetores</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="attn">
+        <div class="phrase">fui ao <b>banco</b> levantar dinheiro</div>
+        <div class="phrase">sentei-me no <b>banco</b> do jardim</div>
+        <div class="down">↓</div>
+        <div class="box">ATENÇÃO</div>
+        <div class="down">↓</div>
+        <div class="outs">
+          <div style="text-align:center;">
+            <span class="vec warm">[ 0.81  −0.12  0.44  … ]</span>
+            <div class="cap">banco¹ · dinheiro</div>
+          </div>
+          <div style="text-align:center;">
+            <span class="vec cool">[ −0.22  0.67  0.09  … ]</span>
+            <div class="cap">banco² · jardim</div>
+          </div>
+        </div>
+        <div class="cos">cosseno(banco¹, banco²) = <b>0.21</b> &nbsp;·&nbsp; baixo</div>
+      </div>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">05</span></div>
+  </section>
+
+  <!-- S17 — A média dilui -->
+  <section class="content-slide">
+    <span class="label-tag">Passo 4 · Pooling</span>
+    <h2>A média dilui</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="figure" style="max-width:1320px;">
+        <svg viewBox="0 0 1000 430" role="img" aria-label="Espaço semântico: chunk focado perto da pergunta, chunk gigante longe">
+          <rect x="8" y="8" width="984" height="414" rx="10" fill="none" stroke="#B8B59D" stroke-opacity="0.5"/>
+          <text x="24" y="36" class="svg-label muted">espaço semântico (2D)</text>
+          <line x1="246" y1="250" x2="318" y2="180" stroke="#6D6D3E" stroke-width="2" stroke-dasharray="3 5"/>
+          <text x="296" y="206" class="svg-label muted" text-anchor="middle">perto</text>
+          <line x1="246" y1="252" x2="700" y2="298" stroke="#74808D" stroke-width="2" stroke-dasharray="3 7"/>
+          <text x="480" y="290" class="svg-label muted" text-anchor="middle">longe</text>
+          <g stroke="#B8B59D" stroke-width="1.5">
+            <line x1="650" y1="250" x2="720" y2="300"/><line x1="800" y1="250" x2="720" y2="300"/>
+            <line x1="650" y1="360" x2="720" y2="300"/><line x1="800" y1="360" x2="720" y2="300"/>
+          </g>
+          <g fill="#B8B59D">
+            <circle cx="650" cy="250" r="7"/><circle cx="800" cy="250" r="7"/>
+            <circle cx="650" cy="360" r="7"/><circle cx="800" cy="360" r="7"/>
+          </g>
+          <circle cx="230" cy="250" r="16" fill="#2F4E5E"/>
+          <text x="230" y="296" class="svg-label" text-anchor="middle">pergunta</text>
+          <circle cx="330" cy="172" r="13" fill="#6D6D3E"/>
+          <text x="330" y="146" class="svg-label" text-anchor="middle">chunk focado</text>
+          <circle cx="720" cy="300" r="18" fill="#74808D"/>
+          <text x="720" y="348" class="svg-label" text-anchor="middle">chunk gigante · 4 assuntos</text>
+        </svg>
+      </div>
+      <p class="lead" style="margin:0 auto; text-align:center; max-width:84%;">Misturar muitos assuntos num só chunk → um vetor "morno", no centro de massa, perto de nada. <strong>Como partes o texto decide se a busca funciona.</strong></p>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">06</span></div>
+  </section>
+
+  <!-- S20/S21 — Treino contrastivo + painel -->
+  <section class="content-slide">
+    <span class="label-tag">Passo 5 · Treino</span>
+    <h2>Porque é que perto = parecido?</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="figure" style="max-width:1000px;">
+        <svg viewBox="0 0 1000 320" role="img" aria-label="Aprendizagem contrastiva: pares positivos aproximam, negativos afastam">
+          <defs>
+            <marker id="ah-olive" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#6D6D3E"/></marker>
+            <marker id="ah-slate" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#74808D"/></marker>
+          </defs>
+          <g fill="#B8B59D">
+            <circle cx="120" cy="70" r="5"/><circle cx="500" cy="50" r="5"/><circle cx="540" cy="280" r="5"/>
+            <circle cx="880" cy="80" r="5"/><circle cx="930" cy="240" r="5"/><circle cx="210" cy="270" r="5"/>
+          </g>
+          <g class="fragment" data-fragment-index="1">
+            <line x1="352" y1="132" x2="326" y2="176" stroke="#6D6D3E" stroke-width="2.5" marker-end="url(#ah-olive)"/>
+            <line x1="312" y1="240" x2="334" y2="200" stroke="#6D6D3E" stroke-width="2.5" marker-end="url(#ah-olive)"/>
+            <circle cx="360" cy="124" r="12" fill="#6D6D3E"/>
+            <circle cx="300" cy="248" r="12" fill="#6D6D3E"/>
+            <text x="250" y="116" class="svg-label" text-anchor="end" style="fill:#6D6D3E;">positivo:</text>
+            <text x="250" y="140" class="svg-label muted" text-anchor="end">querem dizer o mesmo</text>
+          </g>
+          <g class="fragment" data-fragment-index="2">
+            <line x1="652" y1="108" x2="624" y2="68" stroke="#74808D" stroke-width="2.5" marker-end="url(#ah-slate)"/>
+            <line x1="788" y1="252" x2="816" y2="292" stroke="#74808D" stroke-width="2.5" marker-end="url(#ah-slate)"/>
+            <circle cx="660" cy="116" r="12" fill="#74808D"/>
+            <circle cx="780" cy="244" r="12" fill="#74808D"/>
+            <text x="706" y="192" class="svg-label muted">negativo: sentidos diferentes</text>
+          </g>
+        </svg>
+      </div>
+      <div class="panel-dark fragment" data-fragment-index="3">
+        <p class="big">A geometria do espaço <em>foi o objetivo de otimização</em>.</p>
+        <p class="tags">não emergente &nbsp;·&nbsp; não acidental &nbsp;·&nbsp; desenhado</p>
+      </div>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">07</span></div>
+  </section>
+
+  <!-- S31 — Card de fecho -->
+  <section class="content-slide">
+    <span class="label-tag">Síntese</span>
+    <h2>O que distingue os dois</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="contrast">
+        <div class="c">
+          <h3>Saber o que é um embedding</h3>
+          <p>texto → vetor, perto = parecido.</p>
+        </div>
+        <div class="c weight">
+          <h3>Ser engenheiro de dados de IA</h3>
+          <p style="margin-bottom:22px;">tratar o vetor como dado derivado —</p>
+          <div class="chips">
+            <span>versionado</span><span>com custo</span><span>com linhagem</span><span>que apodrece</span>
+          </div>
+        </div>
+      </div>
+      <p class="lead" style="max-width:88%;">A intuição é o bilhete de entrada. O que paga o ordenado é a card da direita — e é a mentalidade que aplicamos a seguir: <strong>um RAG inteiro é um pipeline de dados</strong>.</p>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">08</span></div>
+  </section>
+
+</div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.js"></script>
+<script>
+  Reveal.initialize({
+    controls: true, progress: true, slideNumber: false, hash: true,
+    transition: 'slide', transitionSpeed: 'slow', center: false,
+    width: 1920, height: 1080, margin: 0,
+  });
+</script>
+</body>
+</html>

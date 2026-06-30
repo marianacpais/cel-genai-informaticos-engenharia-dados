@@ -1,0 +1,661 @@
+<!-- ===================== PORTA A · SEPARADOR ===================== -->
+<section class="section-divider" data-transition="fade" data-background-transition="fade">
+  <p class="label">Porta A</p>
+  <h2>O copiloto do engenheiro de dados</h2>
+  <aside class="notes">A porta esperada. O LLM senta-se ao lado de quem já faz o trabalho e acelera-o. Vamos atravessá-la com firmeza — mas com olho crítico, porque é aqui que mora o erro mais perigoso: o que corre sem dar erro. Estrutura: primeiro desmontamos o mito do "não é preciso saber SQL" com onze armadilhas reais; depois mostramos onde a GenAI acelera mesmo o engenheiro.</aside>
+</section>
+
+<!-- O MITO -->
+<section class="content-slide">
+  <span class="label-tag">Porta A · o mito</span>
+  <h2>"Já não é preciso escrever SQL — os LLMs escrevem-no"</h2>
+  <div class="separator"></div>
+  <div class="stage">
+    <div class="zeitgeist">
+      <p class="quote">Vamos provar, por A + B, que isto é <em>perigosamente</em> falso.</p>
+      <p class="src">Onze perguntas em português. Onze SQLs lindos. Onze números errados — e nenhum crash.</p>
+    </div>
+    <div class="callout" style="max-width:82%; margin:0 auto;">
+      <span class="k">A tese desta secção</span>
+      <p>O LLM não conhece o teu <strong>grão</strong>, as tuas <strong>definições de negócio</strong>, nem o comportamento dos teus <strong>NULLs</strong>. Sabe SQL; não sabe a <em>tua</em> base de dados.</p>
+    </div>
+  </div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">NN</span></div>
+  <aside class="notes">O perigo não é o SQL que rebenta — esse vê-se. É o SQL sintaticamente perfeito que devolve um número plausível e errado. Vou mostrar onze armadilhas, espalhadas por vendas, suporte, RH, saúde e logística. Todas universais. O domínio só muda a roupagem.</aside>
+</section>
+
+<!-- ARMADILHA 1 · GRAIN (vendas) -->
+<section class="content-slide">
+  <span class="label-tag">As 11 armadilhas · 1/11 · grain</span>
+  <h2>"Quantos clientes temos?"</h2>
+  <div class="separator"></div>
+  <div class="stage">
+    <div class="qbar"><span class="ico">NL →</span> Quantos clientes temos?</div>
+    <div class="sql-grid">
+      <div class="sql-card wrong">
+        <span class="tag">⟶ o que o LLM gera</span>
+        <pre>SELECT COUNT(*)
+FROM encomendas;</pre>
+        <p class="res">→ <b>14 820</b> <span style="color:var(--cel-slate)">(encomendas)</span></p>
+      </div>
+      <div class="sql-card right">
+        <span class="tag">⟶ o que estava certo</span>
+        <pre>SELECT COUNT(DISTINCT cliente_id)
+FROM clientes;</pre>
+        <p class="res">→ <b>3 102</b> <span style="color:var(--cel-slate)">(clientes)</span></p>
+      </div>
+    </div>
+    <p class="why"><b>Pitfall: grain.</b> A tabela tem uma linha por encomenda. Um cliente com 5 compras conta 5×. O LLM não conhece o <em>grão</em> da tua tabela.</p>
+  </div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">NN</span></div>
+  <aside class="notes">"Grão" é o que uma linha representa. Aqui a pergunta é sobre clientes mas a tabela está ao grão da encomenda. 4,7× de erro. Quem não sabe ler SQL nunca apanha isto.</aside>
+</section>
+
+<!-- ARMADILHA 2 · LINHAS EM FALTA (saúde) -->
+<section class="content-slide">
+  <span class="label-tag">As 11 armadilhas · 2/11 · linhas em falta</span>
+  <h2>"Tempo médio até à primeira consulta"</h2>
+  <div class="separator"></div>
+  <div class="stage">
+    <div class="qbar"><span class="ico">NL →</span> Qual o tempo médio de espera até à primeira consulta?</div>
+    <div class="sql-grid">
+      <div class="sql-card wrong">
+        <span class="tag">⟶ o que o LLM gera</span>
+        <pre>SELECT AVG(data_consulta - data_referencia)
+FROM referencias
+WHERE data_consulta IS NOT NULL;</pre>
+        <p class="res">→ <b>18 dias</b> <span style="color:var(--cel-slate)">(parece excelente)</span></p>
+      </div>
+      <div class="sql-card right">
+        <span class="tag">⟶ a realidade</span>
+        <pre>-- 1 240 referências ainda SEM
+-- consulta marcada nem entram
+-- na média. A fila real é outra.</pre>
+        <p class="res">→ mediana de espera <b>142 dias</b></p>
+      </div>
+    </div>
+    <p class="why"><b>Pitfall: linhas em falta.</b> Quem ainda espera não tem <span class="mono">data_consulta</span> → cai fora do denominador. A média mede só quem já foi atendido. A minha armadilha preferida.</p>
+  </div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">NN</span></div>
+  <aside class="notes">A mesma armadilha veste-se de "tempo de resolução de tickets" no suporte. O viés de sobrevivência: medimos os que sobreviveram ao processo. Os que ainda esperam — os que mais importam — são invisíveis para a média. O número diz 18 dias; a realidade clínica são meses.</aside>
+</section>
+
+<!-- ARMADILHA 3 · NOT IN + NULL (logística) -->
+<section class="content-slide">
+  <span class="label-tag">As 11 armadilhas · 3/11 · NOT IN + NULL</span>
+  <h2>"Armazéns que nunca expediram nada"</h2>
+  <div class="separator"></div>
+  <div class="stage">
+    <div class="qbar"><span class="ico">NL →</span> Que armazéns nunca expediram uma encomenda?</div>
+    <div class="sql-grid">
+      <div class="sql-card wrong">
+        <span class="tag">⟶ o que o LLM gera</span>
+        <pre>SELECT * FROM armazens
+WHERE id NOT IN (
+  SELECT armazem_id FROM expedicoes);</pre>
+        <p class="res">→ <b>0 linhas</b> <span style="color:var(--cel-slate)">(sem erro!)</span></p>
+      </div>
+      <div class="sql-card right">
+        <span class="tag">⟶ o que estava certo</span>
+        <pre>SELECT * FROM armazens a
+WHERE NOT EXISTS (
+  SELECT 1 FROM expedicoes e
+  WHERE e.armazem_id = a.id);</pre>
+        <p class="res">→ <b>3 armazéns</b></p>
+      </div>
+    </div>
+    <p class="why"><b>Pitfall: NOT IN + NULL.</b> Basta uma <span class="mono">expedicoes.armazem_id</span> a NULL para <strong>NOT IN</strong> devolver conjunto vazio. Lógica de três valores: <span class="mono">x NOT IN (…, NULL)</span> nunca é verdadeiro.</p>
+  </div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">NN</span></div>
+  <aside class="notes">Footgun clássico de SQL. O NULL na subquery contamina toda a comparação NOT IN. NOT EXISTS é imune porque trabalha por correspondência, não por pertença. O LLM escolhe NOT IN porque é a forma mais "lida" no treino — não porque é segura.</aside>
+</section>
+
+<!-- ARMADILHA 4 · DEFINIÇÃO AMBÍGUA (vendas) -->
+<section class="content-slide">
+  <span class="label-tag">As 11 armadilhas · 4/11 · definição ambígua</span>
+  <h2>"Qual o produto mais vendido?"</h2>
+  <div class="separator"></div>
+  <div class="stage">
+    <div class="qbar"><span class="ico">NL →</span> Qual é o produto mais vendido?</div>
+    <div class="sql-grid">
+      <div class="sql-card wrong">
+        <span class="tag">⟶ o LLM escolhe um critério em silêncio</span>
+        <pre>SELECT produto, COUNT(*) n
+FROM linhas_venda
+GROUP BY produto
+ORDER BY n DESC LIMIT 1;</pre>
+        <p class="res">→ <b>Caneta</b> <span style="color:var(--cel-slate)">(por nº de linhas)</span></p>
+      </div>
+      <div class="sql-card right">
+        <span class="tag">⟶ "mais vendido" não é uma métrica</span>
+        <pre>-- por unidades:  SUM(qtd)
+--   → Monitor 27"
+-- por receita:   SUM(qtd*preco)
+--   → Portátil</pre>
+        <p class="res">→ <b>três produtos diferentes</b></p>
+      </div>
+    </div>
+    <p class="why"><b>Pitfall: definição ambígua.</b> "Mais vendido" pode ser nº de transações, unidades ou receita. O LLM resolve a ambiguidade por ti — e não te diz qual escolheu.</p>
+  </div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">NN</span></div>
+  <aside class="notes">Diferente da armadilha 5: aqui não falta contexto de negócio escondido numa coluna, falta desambiguar a própria pergunta. A caneta ganha em nº de linhas, o portátil em receita. Nenhuma resposta está "errada" — está errada a confiança com que o LLM serve uma só.</aside>
+</section>
+
+<!-- ARMADILHA 5 · DEFINIÇÃO DE NEGÓCIO "ativo" (SaaS) -->
+<section class="content-slide">
+  <span class="label-tag">As 11 armadilhas · 5/11 · definição de negócio</span>
+  <h2>"Mostra-me os utilizadores ativos"</h2>
+  <div class="separator"></div>
+  <div class="stage">
+    <div class="qbar"><span class="ico">NL →</span> Quantos utilizadores ativos temos?</div>
+    <div class="sql-grid">
+      <div class="sql-card wrong">
+        <span class="tag">⟶ o LLM agarra a coluna óbvia</span>
+        <pre>SELECT COUNT(*)
+FROM utilizadores
+WHERE estado = 'ativo';</pre>
+        <p class="res">→ <b>8 410</b> <span style="color:var(--cel-slate)">(a coluna até existe)</span></p>
+      </div>
+      <div class="sql-card right">
+        <span class="tag">⟶ "ativo" no negócio = a usar o produto</span>
+        <pre>SELECT COUNT(DISTINCT utilizador_id)
+FROM sessoes
+WHERE inicio &gt; NOW() - INTERVAL '30 days';</pre>
+        <p class="res">→ <b>2 933</b></p>
+      </div>
+    </div>
+    <p class="why"><b>Pitfall: definição de negócio.</b> <span class="mono">estado='ativo'</span> significa "conta não suspensa", não "utilizador a usar". O LLM apanha a palavra, não o conceito. 2,9× de diferença.</p>
+  </div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">NN</span></div>
+  <aside class="notes">A armadilha mais traiçoeira porque a coluna existe e o nome bate certo. "Ativo" é um termo de negócio com definição própria — utilizador ativo mensal — que vive na cabeça da equipa, não no schema. O LLM não tem acesso a essa convenção. Aqui é onde uma camada semântica / métricas definidas faz toda a diferença.</aside>
+</section>
+
+<!-- ARMADILHA 6 · FAN-OUT DO JOIN (saúde) -->
+<section class="content-slide">
+  <span class="label-tag">As 11 armadilhas · 6/11 · fan-out do join</span>
+  <h2>"Valor faturado por médico"</h2>
+  <div class="separator"></div>
+  <div class="stage">
+    <div class="qbar"><span class="ico">NL →</span> Qual o valor total faturado por médico?</div>
+    <div class="sql-grid">
+      <div class="sql-card wrong">
+        <span class="tag">⟶ o que o LLM gera</span>
+        <pre>SELECT m.nome, SUM(c.valor)
+FROM consultas c
+JOIN atos a ON a.consulta_id = c.id
+JOIN medicos m ON m.id = c.medico_id
+GROUP BY m.nome;</pre>
+        <p class="res">→ valor <b>inflado</b> <span style="color:var(--cel-slate)">(+210%)</span></p>
+      </div>
+      <div class="sql-card right">
+        <span class="tag">⟶ o que estava certo</span>
+        <pre>-- somar c.valor UMA vez por consulta.
+-- O join a `atos` repete a linha da
+-- consulta por cada ato → c.valor
+-- entra 3× numa consulta com 3 atos.</pre>
+        <p class="res">→ valor <b>real</b></p>
+      </div>
+    </div>
+    <p class="why"><b>Pitfall: fan-out do join.</b> Juntar uma tabela de grão mais fino multiplica as linhas do lado "1". O <span class="mono">SUM</span> conta o mesmo valor várias vezes. O join "parece" certo.</p>
+  </div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">NN</span></div>
+  <aside class="notes">Primo da armadilha do grão, mas agora introduzido pelo join, não pela tabela base. Regra de ouro: agregar ao grão certo ANTES de juntar, ou somar com SUM(DISTINCT) só quando faz sentido. A faturação por médico fica 3× maior — e o erro escala com o nº médio de atos por consulta, por isso varia por especialidade. Quase impossível de apanhar a olho no resultado.</aside>
+</section>
+
+<!-- ARMADILHA 7 · NULL NO GROUP BY (RH) -->
+<section class="content-slide">
+  <span class="label-tag">As 11 armadilhas · 7/11 · NULL no GROUP BY</span>
+  <h2>"Salário médio por departamento"</h2>
+  <div class="separator"></div>
+  <div class="stage">
+    <div class="qbar"><span class="ico">NL →</span> Qual o salário médio por departamento?</div>
+    <div class="sql-grid">
+      <div class="sql-card wrong">
+        <span class="tag">⟶ o que o LLM gera</span>
+        <pre>SELECT departamento, AVG(salario)
+FROM colaboradores
+GROUP BY departamento;</pre>
+        <p class="res">→ tabela <b>"completa"</b> <span style="color:var(--cel-slate)">(7 linhas)</span></p>
+      </div>
+      <div class="sql-card right">
+        <span class="tag">⟶ o que o número esconde</span>
+        <pre>-- 47 colaboradores com
+-- departamento = NULL formam um
+-- grupo "fantasma" fácil de saltar.
+-- E part-time entra sem normalizar.</pre>
+        <p class="res">→ a média global <b>não bate</b></p>
+      </div>
+    </div>
+    <p class="why"><b>Pitfall: NULL no GROUP BY.</b> Linhas com a chave de agrupamento a NULL juntam-se num grupo só, discreto e fácil de ignorar. O total parcial não reconcilia com o total geral.</p>
+  </div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">NN</span></div>
+  <aside class="notes">Dois problemas num: o grupo NULL silencioso e a falta de normalização (part-time/estágios a entrar na média sem ajuste de FTE). O teste rápido: a soma das partes bate com o todo? Se não, há um grupo a fugir — quase sempre NULL. O LLM nunca pergunta "e quem não tem departamento?".</aside>
+</section>
+
+<!-- ARMADILHA 8 · UNIDADES / LIMIAR (saúde) -->
+<section class="content-slide">
+  <span class="label-tag">As 11 armadilhas · 8/11 · unidades e limiar</span>
+  <h2>"Doentes com glicemia alta"</h2>
+  <div class="separator"></div>
+  <div class="stage">
+    <div class="qbar"><span class="ico">NL →</span> Quantos doentes têm glicemia alta?</div>
+    <div class="sql-grid">
+      <div class="sql-card wrong">
+        <span class="tag">⟶ o LLM crava um limiar</span>
+        <pre>SELECT COUNT(*)
+FROM analises
+WHERE glicemia &gt; 126;</pre>
+        <p class="res">→ <b>5 110</b> <span style="color:var(--cel-slate)">(um número qualquer)</span></p>
+      </div>
+      <div class="sql-card right">
+        <span class="tag">⟶ o contexto que falta</span>
+        <pre>-- mg/dL e mmol/L na MESMA coluna:
+--   7,0 mmol/L = 126 mg/dL
+-- "alta" depende de jejum vs ocasional
+-- (126 em jejum ≠ 126 pós-prandial)</pre>
+        <p class="res">→ a contagem <b>não tem sentido</b></p>
+      </div>
+    </div>
+    <p class="why"><b>Pitfall: unidades e limiar.</b> O 126 é um número de manual aplicado sem saber a unidade nem a condição da colheita. Mistura mmol/L com mg/dL e ainda assume jejum. Plausível, preciso e errado.</p>
+  </div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">NN</span></div>
+  <aside class="notes">O LLM sabe que 126 mg/dL é o limiar de diabetes em jejum — e despeja-o. Não sabe que esta coluna mistura unidades, nem que metade das colheitas é ocasional. Em saúde isto é perigoso; em qualquer domínio com unidades (€ vs cêntimos, kg vs g) é o mesmo erro. O limiar tem de vir do negócio, não do treino do modelo.</aside>
+</section>
+
+<!-- ARMADILHA 9 · SOFT DELETE (vendas) -->
+<section class="content-slide">
+  <span class="label-tag">As 11 armadilhas · 9/11 · soft delete</span>
+  <h2>"Quantas encomendas este mês?"</h2>
+  <div class="separator"></div>
+  <div class="stage">
+    <div class="qbar"><span class="ico">NL →</span> Quantas encomendas tivemos este mês?</div>
+    <div class="sql-grid">
+      <div class="sql-card wrong">
+        <span class="tag">⟶ o que o LLM gera</span>
+        <pre>SELECT COUNT(*)
+FROM encomendas
+WHERE data &gt;= date_trunc('month', now());</pre>
+        <p class="res">→ <b>1 980</b></p>
+      </div>
+      <div class="sql-card right">
+        <span class="tag">⟶ o que estava certo</span>
+        <pre>SELECT COUNT(*)
+FROM encomendas
+WHERE data &gt;= date_trunc('month', now())
+  AND cancelada = false;</pre>
+        <p class="res">→ <b>1 642</b></p>
+      </div>
+    </div>
+    <p class="why"><b>Pitfall: soft delete.</b> As encomendas canceladas não são apagadas — ficam com uma flag. Sem o filtro <span class="mono">cancelada = false</span>, contam como reais. 17% a mais.</p>
+  </div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">NN</span></div>
+  <aside class="notes">Soft delete é a regra em sistemas modernos: nada se apaga de verdade, marca-se. O LLM não sabe que existe uma coluna `cancelada` (ou `deleted_at`) a não ser que o schema lho diga — e mesmo com o schema, raramente a aplica sozinho. Toda a métrica deste tipo de tabela precisa do filtro. É a convenção mais esquecida.</aside>
+</section>
+
+<!-- ARMADILHA 10 · SEMÂNTICA DE DATAS (logística) -->
+<section class="content-slide">
+  <span class="label-tag">As 11 armadilhas · 10/11 · semântica de datas</span>
+  <h2>"Entregas em 2025"</h2>
+  <div class="separator"></div>
+  <div class="stage">
+    <div class="qbar"><span class="ico">NL →</span> Quantas entregas houve em 2025?</div>
+    <div class="sql-grid">
+      <div class="sql-card wrong">
+        <span class="tag">⟶ o LLM escolhe uma data qualquer</span>
+        <pre>SELECT COUNT(*)
+FROM entregas
+WHERE YEAR(data_envio) = 2025;</pre>
+        <p class="res">→ <b>22 410</b> <span style="color:var(--cel-slate)">(por envio)</span></p>
+      </div>
+      <div class="sql-card right">
+        <span class="tag">⟶ qual data conta?</span>
+        <pre>-- "entrega em 2025" = entregue em 2025.
+WHERE YEAR(data_entrega) = 2025
+-- uma expedida 30/dez/24, entregue
+-- 02/jan/25 muda de ano consoante a coluna.</pre>
+        <p class="res">→ <b>21 730</b> <span style="color:var(--cel-slate)">(por entrega)</span></p>
+      </div>
+    </div>
+    <p class="why"><b>Pitfall: semântica de datas.</b> A mesma linha tem várias datas — envio, entrega, criação. O LLM agarra a primeira que parece encaixar. Fuso horário e cortes à meia-noite agravam.</p>
+  </div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">NN</span></div>
+  <aside class="notes">Qualquer evento tem múltiplos carimbos temporais e a pergunta raramente diz qual. "Vendas de dezembro" — por data de encomenda, de faturação, de pagamento? Some-se o fuso horário: um evento às 23h de Lisboa pode cair no dia seguinte em UTC. A diferença aqui é pequena no agregado, mas em relatórios de fecho de período é material.</aside>
+</section>
+
+<!-- ARMADILHA 11 · EMPATES NO TOP-N (RH) -->
+<section class="content-slide">
+  <span class="label-tag">As 11 armadilhas · 11/11 · empates no top-N</span>
+  <h2>"Os 3 melhores vendedores do trimestre"</h2>
+  <div class="separator"></div>
+  <div class="stage">
+    <div class="qbar"><span class="ico">NL →</span> Quem são os 3 melhores vendedores do trimestre?</div>
+    <div class="sql-grid">
+      <div class="sql-card wrong">
+        <span class="tag">⟶ o que o LLM gera</span>
+        <pre>SELECT vendedor, SUM(valor) total
+FROM vendas
+GROUP BY vendedor
+ORDER BY total DESC
+LIMIT 3;</pre>
+        <p class="res">→ corta o 4º que <b>empata</b> com o 3º</p>
+      </div>
+      <div class="sql-card right">
+        <span class="tag">⟶ o que estava certo</span>
+        <pre>-- 3º e 4º empatados a 48 000 €.
+-- LIMIT 3 escolhe UM ao acaso.
+SELECT *, DENSE_RANK() OVER (
+  ORDER BY total DESC) r
+-- ... WHERE r &lt;= 3   (decide a regra)</pre>
+        <p class="res">→ <b>4 vendedores</b> (empate incluído)</p>
+      </div>
+    </div>
+    <p class="why"><b>Pitfall: empates no top-N.</b> <span class="mono">LIMIT</span> não tem critério de desempate — devolve uma ordem arbitrária entre iguais. Hoje exclui o João, amanhã a Rita. Não-determinístico e injusto.</p>
+  </div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">NN</span></div>
+  <aside class="notes">Em RH isto é um problema de equidade: dois vendedores com o mesmo número, um fica de fora do bónus por acaso da ordenação. RANK/DENSE_RANK tornam a regra explícita e estável. O LLM gera o LIMIT porque é o padrão — não pensa em empates porque os dados de exemplo raramente os têm. É preciso pensar nos casos-limite, e isso é trabalho humano.</aside>
+</section>
+
+<!-- SÍNTESE DAS ARMADILHAS -->
+<section class="content-slide">
+  <span class="label-tag">As 11 armadilhas · síntese</span>
+  <h2>Porque é que isto é pior do que um bug</h2>
+  <div class="separator"></div>
+  <div class="stage">
+    <div class="points">
+      <div class="point"><span class="m"></span><p>Todas as onze são <b>sintaticamente perfeitas</b> e <b>correm sem erro</b>.</p></div>
+      <div class="point"><span class="m"></span><p>O erro é <b>semântico e silencioso</b> — um número plausível, não um crash.</p></div>
+      <div class="point"><span class="m"></span><p>Propaga-se a jusante durante semanas: <b>corrupção silenciosa de dados</b>.</p></div>
+    </div>
+    <div class="panel-dark" style="margin-top:8px;">
+      <p class="big">O SQL corre. Ninguém vê. O número entra no relatório, no dashboard, na decisão.</p>
+      <p class="tags">o copiloto acelera quem sabe ler SQL · é armadilha para quem o usa para não aprender</p>
+    </div>
+  </div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">NN</span></div>
+  <aside class="notes">Um bug rebenta e alguém investiga. Isto não rebenta — instala-se. As onze armadilhas partilham a mesma assinatura: SQL bonito, resultado credível, erro invisível. A defesa não é deixar de usar o copiloto; é saber ler o que ele produz. Liga à Aula 1: escrever → orientar → validar. A validação é onde mora o valor agora.</aside>
+</section>
+
+<!-- BRIDGE · ONDE ACELERA MESMO -->
+<section class="content-slide">
+  <span class="label-tag">Porta A · o copiloto que vale a pena</span>
+  <h2>Onde a GenAI acelera mesmo o engenheiro de dados</h2>
+  <div class="separator"></div>
+  <div class="stage">
+    <div class="points two">
+      <div class="point"><span class="m"></span><p><b>Schema linking</b><span class="sub">mapear a pergunta às tabelas certas — o passo crítico do NL2SQL</span></p></div>
+      <div class="point"><span class="m"></span><p><b>Geração de ETL / dbt</b><span class="sub">modelos, testes e descrições a partir de uma frase</span></p></div>
+      <div class="point"><span class="m"></span><p><b>Migração de dialetos</b><span class="sub">Oracle → BigQuery, legacy → moderno (tarefa bem definida)</span></p></div>
+      <div class="point"><span class="m"></span><p><b>Catalogação e metadados</b><span class="sub">auto-descrição de tabelas, colunas e PII</span></p></div>
+      <div class="point"><span class="m"></span><p><b>Qualidade de dados semântica</b><span class="sub">erros contextuais de uma linha, para além das regras</span></p></div>
+      <div class="point"><span class="m"></span><p><b>Lineage automático</b><span class="sub">lê SQL/dbt/DAGs e constrói o grafo de linhagem</span></p></div>
+    </div>
+  </div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">NN</span></div>
+  <aside class="notes">Saímos do modo cético. Estas seis tarefas são onde o copiloto rende de verdade — porque são tarefas bem definidas, com entrada e saída claras, e onde o humano valida no fim. Vou abrir cada uma. O fio condutor: o LLM faz o primeiro rascunho; o engenheiro orienta e valida.</aside>
+</section>
+
+<!-- SCHEMA LINKING (SVG) -->
+<section class="content-slide">
+  <span class="label-tag">Porta A · porque o NL2SQL falha</span>
+  <h2>O passo crítico: ligar a pergunta ao schema</h2>
+  <div class="separator"></div>
+  <div class="stage">
+    <div class="figure" style="max-width:1280px;">
+      <svg viewBox="0 0 1000 380" role="img" aria-label="Schema linking: a pergunta ligada às tabelas e colunas certas">
+        <rect x="8" y="8" width="984" height="364" rx="10" fill="none" stroke="#B8B59D" stroke-opacity="0.5"/>
+        <text x="28" y="40" class="svg-label muted">schema linking — onde o NL2SQL vive ou morre</text>
+        <!-- pergunta -->
+        <rect x="40" y="150" width="300" height="86" rx="6" fill="#2F4E5E"/>
+        <text x="190" y="190" text-anchor="middle" style="fill:#fff; font-family:var(--mono); font-size:21px;">« utilizadores</text>
+        <text x="190" y="216" text-anchor="middle" style="fill:#fff; font-family:var(--mono); font-size:21px;">ativos »</text>
+        <!-- candidatos -->
+        <rect x="650" y="56"  width="300" height="72" rx="6" fill="#fff" stroke="#74808D" stroke-width="2"/>
+        <text x="670" y="86"  class="svg-mono">utilizadores.estado</text>
+        <text x="670" y="112" class="svg-label muted">= 'ativo' → conta não suspensa</text>
+        <rect x="650" y="154" width="300" height="72" rx="6" fill="#fff" stroke="#6D6D3E" stroke-width="3"/>
+        <text x="670" y="184" class="svg-mono">sessoes.inicio</text>
+        <text x="670" y="210" class="svg-label muted">últimos 30 dias → a usar mesmo</text>
+        <rect x="650" y="252" width="300" height="72" rx="6" fill="#fff" stroke="#B8B59D" stroke-width="2"/>
+        <text x="670" y="282" class="svg-mono">subscricoes.estado</text>
+        <text x="670" y="308" class="svg-label muted">paga e não cancelada</text>
+        <!-- setas -->
+        <defs>
+          <marker id="ah-sl-slate" markerWidth="11" markerHeight="11" refX="8" refY="3.5" orient="auto"><path d="M0,0 L8,3.5 L0,7 Z" fill="#74808D"/></marker>
+          <marker id="ah-sl-olive" markerWidth="11" markerHeight="11" refX="8" refY="3.5" orient="auto"><path d="M0,0 L8,3.5 L0,7 Z" fill="#6D6D3E"/></marker>
+        </defs>
+        <line x1="340" y1="178" x2="648" y2="92"  stroke="#74808D" stroke-width="2" stroke-dasharray="3 6" marker-end="url(#ah-sl-slate)"/>
+        <text x="470" y="120" class="svg-label muted">escolha ingénua do LLM</text>
+        <line x1="340" y1="193" x2="648" y2="190" stroke="#6D6D3E" stroke-width="3" marker-end="url(#ah-sl-olive)"/>
+        <text x="470" y="178" class="svg-label" style="fill:#6D6D3E;">definição real de negócio</text>
+        <line x1="340" y1="208" x2="648" y2="288" stroke="#B8B59D" stroke-width="2" stroke-dasharray="3 6"/>
+      </svg>
+    </div>
+    <p class="lead" style="margin:0 auto; text-align:center; max-width:86%;">O SQL é a parte fácil. O difícil é decidir <strong>que tabelas e colunas</strong> a pergunta quer dizer. É aqui que o NL2SQL erra — e onde tu, que conheces o modelo, és insubstituível.</p>
+  </div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">NN</span></div>
+  <aside class="notes">A literatura (NL2SQL, VLDB 2025) é clara: a gramática SQL os modelos já dominam; o gargalo é o schema linking — ligar termos da pergunta às entidades certas do schema. Numa BD com 300 tabelas e nomes ambíguos, é onde tudo descarrila. Dar ao modelo um bom dicionário de dados, uma camada semântica e exemplos melhora muito mais do que trocar de modelo. O conhecimento do domínio é a tua vantagem.</aside>
+</section>
+
+<!-- GERAÇÃO ETL / dbt (capacidade) -->
+<section class="content-slide">
+  <span class="label-tag">Porta A · geração de ETL / dbt</span>
+  <h2>De uma frase a um modelo, com testes e docs</h2>
+  <div class="separator"></div>
+  <div class="stage">
+    <div class="etl">
+      <div class="doc">"Modelo dbt de<br>receita diária por<br>região, com testes."</div>
+      <span class="ar">→</span>
+      <div class="llm">LLM<span class="sch">+ schema do projeto dbt</span></div>
+      <span class="ar">→</span>
+      <div class="out">models/receita_diaria.sql<br>+ schema.yml <span class="ok">(testes)</span><br>+ descrição auto<br>+ DAG de dependências</div>
+    </div>
+    <div class="callout" style="max-width:84%; margin:0 auto;">
+      <span class="k">O que ganhas e o que falta</span>
+      <p>O esqueleto sai em segundos: SQL, <span class="mono">ref()</span>, testes, documentação. Mas o esqueleto não é o contrato — <strong>os testes que importam são os que o LLM não sabe que precisas</strong>.</p>
+    </div>
+  </div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">NN</span></div>
+  <aside class="notes">dbt + LLM é uma combinação muito produtiva: scaffolding de modelos, geração de testes genéricos (unique, not_null), descrições para a documentação. Poupa o trabalho aborrecido. Mas — e o próximo slide mostra-o — o modelo gerado costuma ter os testes errados ou a granularidade errada. A geração acelera; a revisão continua a ser tua.</aside>
+</section>
+
+<!-- dbt ERRADO-vs-CERTO -->
+<section class="content-slide">
+  <span class="label-tag">Porta A · criticar um modelo dbt gerado</span>
+  <h2>O modelo "compila" — e está errado</h2>
+  <div class="separator"></div>
+  <div class="stage">
+    <div class="qbar"><span class="ico">dbt →</span> receita_diaria.sql, gerado pelo copiloto</div>
+    <div class="sql-grid">
+      <div class="sql-card wrong">
+        <span class="tag">⟶ o que o LLM gera</span>
+        <pre>-- models/receita_diaria.sql
+SELECT
+  e.data::date AS dia,
+  SUM(l.valor) AS receita
+FROM {{ ref('encomendas') }} e
+JOIN {{ ref('linhas') }} l
+  ON l.enc_id = e.id
+GROUP BY 1
+-- (sem schema.yml, sem testes)</pre>
+        <p class="res">compila ✓ · receita <b>inflada</b></p>
+      </div>
+      <div class="sql-card right">
+        <span class="tag">⟶ a revisão de engenharia</span>
+        <pre>{{ config(materialized='incremental') }}
+-- agregar linhas ANTES do join
+-- (senão fan-out duplica receita)
+
+-- schema.yml:
+columns:
+  - name: dia
+    tests: [unique, not_null]
+  - name: receita
+    tests: [not_null]</pre>
+        <p class="res">testado ✓ · grão <b>correto</b></p>
+      </div>
+    </div>
+    <p class="why"><b>O LLM gera o esqueleto, não o contrato.</b> Faltam testes, falta o <span class="mono">incremental</span>, e o join repete a armadilha do fan-out. "Compila" não é "está certo".</p>
+  </div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">NN</span></div>
+  <aside class="notes">Repare como a armadilha 6 (fan-out) reaparece dentro de um modelo dbt — o copiloto não aprendeu a lição entre slides. A revisão acrescenta as três coisas que fazem um modelo de produção: o teste de unicidade no grão (dia), o not_null, e a materialização incremental para não reprocessar tudo. Isto é exatamente o code review que vale mais, não menos.</aside>
+</section>
+
+<!-- MIGRAÇÃO / TRADUÇÃO DE DIALETOS -->
+<section class="content-slide">
+  <span class="label-tag">Porta A · migração de dialetos SQL</span>
+  <h2>Traduzir Oracle → BigQuery não é trocar funções</h2>
+  <div class="separator"></div>
+  <div class="stage">
+    <div class="qbar"><span class="ico">Oracle →</span> SELECT * FROM (… ORDER BY b DESC) WHERE ROWNUM &lt;= 10;</div>
+    <div class="sql-grid">
+      <div class="sql-card wrong">
+        <span class="tag">⟶ tradução linha-a-linha do LLM</span>
+        <pre>-- BigQuery
+SELECT nome, IFNULL(bonus,0) AS b
+FROM emp
+QUALIFY ROW_NUMBER() OVER () &lt;= 10
+ORDER BY b DESC;</pre>
+        <p class="res">→ <b>10 nomes ao acaso</b> <span style="color:var(--cel-slate)">(corre!)</span></p>
+      </div>
+      <div class="sql-card right">
+        <span class="tag">⟶ tradução fiel à semântica</span>
+        <pre>-- BigQuery
+SELECT nome, IFNULL(bonus,0) AS b
+FROM emp
+ORDER BY b DESC
+LIMIT 10;</pre>
+        <p class="res">→ <b>os 10 maiores bónus</b></p>
+      </div>
+    </div>
+    <p class="why"><b>Em Oracle, <span class="mono">ROWNUM</span> filtra ANTES do <span class="mono">ORDER BY</span>.</b> Daí o <span class="mono">SELECT … FROM (subquery ordenada)</span>. O LLM traduz <span class="mono">IFNULL</span> bem, mas mantém a ordem das operações errada. Dialeto é semântica, não vocabulário.</p>
+  </div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">NN</span></div>
+  <aside class="notes">A migração é uma das melhores aplicações do copiloto — tarefa fechada, alto volume, padrões repetitivos. Mas tem caudas longas: a ordem de avaliação de ROWNUM, o tratamento de NULL em ordenações, datas e fusos, NUMBER vs FLOAT, sintaxe de janelas. O LLM acerta o caso comum e falha o canto. Por isso a migração assistida precisa de testes de equivalência: correr ambas e comparar resultados, não confiar na tradução.</aside>
+</section>
+
+<!-- CATALOGAÇÃO E METADADOS -->
+<section class="content-slide">
+  <span class="label-tag">Porta A · catalogação e metadados</span>
+  <h2>Documentar o data warehouse que ninguém documentou</h2>
+  <div class="separator"></div>
+  <div class="stage">
+    <div class="etl">
+      <div class="doc">information_schema<br>+ amostra de linhas<br><span style="color:var(--cel-slate)">tabela `fct_vendas`,<br>colunas crípticas:<br>val, qt, dt, cli_id</span></div>
+      <span class="ar">→</span>
+      <div class="llm">LLM<span class="sch">+ nomes vizinhos + dados</span></div>
+      <span class="ar">→</span>
+      <div class="out">descrição da tabela<br>descrição por coluna<br><span class="ok">flag PII</span> (cli_id)<br>termos de glossário</div>
+    </div>
+    <div class="tiles-grid three" style="margin-top:6px;">
+      <div class="tcard"><i class="fa-solid fa-table-list"></i><h4>Descrições</h4><p>Tabela e colunas auto-descritas a partir do schema e de exemplos.</p></div>
+      <div class="tcard"><i class="fa-solid fa-user-shield"></i><h4>Deteção de PII</h4><p>Sinaliza candidatos a dados pessoais para classificação.</p></div>
+      <div class="tcard"><i class="fa-solid fa-book"></i><h4>Glossário</h4><p>Liga colunas a termos de negócio — primeiro rascunho do dicionário.</p></div>
+    </div>
+  </div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">NN</span></div>
+  <aside class="notes">O catálogo de dados é o trabalho que toda a gente adia. O LLM lê os nomes das colunas, umas linhas de amostra e os nomes vizinhos, e produz um primeiro rascunho de documentação — incluindo candidatos a PII. Cuidado: as descrições são plausíveis mas o LLM pode inventar a semântica de negócio (o que `val` significa exatamente). Serve para arrancar, não para publicar sem revisão. E note a ligação à armadilha 5: o glossário é precisamente onde se fixa o que "ativo" quer dizer.</aside>
+</section>
+
+<!-- QUALIDADE DE DADOS SEMÂNTICA -->
+<section class="content-slide">
+  <span class="label-tag">Porta A · qualidade de dados semântica</span>
+  <h2>O erro que passa em todas as regras</h2>
+  <div class="separator"></div>
+  <div class="stage">
+    <div class="attn" style="gap:14px;">
+      <div class="phrase">doente: <b>0 anos</b> · diagnóstico: <b>menopausa</b> · medicação: <b>terapêutica hormonal</b></div>
+    </div>
+    <div class="contrast">
+      <div class="c">
+        <h3>Validação por regras</h3>
+        <p><span class="mono">idade ≥ 0</span> ✓ &nbsp; <span class="mono">não-nulo</span> ✓ &nbsp; <span class="mono">domínio válido</span> ✓</p>
+        <p style="margin-top:14px; color:var(--cel-slate); font-size:18pt;">cada campo passa isolado. A linha é aceite.</p>
+      </div>
+      <div class="c weight">
+        <h3>Deteção com LLM</h3>
+        <p style="margin-bottom:20px;">lê a linha como um todo e apanha a <em>incoerência clínica</em>:</p>
+        <div class="chips"><span>⚑ idade × diagnóstico</span><span>menopausa aos 0 anos</span><span>rever</span></div>
+      </div>
+    </div>
+    <p class="why"><b>O contexto é a anomalia.</b> Nenhuma regra de coluna apanha isto — só a relação entre campos. O LLM é bom a sinalizar o improvável; o humano confirma.</p>
+  </div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">NN</span></div>
+  <aside class="notes">A qualidade de dados clássica é por regras: tipos, intervalos, não-nulos, expressões regulares. Apanha o malformado, não o implausível. Um bebé com menopausa passa em todos os testes de coluna — cada valor é válido por si. O LLM lê a linha como uma frase e estranha a combinação. Não substitui as regras: complementa-as, levantando candidatos a revisão. É deteção de anomalias semântica, com humano no fim — porque o LLM também inventa falsos positivos.</aside>
+</section>
+
+<!-- LINEAGE AUTOMÁTICO (SVG DAG) -->
+<section class="content-slide">
+  <span class="label-tag">Porta A · lineage automático</span>
+  <h2>Ler o código e desenhar o grafo de linhagem</h2>
+  <div class="separator"></div>
+  <div class="stage">
+    <div class="figure" style="max-width:1320px;">
+      <svg viewBox="0 0 1000 340" role="img" aria-label="Lineage: do SQL e dbt para um grafo de dependências">
+        <rect x="8" y="8" width="984" height="324" rx="10" fill="none" stroke="#B8B59D" stroke-opacity="0.5"/>
+        <text x="28" y="40" class="svg-label muted">SQL · dbt · DAGs do Airflow  →  grafo de dependências</text>
+        <defs>
+          <marker id="ah-lin" markerWidth="11" markerHeight="11" refX="8" refY="3.5" orient="auto"><path d="M0,0 L8,3.5 L0,7 Z" fill="#6D6D3E"/></marker>
+        </defs>
+        <!-- fontes -->
+        <rect x="40" y="96"  width="190" height="60" rx="6" fill="#e9e9e3"/><text x="135" y="132" text-anchor="middle" class="svg-mono">raw_encomendas</text>
+        <rect x="40" y="196" width="190" height="60" rx="6" fill="#e9e9e3"/><text x="135" y="232" text-anchor="middle" class="svg-mono">raw_clientes</text>
+        <!-- staging -->
+        <rect x="400" y="96"  width="190" height="60" rx="6" fill="#deded4"/><text x="495" y="132" text-anchor="middle" class="svg-mono">stg_encomendas</text>
+        <rect x="400" y="196" width="190" height="60" rx="6" fill="#deded4"/><text x="495" y="232" text-anchor="middle" class="svg-mono">stg_clientes</text>
+        <!-- marts -->
+        <rect x="760" y="146" width="200" height="62" rx="6" fill="#2F4E5E"/><text x="860" y="183" text-anchor="middle" style="fill:#fff;" class="svg-mono">fct_receita</text>
+        <!-- edges -->
+        <line x1="230" y1="126" x2="398" y2="126" stroke="#6D6D3E" stroke-width="2.5" marker-end="url(#ah-lin)"/>
+        <line x1="230" y1="226" x2="398" y2="226" stroke="#6D6D3E" stroke-width="2.5" marker-end="url(#ah-lin)"/>
+        <line x1="590" y1="126" x2="758" y2="166" stroke="#6D6D3E" stroke-width="2.5" marker-end="url(#ah-lin)"/>
+        <line x1="590" y1="226" x2="758" y2="190" stroke="#6D6D3E" stroke-width="2.5" marker-end="url(#ah-lin)"/>
+        <text x="135" y="86" text-anchor="middle" class="svg-label muted">fontes</text>
+        <text x="495" y="86" text-anchor="middle" class="svg-label muted">staging</text>
+        <text x="860" y="132" text-anchor="middle" class="svg-label muted">mart</text>
+      </svg>
+    </div>
+    <p class="lead" style="margin:0 auto; text-align:center; max-width:86%;">O LLM lê as queries e infere "quem alimenta quem". Responde a <strong>"se eu mudar esta coluna, o que parte a jusante?"</strong> — sem ninguém ter desenhado o mapa.</p>
+  </div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">NN</span></div>
+  <aside class="notes">Lineage — linhagem — é o grafo de dependências entre tabelas e modelos. Ferramentas como o dbt já o derivam de `ref()`; o valor do LLM é fazê-lo a partir de SQL solto, procedimentos legados e DAGs do Airflow onde não há `ref()`. Responde à pergunta de ouro de impact analysis: mudo esta coluna, o que rebenta? Aviso: o grafo inferido pode falhar SQL dinâmico ou construído por strings — é um rascunho a validar, não a fonte de verdade.</aside>
+</section>
+
+<!-- COPILOTOS DE PLATAFORMA -->
+<section class="content-slide">
+  <span class="label-tag">Porta A · copilotos de plataforma</span>
+  <h2>Já estão dentro das ferramentas que usam</h2>
+  <div class="separator"></div>
+  <div class="stage">
+    <div class="tiles-grid">
+      <div class="tcard"><i class="fa-solid fa-bolt"></i><h4>Databricks Genie</h4><p>NL → SQL e pipelines sobre o lakehouse.</p></div>
+      <div class="tcard"><i class="fa-regular fa-snowflake"></i><h4>Snowflake Cortex</h4><p>Cortex Analyst / Code: queries e workflows.</p></div>
+      <div class="tcard"><i class="fa-brands fa-google"></i><h4>BigQuery + Gemini</h4><p>Assistente de dados e geração de SQL.</p></div>
+      <div class="tcard"><i class="fa-solid fa-layer-group"></i><h4>MS Fabric Copilot</h4><p>Pipelines e notebooks assistidos.</p></div>
+    </div>
+    <div class="callout" style="max-width:86%; margin:0 auto;">
+      <span class="k">A crítica que vale para todos</span>
+      <p>"Nenhum conhece o modelo de dados completo — e pelo menos metade vai escrever, com confiança, SQL que faz <strong>join na coluna errada</strong>." Sem camada semântica, repetem as onze armadilhas dentro da plataforma.</p>
+    </div>
+  </div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">NN</span></div>
+  <aside class="notes">Não é preciso adotar nada novo — o copiloto já vem na plataforma que usam. Têm acesso ao schema, o que ajuda no schema linking, mas continuam sem a camada de negócio: o que é "ativo", que datas contam, onde está o soft delete. A citação é do Satyam Sahu (Medium, ver SOURCES). A defesa de fundo é a mesma das onze armadilhas: uma camada semántica / métricas definidas e um humano que sabe ler o resultado.</aside>
+</section>
+
+<!-- A LIÇÃO DA PORTA A -->
+<section class="content-slide">
+  <span class="label-tag">Porta A · a lição</span>
+  <h2>Escrever → orientar → validar</h2>
+  <div class="separator"></div>
+  <div class="stage">
+    <div class="chain center-x">
+      <div class="chain-col"><div class="chain-box fill">escrever</div><div class="cap">o que fazíamos</div></div>
+      <span class="arrow"></span>
+      <div class="chain-col"><div class="chain-box fill">orientar</div><div class="cap">o que fazemos hoje</div></div>
+      <span class="arrow"></span>
+      <div class="chain-col"><div class="chain-box fill">validar</div><div class="cap">onde está o valor</div></div>
+    </div>
+    <p class="lead" style="text-align:center; margin:0 auto; max-width:84%;">Em 2026 o <strong>code review vale mais, não menos</strong>. Escrever SQL que corre deixou de impressionar. Ler SQL e apanhar a armadilha semântica — o grão, o NULL, a definição de negócio — é o que distingue.</p>
+  </div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">NN</span></div>
+  <aside class="notes">Fecho da Porta A, espelhando a Aula 1. O copiloto é real e útil — para schema linking, geração de dbt, migração, catálogo, qualidade, lineage. Mas todas estas tarefas terminam na mesma palavra: validar. O engenheiro deixou de ser quem escreve mais SQL e passou a ser quem o lê melhor. Quem usa o copiloto para não ter de aprender a ler SQL está a construir a sua própria armadilha. A seguir, a Porta B — onde o trabalho deixa de ser acelerado e passa a ser novo.</aside>
+</section>

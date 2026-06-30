@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>O SQL que mente — sandbox (EX-1)</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;600;700&family=Open+Sans:wght@400;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+  :root{
+    --primary:#2F4E5E; --secondary:#6D6D3E; --light:#B8B59D; --slate:#74808D;
+    --text:#3A3838; --bg:#F3F3F3; --white:#FFFFFF;
+    --head:"Libre Franklin",Helvetica,sans-serif; --body:"Open Sans",Helvetica,sans-serif;
+    --mono:"JetBrains Mono","Courier New",monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--body);line-height:1.55}
+  header{background:var(--primary);color:#fff;padding:26px 40px;position:relative}
+  .header-logo{position:absolute;top:18px;right:34px;height:30px;background:#fff;padding:8px 12px;border-radius:6px}
+  header .kick{font-family:var(--head);text-transform:uppercase;letter-spacing:.08em;font-size:13px;color:var(--light);font-weight:600}
+  header h1{font-family:var(--head);font-weight:700;font-size:30px;margin:6px 0 0}
+  header p{margin:8px 0 0;color:#cfd6da;font-size:15px;max-width:880px}
+  main{max-width:1320px;margin:0 auto;padding:26px 40px 80px}
+  h2{font-family:var(--head);font-weight:600;color:var(--primary);font-size:19px;margin:0 0 4px}
+  .sub{font-size:14px;color:var(--slate);margin:0 0 16px}
+  .status{font-family:var(--mono);font-size:14px;color:var(--slate);padding:8px 0 16px}
+  .status.err{color:#7a3b2e}
+  section.block{margin-top:34px;border-top:1px solid var(--light);padding-top:26px}
+  .dbpick{display:flex;align-items:center;gap:12px;margin:4px 0 22px}
+  .dbpick label{font-family:var(--head);text-transform:uppercase;letter-spacing:.05em;font-size:12px;font-weight:600;color:var(--slate)}
+  select{font-family:var(--body);font-size:15px;padding:9px 13px;border:1px solid #cfcfc6;background:var(--white);color:var(--primary)}
+  /* ---- ER ---- */
+  #er{width:100%;max-width:1180px}
+  #er svg{width:100%;height:auto;display:block}
+  .er-legend{font-size:13px;color:var(--slate);margin-top:8px}
+  .er-legend b{color:var(--secondary)}
+  /* ---- desafios ---- */
+  .grid{display:grid;grid-template-columns:300px 1fr;gap:32px;align-items:start}
+  .qlist{display:flex;flex-direction:column;gap:10px}
+  .qbtn{text-align:left;background:var(--white);border:1px solid #e2e2da;border-left:3px solid var(--light);padding:12px 14px;cursor:pointer;font-family:var(--body);font-size:15px;color:var(--text);transition:all .15s}
+  .qbtn:hover{border-left-color:var(--secondary)}
+  .qbtn.active{border-left-color:var(--primary);background:#eef0ee}
+  .qbtn .dom{display:block;font-family:var(--head);text-transform:uppercase;letter-spacing:.06em;font-size:11px;color:var(--secondary);font-weight:600;margin-bottom:3px}
+  .qbar{background:var(--primary);color:#fff;font-family:var(--head);font-weight:600;font-size:20px;padding:16px 22px;display:flex;gap:12px;align-items:center}
+  .qbar .ico{font-family:var(--mono);font-weight:400;color:var(--light);font-size:16px}
+  .step{background:var(--white);border:1px solid #e2e2da;padding:18px 22px;margin-top:16px}
+  .step .n{font-family:var(--head);text-transform:uppercase;letter-spacing:.07em;font-size:12px;font-weight:600;color:var(--secondary);display:block;margin-bottom:10px}
+  pre{font-family:var(--mono);font-size:14px;background:#f6f6f1;padding:14px 16px;margin:0;white-space:pre-wrap;color:var(--primary);line-height:1.5;border:none}
+  textarea{width:100%;height:120px;font-family:var(--mono);font-size:14px;padding:12px;border:1px solid #cfcfc6;background:#fbfbf8;color:var(--primary);resize:vertical}
+  .btn{font-family:var(--head);font-weight:600;font-size:14px;border:none;background:var(--primary);color:#fff;padding:11px 20px;cursor:pointer;margin-top:12px;margin-right:8px}
+  .btn:disabled{opacity:.45;cursor:default}
+  .btn.ghost{background:transparent;color:var(--primary);border:1px solid var(--primary)}
+  .btn.sm{font-size:13px;padding:8px 14px}
+  .result{margin-top:14px;overflow-x:auto}
+  table{border-collapse:collapse;font-family:var(--mono);font-size:14px}
+  th,td{border:1px solid #e2e2da;padding:7px 14px;text-align:left;color:var(--primary)}
+  th{background:#eef0ee;font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--slate)}
+  .empty{font-family:var(--mono);font-size:14px;color:var(--secondary);margin:8px 0 0}
+  .verdict{margin-top:16px;padding:18px 22px;border-left:5px solid var(--secondary);background:rgba(184,181,157,.28)}
+  .verdict.match{border-left-color:var(--primary)}
+  .verdict .k{font-family:var(--head);font-weight:600;font-size:17px;display:block;margin-bottom:8px}
+  .verdict.match .k{color:var(--primary)} .verdict .k{color:var(--secondary)}
+  .verdict .nums{font-family:var(--mono);font-size:15px;margin:6px 0;color:var(--text)}
+  .verdict .nums b{color:var(--primary)}
+  .verdict .why{font-size:15px;margin:10px 0 0;color:var(--text)}
+  .verdict .why b{color:var(--primary)}
+  .ref{margin-top:14px}
+  details{margin-top:12px} summary{cursor:pointer;font-size:14px;color:var(--primary);font-family:var(--head);font-weight:600}
+  .hide{display:none}
+  .toast{font-size:13px;color:var(--secondary);margin-left:10px}
+  .twocol{display:grid;grid-template-columns:1fr 1fr;gap:40px}
+  .schema .tbl{margin-bottom:8px;font-size:15px} .schema .tbl b{color:var(--primary)} .schema .tbl .cnt{color:var(--slate)}
+  .note{font-size:13px;color:var(--slate);margin-top:8px}
+  code{font-family:var(--mono);color:var(--primary)}
+</style>
+</head>
+<body>
+<header>
+  <img class="header-logo" src="assets/logo-cel-horizontal.svg" alt="Ciência e Letras"><div class="kick">GenAI · Engenharia de Dados · Sandbox EX-1</div>
+  <h1>O SQL que mente</h1>
+  <p>Escolha uma base de dados e um desafio, leve o contexto e a pergunta ao seu chatbot, traga a consulta SQL, execute-a e compare com a referência. A consulta corre sem erro — mas pode devolver um número que não é o que se pretendia. Tudo no browser, sobre datasets sintéticos (DuckDB-WASM).</p>
+</header>
+<main>
+  <div id="status" class="status">A carregar o motor SQL (DuckDB-WASM)…</div>
+
+  <div class="dbpick"><label>Base de dados</label><select id="dbsel"></select></div>
+
+  <!-- ===== ER ===== -->
+  <section>
+    <h2>O modelo de dados</h2>
+    <p class="sub" id="ersub">As anotações a azeitona marcam as sementes que armam cada armadilha.</p>
+    <div id="er"></div>
+    <p class="er-legend"><b>PK</b> chave primária · <b>FK</b> chave estrangeira · as ligações indicam cardinalidade <b>1 — N</b>.</p>
+  </section>
+
+  <!-- ===== DESAFIOS ===== -->
+  <section class="block">
+    <h2>Desafios</h2>
+    <p class="sub">Cada pergunta tem uma resposta correta — e uma armadilha tentadora em que a maioria dos LLMs cai.</p>
+    <div class="grid">
+      <div class="qlist" id="qlist"></div>
+      <div class="work" id="work"><p class="sub">Selecione um desafio à esquerda.</p></div>
+    </div>
+  </section>
+
+  <!-- ===== EXTRA ===== -->
+  <section class="block twocol">
+    <div class="schema">
+      <h2>Conteúdo das tabelas</h2>
+      <div id="schema"></div>
+    </div>
+    <div>
+      <h2>Consola SQL</h2>
+      <p class="note">Consulta livre sobre a base de dados ativa (dialeto DuckDB).</p>
+      <textarea id="sql"></textarea>
+      <button id="runfree" class="btn ghost" disabled>Executar</button>
+      <div id="freeout" class="result"></div>
+    </div>
+  </section>
+</main>
+
+<script type="module">
+const $ = s => document.querySelector(s);
+const status = $('#status');
+
+// ===================== BASES DE DADOS =====================
+const DBS = {
+  vendas:{
+    nome:'Vendas — 6 tabelas',
+    tables:['clientes','vendedores','produtos','encomendas','linhas_encomenda','vendas'],
+    freeSql:'SELECT * FROM encomendas LIMIT 5;',
+    ddl:[
+      `CREATE TABLE clientes(id INT, nome TEXT)`,
+      `CREATE TABLE vendedores(id INT, nome TEXT)`,
+      `CREATE TABLE produtos(id INT, nome TEXT, categoria TEXT)`,
+      `CREATE TABLE encomendas(id INT, cliente_id INT, data DATE, estado TEXT, valor_total_cent INT)`,
+      `CREATE TABLE linhas_encomenda(id INT, encomenda_id INT, produto_id INT, qtd INT, preco_cent INT)`,
+      `CREATE TABLE vendas(id INT, vendedor_id INT, encomenda_id INT, comissao_cent INT)`],
+    seed:[
+      `INSERT INTO clientes VALUES (1,'Ana'),(2,'Bruno'),(3,'Carla'),(4,'Diogo'),(5,'Eva')`,
+      `INSERT INTO vendedores VALUES (1,'Filipa'),(2,'Gil'),(3,'Hugo'),(4,'Inês')`,
+      `INSERT INTO produtos VALUES (1,'Teclado','periféricos'),(2,'Rato','periféricos'),(3,'Monitor','ecrãs'),(4,'Webcam','periféricos'),(5,'Cadeira','mobiliário'),(6,'Secretária','mobiliário')`,
+      `INSERT INTO encomendas VALUES
+       (1,1,DATE '2025-01-10','paga',5000),(2,1,DATE '2025-02-03','paga',3000),
+       (3,2,DATE '2025-02-15','paga',8000),(4,2,DATE '2025-03-01','cancelada',2000),
+       (5,3,DATE '2025-03-10','paga',12000),(6,3,DATE '2025-03-22','paga',4500),
+       (7,1,DATE '2025-04-05','paga',6000),(8,4,DATE '2025-04-18','cancelada',1500),
+       (9,5,DATE '2025-05-02','paga',9000),(10,5,DATE '2025-05-20','paga',2500),
+       (11,2,DATE '2025-06-01','paga',7000),(12,4,DATE '2025-06-15','cancelada',3000)`,
+      `INSERT INTO linhas_encomenda VALUES
+       (1,1,1,1,2000),(2,1,2,1,1000),(3,2,3,1,3000),(4,3,1,1,2000),(5,3,2,1,1000),
+       (6,3,4,1,1500),(7,4,2,1,1000),(8,5,3,1,3000),(9,5,1,1,2000),(10,6,4,1,1500),
+       (11,7,2,1,1000),(12,7,4,1,1500),(13,8,1,1,2000),(14,9,3,1,3000),(15,10,2,1,1000),
+       (16,11,1,1,2000),(17,11,NULL,1,1000),(18,12,3,1,3000)`,
+      `INSERT INTO vendas VALUES (1,1,1,1000),(2,1,3,1500),(3,1,5,2000),(4,2,7,1200),(5,2,9,800)`],
+    traps:[
+      {dom:'Vendas',q:'Quantos clientes temos?',
+       ref:`SELECT COUNT(DISTINCT cliente_id) AS clientes FROM encomendas;`,
+       typical:`SELECT COUNT(*) AS clientes FROM encomendas;`, pit:'grain',
+       why:`A tabela tem <b>uma linha por encomenda</b>. <code>COUNT(*)</code> conta encomendas, não clientes — um cliente com várias compras é contado várias vezes. O LLM desconhece o <b>grão</b> da tabela.`},
+      {dom:'RH / Vendas',q:'Qual a comissão média por vendedor? (cêntimos)',
+       ref:`SELECT SUM(comissao_cent) * 1.0 / (SELECT COUNT(*) FROM vendedores) AS media FROM vendas;`,
+       typical:`SELECT AVG(total) AS media FROM (\n  SELECT vendedor_id, SUM(comissao_cent) AS total\n  FROM vendas GROUP BY vendedor_id\n) t;`, pit:'linhas em falta',
+       why:`Há vendedores <b>sem qualquer venda</b> — não constam de <code>vendas</code>, logo caem fora do denominador. A média parece muito melhor do que a realidade.`},
+      {dom:'Vendas',q:'Que produtos nunca foram vendidos?',
+       ref:`SELECT id, nome FROM produtos p\nWHERE NOT EXISTS (\n  SELECT 1 FROM linhas_encomenda l WHERE l.produto_id = p.id\n);`,
+       typical:`SELECT id, nome FROM produtos\nWHERE id NOT IN (SELECT produto_id FROM linhas_encomenda);`, pit:'NOT IN + NULL',
+       why:`Existe um <code>produto_id</code> a <b>NULL</b> em <code>linhas_encomenda</code>. Com um NULL na subconsulta, <code>NOT IN</code> devolve <b>conjunto vazio</b> — sem erro. <code>NOT EXISTS</code> não sofre disso.`},
+      {dom:'Vendas',q:'Qual a receita total? (cêntimos)',
+       ref:`SELECT SUM(valor_total_cent) AS receita FROM encomendas;`,
+       typical:`SELECT SUM(e.valor_total_cent) AS receita\nFROM encomendas e\nJOIN linhas_encomenda l ON l.encomenda_id = e.id;`, pit:'fan-out do join',
+       why:`Ao juntar <code>encomendas</code> a <code>linhas_encomenda</code>, cada encomenda é <b>repetida pelo número de linhas</b> e o total é multiplicado. O join "parece" inofensivo.`},
+      {dom:'Vendas',q:'Quantas encomendas temos?',
+       ref:`SELECT COUNT(*) AS encomendas FROM encomendas WHERE estado <> 'cancelada';`,
+       typical:`SELECT COUNT(*) AS encomendas FROM encomendas;`, pit:'soft delete',
+       why:`Há encomendas com <code>estado = 'cancelada'</code> (soft delete). <code>COUNT(*)</code> conta-as como reais. O "apagado" vive numa coluna que o LLM não conhece.`},
+      {dom:'Vendas (composto)',q:'Qual o cliente que mais gastou?',
+       ref:`SELECT c.nome, SUM(e.valor_total_cent) AS gasto\nFROM encomendas e JOIN clientes c ON c.id = e.cliente_id\nWHERE e.estado <> 'cancelada'\nGROUP BY c.nome ORDER BY gasto DESC LIMIT 1;`,
+       typical:`SELECT c.nome, SUM(e.valor_total_cent) AS gasto\nFROM encomendas e JOIN clientes c ON c.id = e.cliente_id\nGROUP BY c.nome ORDER BY gasto DESC LIMIT 1;`, pit:'soft delete escondido num agregado',
+       why:`Sem excluir as canceladas, o ranking muda de <b>vencedor</b>: as encomendas canceladas inflam o total de um cliente diferente. A armadilha reaparece dentro de um <code>GROUP BY</code> — mais difícil de ver.`},
+    ],
+    er:{ viewBox:[1100,620], tables:{
+        clientes:{x:40,y:80,w:200,cols:[['id','pk'],['nome','']]},
+        encomendas:{x:440,y:40,w:260,cols:[['id','pk'],['cliente_id','fk'],['data',''],['estado','soft'],['valor_total_cent','']]},
+        produtos:{x:30,y:400,w:210,cols:[['id','pk'],['nome',''],['categoria','']]},
+        linhas_encomenda:{x:300,y:400,w:260,cols:[['id','pk'],['encomenda_id','fk'],['produto_id','null'],['qtd',''],['preco_cent','']]},
+        vendas:{x:630,y:400,w:230,cols:[['id','pk'],['vendedor_id','fk'],['encomenda_id','fk'],['comissao_cent','']]},
+        vendedores:{x:900,y:400,w:180,cols:[['id','pk'],['nome','']]},
+      },
+      edges:[['clientes','r',0,'encomendas','l',0],['encomendas','b',-160,'linhas_encomenda','t',-30],
+             ['produtos','r',0,'linhas_encomenda','l',0],['encomendas','b',-30,'vendas','t',-20],
+             ['vendedores','l',0,'vendas','r',0]],
+      notes:[[430,598,'produto_id pode ser NULL → arma o NOT IN','middle'],
+             [1080,570,'2 vendedores sem vendas → arma a média','end'],
+             [570,28,"estado='cancelada' → soft delete · valores em cêntimos",'middle']] },
+  },
+
+  biblioteca:{
+    nome:'Biblioteca — 2 tabelas',
+    tables:['livros','emprestimos'],
+    freeSql:'SELECT * FROM emprestimos;',
+    ddl:[
+      `CREATE TABLE livros(id INT, titulo TEXT, disponivel BOOLEAN)`,
+      `CREATE TABLE emprestimos(id INT, livro_id INT, leitor TEXT, emprestado_em DATE, devolvido_em DATE)`],
+    seed:[
+      `INSERT INTO livros VALUES
+       (1,'O Ano da Morte de Ricardo Reis',true),(2,'Memorial do Convento',true),
+       (3,'Os Maias',true),(4,'Mensagem',true),(5,'Sermões',true),(6,'Peregrinação',true)`,
+      `INSERT INTO emprestimos VALUES
+       (1,1,'Ana',  DATE '2025-01-05', DATE '2025-01-20'),
+       (2,1,'Bruno',DATE '2025-02-01', DATE '2025-02-15'),
+       (3,2,'Carla',DATE '2025-02-10', NULL),
+       (4,3,'Diogo',DATE '2025-03-01', DATE '2025-03-12'),
+       (5,3,'Eva',  DATE '2025-03-15', NULL),
+       (6,4,'Filipa',DATE '2025-04-01', DATE '2025-04-10'),
+       (7,1,'Gil',  DATE '2025-04-20', NULL),
+       (8,NULL,'Hugo',DATE '2025-05-01', DATE '2025-05-10')`],
+    traps:[
+      {dom:'Biblioteca',q:'Quantos livros já foram emprestados?',
+       ref:`SELECT COUNT(DISTINCT livro_id) AS livros FROM emprestimos;`,
+       typical:`SELECT COUNT(*) AS livros FROM emprestimos;`, pit:'grain',
+       why:`A tabela tem <b>uma linha por empréstimo</b>. <code>COUNT(*)</code> conta empréstimos, não livros — um livro emprestado várias vezes conta várias vezes (e a linha com <code>livro_id</code> NULL também).`},
+      {dom:'Biblioteca',q:'Quantos empréstimos estão por devolver?',
+       ref:`SELECT COUNT(*) AS abertos FROM emprestimos WHERE devolvido_em IS NULL;`,
+       typical:`SELECT COUNT(*) AS abertos FROM emprestimos WHERE devolvido_em = NULL;`, pit:'= NULL em vez de IS NULL',
+       why:`Em SQL, <code>= NULL</code> nunca é verdadeiro — comparar com NULL dá <i>unknown</i>, e a contagem vem <b>0</b>, sem erro nenhum. O correto é <code>IS NULL</code>. É a armadilha de NULL mais comum.`},
+      {dom:'Biblioteca',q:'Que livros nunca foram emprestados?',
+       ref:`SELECT id, titulo FROM livros l\nWHERE NOT EXISTS (\n  SELECT 1 FROM emprestimos e WHERE e.livro_id = l.id\n);`,
+       typical:`SELECT id, titulo FROM livros\nWHERE id NOT IN (SELECT livro_id FROM emprestimos);`, pit:'NOT IN + NULL',
+       why:`Há um <code>livro_id</code> a <b>NULL</b> em <code>emprestimos</code>. Com um NULL na subconsulta, <code>NOT IN</code> devolve <b>conjunto vazio</b>. <code>NOT EXISTS</code> não sofre disso.`},
+    ],
+    er:{ viewBox:[1000,360], tables:{
+        livros:{x:80,y:70,w:250,cols:[['id','pk'],['titulo',''],['disponivel','']]},
+        emprestimos:{x:580,y:50,w:320,cols:[['id','pk'],['livro_id','null'],['leitor',''],['emprestado_em',''],['devolvido_em','open']]},
+      },
+      edges:[['livros','r',0,'emprestimos','l',0]],
+      notes:[[740,256,'livro_id pode ser NULL → arma o NOT IN','middle'],
+             [740,280,"devolvido_em NULL = empréstimo em curso → arma o '= NULL'",'middle']] },
+  },
+};
+let CURDB='vendas';
+const db = () => DBS[CURDB];
+
+// ===================== DUCKDB =====================
+let conn=null;
+async function boot(){
+  try{
+    const duckdb=await import('https://cdn.jsdelivr.net/npm/@duckdb/duckdb-wasm@1.29.0/+esm');
+    const bundles=duckdb.getJsDelivrBundles();
+    const bundle=await duckdb.selectBundle(bundles);
+    const workerUrl=URL.createObjectURL(new Blob([`importScripts("${bundle.mainWorker}");`],{type:'text/javascript'}));
+    const worker=new Worker(workerUrl);
+    const d=new duckdb.AsyncDuckDB(new duckdb.ConsoleLogger(),worker);
+    await d.instantiate(bundle.mainModule,bundle.pthreadWorker);
+    URL.revokeObjectURL(workerUrl);
+    conn=await d.connect();
+    for(const k of Object.keys(DBS)) for(const s of [...DBS[k].ddl, ...DBS[k].seed]) await conn.query(s);
+    status.textContent='Motor pronto. Datasets carregados (DuckDB-WASM, no browser).';
+    $('#runfree').disabled=false;
+    renderSchema();
+  }catch(e){
+    status.className='status err';
+    status.innerHTML='Não foi possível iniciar o DuckDB-WASM. Sirva a página por http (ex.: <code>python3 -m http.server</code> nesta pasta e abra <code>http://localhost:8000</code>) — o WASM/worker não corre via <code>file://</code>. Detalhe: '+(e&&e.message);
+    console.error(e);
+  }
+}
+
+// ---------- helpers de resultado ----------
+function fmt(v){ if(v===null||v===undefined) return '∅'; if(typeof v==='bigint') return v.toString(); return String(v); }
+function numify(v){ if(v===null||v===undefined) return null; if(typeof v==='number') return v; if(typeof v==='bigint') return Number(v); const n=Number(String(v)); return Number.isFinite(n)?n:null; }
+function rowsOf(t){ const cols=t.schema.fields.map(f=>f.name); return {cols, rows:t.toArray().map(r=>cols.map(c=>fmt(r[c])))}; }
+function tableHTML(t){
+  const {cols,rows}=rowsOf(t);
+  let h='<table><thead><tr>'+cols.map(c=>`<th>${c}</th>`).join('')+'</tr></thead><tbody>';
+  for(const r of rows) h+='<tr>'+r.map(c=>`<td>${c}</td>`).join('')+'</tr>';
+  h+='</tbody></table>'; if(rows.length===0) h+='<p class="empty">0 linhas</p>'; return h;
+}
+function scalar(t){ const r=t.toArray(); if(r.length===1 && t.schema.fields.length===1) return numify(r[0][t.schema.fields[0].name]); return null; }
+function signature(t){ const {cols,rows}=rowsOf(t); return cols.join('')+''+rows.map(r=>r.join('')).sort().join(''); }
+
+// ---------- ER (genérico) ----------
+const HEAD=34, ROW=28;
+function renderER(){
+  const er=db().er, T=er.tables;
+  const bH=t=>HEAD+t.cols.length*ROW;
+  const anc=(name,side,off=0)=>{const t=T[name],h=bH(t),cx=t.x+t.w/2,cy=t.y+h/2;
+    if(side==='l')return{x:t.x,y:cy}; if(side==='r')return{x:t.x+t.w,y:cy};
+    if(side==='t')return{x:cx+off,y:t.y}; return{x:cx+off,y:t.y+h};};
+  const boxSVG=name=>{
+    const t=T[name],h=bH(t); let g='<g>';
+    g+=`<rect x="${t.x}" y="${t.y}" width="${t.w}" height="${h}" rx="6" fill="#fff" stroke="#cfcfc6"/>`;
+    g+=`<rect x="${t.x}" y="${t.y}" width="${t.w}" height="${HEAD}" rx="6" fill="#2F4E5E"/>`;
+    g+=`<rect x="${t.x}" y="${t.y+HEAD-8}" width="${t.w}" height="8" fill="#2F4E5E"/>`;
+    g+=`<text x="${t.x+14}" y="${t.y+23}" font-family="JetBrains Mono, monospace" font-size="15" fill="#fff">${name}</text>`;
+    t.cols.forEach((c,i)=>{
+      const y=t.y+HEAD+ROW*i+19, flag=c[1];
+      const bold=flag==='pk'?' font-weight="600"':'';
+      g+=`<text x="${t.x+14}" y="${y}" font-family="JetBrains Mono, monospace" font-size="13.5" fill="#2F4E5E"${bold}>${c[0]}</text>`;
+      let tag='';
+      if(flag==='pk')tag='PK'; else if(flag==='fk')tag='FK'; else if(flag==='null')tag='FK · NULL';
+      else if(flag==='soft')tag='soft del.'; else if(flag==='open')tag='NULL = em curso';
+      if(tag){ const col=(flag==='null'||flag==='soft'||flag==='open')?'#6D6D3E':'#74808D';
+        g+=`<text x="${t.x+t.w-12}" y="${y}" text-anchor="end" font-family="Libre Franklin, sans-serif" font-size="11" letter-spacing="0.04em" fill="${col}">${tag}</text>`; }
+      if(i<t.cols.length-1) g+=`<line x1="${t.x}" y1="${t.y+HEAD+ROW*(i+1)}" x2="${t.x+t.w}" y2="${t.y+HEAD+ROW*(i+1)}" stroke="#eee"/>`;
+    });
+    return g+'</g>';
+  };
+  const rel=(a,b)=>`<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke="#74808D" stroke-width="1.6"/>`+
+    `<circle cx="${a.x}" cy="${a.y}" r="3.5" fill="#74808D"/><circle cx="${b.x}" cy="${b.y}" r="3.5" fill="#74808D"/>`+
+    `<text x="${a.x+(b.x>a.x?8:-8)}" y="${a.y-7}" font-family="JetBrains Mono, monospace" font-size="12" fill="#74808D" text-anchor="${b.x>a.x?'start':'end'}">1</text>`+
+    `<text x="${b.x+(a.x>b.x?8:-8)}" y="${b.y-7}" font-family="JetBrains Mono, monospace" font-size="12" fill="#74808D" text-anchor="${a.x>b.x?'start':'end'}">N</text>`;
+  const rels=er.edges.map(([fn,fs,fo,tn,ts,to])=>rel(anc(fn,fs,fo),anc(tn,ts,to))).join('');
+  const boxes=Object.keys(T).map(boxSVG).join('');
+  const notes=er.notes.map(([x,y,txt,a])=>`<text x="${x}" y="${y}" text-anchor="${a||'middle'}" font-family="Open Sans, sans-serif" font-size="12.5" fill="#6D6D3E">${txt}</text>`).join('');
+  $('#er').innerHTML=`<svg viewBox="0 0 ${er.viewBox[0]} ${er.viewBox[1]}" role="img" aria-label="Diagrama de entidades">${rels}${boxes}${notes}</svg>`;
+  $('#ersub').textContent=`${db().tables.length} tabelas. As anotações a azeitona marcam as sementes que armam cada armadilha.`;
+}
+
+// ---------- esquema (contagens) ----------
+function renderSchema(){
+  Promise.all(db().tables.map(async t=>{ const c=await conn.query(`SELECT COUNT(*) AS n FROM ${t}`); return [t,Number(c.toArray()[0]['n'])]; }))
+   .then(rows=>{ $('#schema').innerHTML=rows.map(([t,n])=>`<div class="tbl"><b>${t}</b> <span class="cnt">· ${n} linhas</span></div>`).join('')
+      +`<p class="note">Cole <code>SELECT * FROM &lt;tabela&gt;</code> na consola para inspecionar os dados.</p>`; });
+}
+
+// ---------- prompt ----------
+function buildPrompt(q){
+  return `Tenho a seguinte base de dados (DuckDB):\n\n`+db().ddl.map(d=>d+';').join('\n')+`\n\n`
+    +`Pergunta: ${q}\n\nResponda apenas com a consulta SQL (dialeto DuckDB), sem explicação.`;
+}
+
+// ---------- UI dos desafios ----------
+let current=-1;
+function renderList(){
+  $('#qlist').innerHTML=db().traps.map((t,i)=>`<button class="qbtn" data-i="${i}"><span class="dom">${t.dom}</span>${t.q}</button>`).join('');
+  $('#qlist').querySelectorAll('.qbtn').forEach(b=>b.onclick=()=>select(parseInt(b.dataset.i)));
+}
+function select(i){
+  current=i; const t=db().traps[i];
+  $('#qlist').querySelectorAll('.qbtn').forEach(b=>b.classList.toggle('active',parseInt(b.dataset.i)===i));
+  $('#work').innerHTML=`
+    <div class="qbar"><span class="ico">NL →</span> ${t.q}</div>
+    <div class="step">
+      <span class="n">1 · Leve ao seu chatbot</span>
+      <p style="margin:0 0 4px">Copie o contexto e a pergunta, cole no seu chatbot (ChatGPT, Claude, …) e traga a consulta SQL de volta.</p>
+      <button class="btn sm" id="copyp">Copiar contexto + pergunta</button><span class="toast hide" id="toast">copiado ✓</span>
+      <details><summary>ver o prompt</summary><pre id="promptpre">${buildPrompt(t.q).replace(/</g,'&lt;')}</pre></details>
+    </div>
+    <div class="step">
+      <span class="n">2 · Execute a consulta</span>
+      <textarea id="usersql" placeholder="Cole aqui a consulta SQL do seu chatbot…"></textarea>
+      <button class="btn" id="runuser">Executar</button>
+      <button class="btn ghost sm" id="loadtypical">Não tenho chatbot à mão — usar uma resposta típica de LLM</button>
+      <div class="result" id="userout"></div>
+    </div>
+    <div class="step hide" id="cmpstep">
+      <span class="n">3 · Compare com a referência</span>
+      <button class="btn" id="cmpbtn">Comparar com a referência</button>
+      <div id="cmpout"></div>
+    </div>`;
+  $('#copyp').onclick=()=>copyPrompt(t.q);
+  $('#runuser').onclick=runUser;
+  $('#loadtypical').onclick=()=>{ $('#usersql').value=t.typical; };
+}
+function copyPrompt(q){
+  const txt=buildPrompt(q);
+  const done=()=>{const el=$('#toast');el.classList.remove('hide');setTimeout(()=>el.classList.add('hide'),1600);};
+  if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(txt).then(done).catch(done); } else done();
+}
+let userRes=null;
+async function runUser(){
+  const sql=$('#usersql').value.trim(); if(!sql) return;
+  try{ userRes=await conn.query(sql); $('#userout').innerHTML=tableHTML(userRes); $('#cmpstep').classList.remove('hide'); $('#cmpbtn').onclick=compare; }
+  catch(e){ userRes=null; $('#userout').innerHTML=`<p class="empty">Erro: ${e.message}</p>`; }
+}
+async function compare(){
+  const t=db().traps[current];
+  const refRes=await conn.query(t.ref);
+  const match=userRes && signature(userRes)===signature(refRes);
+  const us=userRes?scalar(userRes):null, rs=scalar(refRes);
+  let nums='';
+  if(us!==null && rs!==null) nums=`<div class="nums">o seu resultado: <b>${us}</b> &nbsp;·&nbsp; referência: <b>${rs}</b> &nbsp;·&nbsp; diferença: <b>${(us-rs>0?'+':'')+(us-rs)}</b></div>`;
+  else { const un=userRes?userRes.toArray().length:0, rn=refRes.toArray().length; nums=`<div class="nums">o seu resultado: <b>${un}</b> linha(s) &nbsp;·&nbsp; referência: <b>${rn}</b> linha(s)</div>`; }
+  $('#cmpout').innerHTML=`
+    <div class="verdict ${match?'match':''}">
+      <span class="k">${match?'✓ A sua consulta coincide com a referência.':'✗ Não coincide — caiu na armadilha: '+t.pit}</span>
+      ${nums}<p class="why">${t.why}</p>
+    </div>
+    <div class="ref"><details ${match?'':'open'}><summary>ver a consulta de referência</summary><pre>${t.ref.replace(/</g,'&lt;')}</pre><div class="result">${tableHTML(refRes)}</div></details></div>`;
+}
+
+// ---------- consola livre ----------
+async function runFree(){ const out=$('#freeout'); try{ const r=await conn.query($('#sql').value); out.innerHTML=tableHTML(r); }catch(e){ out.innerHTML=`<p class="empty">Erro: ${e.message}</p>`; } }
+
+// ---------- troca de base de dados ----------
+function switchDB(){
+  CURDB=$('#dbsel').value; current=-1;
+  $('#sql').value=db().freeSql; $('#freeout').innerHTML='';
+  $('#work').innerHTML='<p class="sub">Selecione um desafio à esquerda.</p>';
+  renderER(); renderList(); if(conn) renderSchema();
+}
+
+$('#dbsel').innerHTML=Object.entries(DBS).map(([k,d])=>`<option value="${k}">${d.nome}</option>`).join('');
+$('#dbsel').onchange=switchDB;
+$('#sql').value=db().freeSql;
+$('#runfree').onclick=runFree;
+renderER(); renderList();
+boot();
+</script>
+</body>
+</html>
