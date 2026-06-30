@@ -29,12 +29,10 @@
   .dbpick{display:flex;align-items:center;gap:12px;margin:4px 0 22px}
   .dbpick label{font-family:var(--head);text-transform:uppercase;letter-spacing:.05em;font-size:12px;font-weight:600;color:var(--slate)}
   select{font-family:var(--body);font-size:15px;padding:9px 13px;border:1px solid #cfcfc6;background:var(--white);color:var(--primary)}
-  /* ---- ER ---- */
   #er{width:100%;max-width:1180px}
   #er svg{width:100%;height:auto;display:block}
   .er-legend{font-size:13px;color:var(--slate);margin-top:8px}
   .er-legend b{color:var(--secondary)}
-  /* ---- desafios ---- */
   .grid{display:grid;grid-template-columns:300px 1fr;gap:32px;align-items:start}
   .qlist{display:flex;flex-direction:column;gap:10px}
   .qbtn{text-align:left;background:var(--white);border:1px solid #e2e2da;border-left:3px solid var(--light);padding:12px 14px;cursor:pointer;font-family:var(--body);font-size:15px;color:var(--text);transition:all .15s}
@@ -57,9 +55,9 @@
   th{background:#eef0ee;font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--slate)}
   .empty{font-family:var(--mono);font-size:14px;color:var(--secondary);margin:8px 0 0}
   .verdict{margin-top:16px;padding:18px 22px;border-left:5px solid var(--secondary);background:rgba(184,181,157,.28)}
-  .verdict.match{border-left-color:var(--primary)}
-  .verdict .k{font-family:var(--head);font-weight:600;font-size:17px;display:block;margin-bottom:8px}
-  .verdict.match .k{color:var(--primary)} .verdict .k{color:var(--secondary)}
+  .verdict.match{border-left-color:var(--primary);background:#e9efea}
+  .verdict .k{font-family:var(--head);font-weight:600;font-size:17px;display:block;margin-bottom:8px;color:var(--secondary)}
+  .verdict.match .k{color:var(--primary)}
   .verdict .nums{font-family:var(--mono);font-size:15px;margin:6px 0;color:var(--text)}
   .verdict .nums b{color:var(--primary)}
   .verdict .why{font-size:15px;margin:10px 0 0;color:var(--text)}
@@ -78,7 +76,7 @@
 <header>
   <div class="htext"><div class="kick">GenAI · Engenharia de Dados · Sandbox EX-1</div>
   <h1>O SQL que mente</h1>
-  <p>Escolha uma base de dados e um desafio, leve o contexto e a pergunta ao seu chatbot, traga a consulta SQL, execute-a e compare com a referência. A consulta corre sem erro — mas pode devolver um número que não é o que se pretendia. Tudo no browser, sobre datasets sintéticos (DuckDB-WASM).</p></div>
+  <p>Escolha uma base de dados e um desafio, leve o contexto e a pergunta ao seu chatbot, traga a consulta SQL, execute-a e compare com a resposta esperada. A consulta corre sem erro — mas pode devolver um número que não é o que se pretendia. Tudo no browser, sobre datasets sintéticos (DuckDB-WASM).</p></div>
   <img class="header-logo" src="assets/logo-cel-horizontal.svg" alt="Ciência e Letras">
 </header>
 <main>
@@ -86,7 +84,6 @@
 
   <div class="dbpick"><label>Base de dados</label><select id="dbsel"></select></div>
 
-  <!-- ===== ER ===== -->
   <section>
     <h2>O modelo de dados</h2>
     <p class="sub" id="ersub">As anotações a azeitona marcam as sementes que armam cada armadilha.</p>
@@ -94,17 +91,15 @@
     <p class="er-legend"><b>PK</b> chave primária · <b>FK</b> chave estrangeira · as ligações indicam cardinalidade <b>1 — N</b>.</p>
   </section>
 
-  <!-- ===== DESAFIOS ===== -->
   <section class="block">
     <h2>Desafios</h2>
-    <p class="sub">Cada pergunta tem uma resposta correta — e uma armadilha tentadora em que a maioria dos LLMs cai.</p>
+    <p class="sub">Cada pergunta tem uma resposta certa (um número) — e uma armadilha tentadora em que a maioria dos LLMs cai. Qualquer consulta que chegue ao valor certo é aceite.</p>
     <div class="grid">
       <div class="qlist" id="qlist"></div>
       <div class="work" id="work"><p class="sub">Selecione um desafio à esquerda.</p></div>
     </div>
   </section>
 
-  <!-- ===== EXTRA ===== -->
   <section class="block twocol">
     <div class="schema">
       <h2>Conteúdo das tabelas</h2>
@@ -125,6 +120,7 @@ const $ = s => document.querySelector(s);
 const status = $('#status');
 
 // ===================== BASES DE DADOS =====================
+// trap: { q, correct (escalar certo), trap (escalar da armadilha), pit, why, note, hint, ref(SQL), typical(SQL) }
 const DBS = {
   vendas:{
     nome:'Vendas — 6 tabelas',
@@ -155,30 +151,42 @@ const DBS = {
        (16,11,1,1,2000),(17,11,NULL,1,1000),(18,12,3,1,3000)`,
       `INSERT INTO vendas VALUES (1,1,1,1000),(2,1,3,1500),(3,1,5,2000),(4,2,7,1200),(5,2,9,800)`],
     traps:[
-      {dom:'Vendas',q:'Quantos clientes temos?',
-       ref:`SELECT COUNT(DISTINCT cliente_id) AS clientes FROM encomendas;`,
-       typical:`SELECT COUNT(*) AS clientes FROM encomendas;`, pit:'grain',
-       why:`A tabela tem <b>uma linha por encomenda</b>. <code>COUNT(*)</code> conta encomendas, não clientes — um cliente com várias compras é contado várias vezes. O LLM desconhece o <b>grão</b> da tabela.`},
-      {dom:'RH / Vendas',q:'Qual a comissão média por vendedor? (cêntimos)',
+      {dom:'Vendas',q:'Quantos clientes temos?', correct:5, trap:12, pit:'grain (contar encomendas)',
+       why:`<b>12</b> é o número de <b>encomendas</b>, não de clientes — há uma linha por encomenda e um cliente com várias compras conta várias vezes. <code>COUNT(*) FROM clientes</code> ou <code>COUNT(DISTINCT cliente_id)</code> dão 5.`,
+       note:`Há uma tabela <code>clientes</code> e o grão certo dá 5. Quem conta <code>encomendas</code> obtém 12.`,
+       hint:`A pergunta é sobre clientes. Conte a tabela <code>clientes</code> (ou <code>COUNT(DISTINCT cliente_id)</code>) — dá 5.`,
+       ref:`SELECT COUNT(*) AS clientes FROM clientes;`,
+       typical:`SELECT COUNT(*) AS clientes FROM encomendas;`},
+      {dom:'Vendas',q:'Em média, de quanto é a comissão de um vendedor da equipa? (cêntimos)', correct:1625, trap:3250, pit:'linhas em falta (vendedores sem vendas)',
+       why:`<b>3250</b> ignora os vendedores <b>sem qualquer venda</b> (dividiu por 2 em vez de 4). A equipa tem 4 vendedores; a comissão total (6500) ÷ 4 = 1625.`,
+       note:`6500 de comissão ÷ 4 vendedores = 1625. Quem só conta quem vendeu divide por 2 e obtém 3250.`,
+       hint:`Some toda a comissão e divida pelo <b>total de vendedores</b> (tabela <code>vendedores</code>), não só pelos que aparecem em <code>vendas</code>. (Por venda dá 1300; por vendedor-que-vendeu, 3250; por toda a equipa, 1625.)`,
        ref:`SELECT SUM(comissao_cent) * 1.0 / (SELECT COUNT(*) FROM vendedores) AS media FROM vendas;`,
-       typical:`SELECT AVG(total) AS media FROM (\n  SELECT vendedor_id, SUM(comissao_cent) AS total\n  FROM vendas GROUP BY vendedor_id\n) t;`, pit:'linhas em falta',
-       why:`Há vendedores <b>sem qualquer venda</b> — não constam de <code>vendas</code>, logo caem fora do denominador. A média parece muito melhor do que a realidade.`},
-      {dom:'Vendas',q:'Que produtos nunca foram vendidos?',
-       ref:`SELECT id, nome FROM produtos p\nWHERE NOT EXISTS (\n  SELECT 1 FROM linhas_encomenda l WHERE l.produto_id = p.id\n);`,
-       typical:`SELECT id, nome FROM produtos\nWHERE id NOT IN (SELECT produto_id FROM linhas_encomenda);`, pit:'NOT IN + NULL',
-       why:`Existe um <code>produto_id</code> a <b>NULL</b> em <code>linhas_encomenda</code>. Com um NULL na subconsulta, <code>NOT IN</code> devolve <b>conjunto vazio</b> — sem erro. <code>NOT EXISTS</code> não sofre disso.`},
-      {dom:'Vendas',q:'Qual a receita total? (cêntimos)',
+       typical:`SELECT AVG(total) AS media FROM (\n  SELECT vendedor_id, SUM(comissao_cent) AS total\n  FROM vendas GROUP BY vendedor_id\n) t;`},
+      {dom:'Vendas',q:'Quantos produtos nunca foram vendidos?', correct:2, trap:0, pit:'NOT IN + NULL',
+       why:`<b>0</b> é o sintoma: há um <code>produto_id</code> a <b>NULL</b> em <code>linhas_encomenda</code>, e <code>NOT IN</code> com um NULL devolve sempre conjunto vazio (o <code>DISTINCT</code> não ajuda — o NULL continua lá). São 2: Cadeira e Secretária. Use <code>NOT EXISTS</code>.`,
+       note:`São 2 (Cadeira e Secretária). A armadilha <code>NOT IN</code> com o NULL daria 0.`,
+       hint:`São 2 produtos. Se obtém 0, é o NULL a estragar o <code>NOT IN</code> — experimente <code>NOT EXISTS</code>.`,
+       ref:`SELECT COUNT(*) FROM produtos p\nWHERE NOT EXISTS (\n  SELECT 1 FROM linhas_encomenda l WHERE l.produto_id = p.id\n);`,
+       typical:`SELECT COUNT(*) FROM produtos\nWHERE id NOT IN (SELECT produto_id FROM linhas_encomenda);`},
+      {dom:'Vendas',q:'Qual a receita total? (cêntimos)', correct:63500, trap:109500, pit:'fan-out do join',
+       why:`<b>109500</b> vem de juntar <code>encomendas</code> a <code>linhas_encomenda</code>: cada encomenda repete-se pelo nº de linhas e o total multiplica. O total está na própria <code>encomendas</code> — <code>SUM(valor_total_cent)</code> = 63500.`,
+       note:`63500, somando <code>valor_total_cent</code> direto de <code>encomendas</code>. Quem junta às linhas infla para 109500.`,
+       hint:`A receita está em <code>encomendas.valor_total_cent</code> (63500). Se obtém 109500, é o join a multiplicar pelas linhas.`,
        ref:`SELECT SUM(valor_total_cent) AS receita FROM encomendas;`,
-       typical:`SELECT SUM(e.valor_total_cent) AS receita\nFROM encomendas e\nJOIN linhas_encomenda l ON l.encomenda_id = e.id;`, pit:'fan-out do join',
-       why:`Ao juntar <code>encomendas</code> a <code>linhas_encomenda</code>, cada encomenda é <b>repetida pelo número de linhas</b> e o total é multiplicado. O join "parece" inofensivo.`},
-      {dom:'Vendas',q:'Quantas encomendas temos?',
+       typical:`SELECT SUM(e.valor_total_cent) AS receita\nFROM encomendas e\nJOIN linhas_encomenda l ON l.encomenda_id = e.id;`},
+      {dom:'Vendas',q:'Quantas encomendas reais temos?', correct:9, trap:12, pit:'soft delete',
+       why:`<b>12</b> conta também as <b>canceladas</b> (<code>estado = 'cancelada'</code>) — um soft delete. As reais são 9. Filtre <code>WHERE estado &lt;&gt; 'cancelada'</code>.`,
+       note:`9 encomendas reais (3 canceladas excluídas). Quem conta tudo obtém 12.`,
+       hint:`Há 3 encomendas canceladas (soft delete). As reais são 9 — exclua <code>estado='cancelada'</code>.`,
        ref:`SELECT COUNT(*) AS encomendas FROM encomendas WHERE estado <> 'cancelada';`,
-       typical:`SELECT COUNT(*) AS encomendas FROM encomendas;`, pit:'soft delete',
-       why:`Há encomendas com <code>estado = 'cancelada'</code> (soft delete). <code>COUNT(*)</code> conta-as como reais. O "apagado" vive numa coluna que o LLM não conhece.`},
-      {dom:'Vendas (composto)',q:'Qual o cliente que mais gastou?',
-       ref:`SELECT c.nome, SUM(e.valor_total_cent) AS gasto\nFROM encomendas e JOIN clientes c ON c.id = e.cliente_id\nWHERE e.estado <> 'cancelada'\nGROUP BY c.nome ORDER BY gasto DESC LIMIT 1;`,
-       typical:`SELECT c.nome, SUM(e.valor_total_cent) AS gasto\nFROM encomendas e JOIN clientes c ON c.id = e.cliente_id\nGROUP BY c.nome ORDER BY gasto DESC LIMIT 1;`, pit:'soft delete escondido num agregado',
-       why:`Sem excluir as canceladas, o ranking muda de <b>vencedor</b>: as encomendas canceladas inflam o total de um cliente diferente. A armadilha reaparece dentro de um <code>GROUP BY</code> — mais difícil de ver.`},
+       typical:`SELECT COUNT(*) AS encomendas FROM encomendas;`},
+      {dom:'Vendas (composto)',q:'Qual o id do cliente que mais gastou?', correct:3, trap:2, pit:'soft delete escondido num agregado',
+       why:`Sem excluir as canceladas, o vencedor muda: o cliente <b>2</b> sobe a 17000 (com uma encomenda cancelada) e ultrapassa o cliente 3 (16500). Excluindo as canceladas, quem mais gastou é o <b>id 3</b>.`,
+       note:`id 3 (gastou 16500 em encomendas válidas). Sem excluir as canceladas o ranking dá id 2.`,
+       hint:`Some o gasto por cliente <b>excluindo as canceladas</b> e ordene. (Sem o filtro o vencedor é o id 2; com o filtro, o id 3.) Devolva o <code>cliente_id</code>.`,
+       ref:`SELECT cliente_id\nFROM encomendas WHERE estado <> 'cancelada'\nGROUP BY cliente_id ORDER BY SUM(valor_total_cent) DESC LIMIT 1;`,
+       typical:`SELECT cliente_id\nFROM encomendas\nGROUP BY cliente_id ORDER BY SUM(valor_total_cent) DESC LIMIT 1;`},
     ],
     er:{ viewBox:[1100,620], tables:{
         clientes:{x:40,y:80,w:200,cols:[['id','pk'],['nome','']]},
@@ -217,18 +225,24 @@ const DBS = {
        (7,1,'Gil',  DATE '2025-04-20', NULL),
        (8,NULL,'Hugo',DATE '2025-05-01', DATE '2025-05-10')`],
     traps:[
-      {dom:'Biblioteca',q:'Quantos livros já foram emprestados?',
+      {dom:'Biblioteca',q:'Quantos livros diferentes já foram emprestados?', correct:4, trap:8, pit:'grain (contar empréstimos)',
+       why:`<b>8</b> é o número de <b>empréstimos</b> (linhas), não de livros distintos. Um livro emprestado várias vezes conta várias vezes. <code>COUNT(DISTINCT livro_id)</code> = 4.`,
+       note:`4 livros distintos. Quem conta as linhas de <code>emprestimos</code> obtém 8.`,
+       hint:`Conte livros <b>distintos</b> em <code>emprestimos</code> (<code>COUNT(DISTINCT livro_id)</code> = 4). 6 seria o catálogo todo.`,
        ref:`SELECT COUNT(DISTINCT livro_id) AS livros FROM emprestimos;`,
-       typical:`SELECT COUNT(*) AS livros FROM emprestimos;`, pit:'grain',
-       why:`A tabela tem <b>uma linha por empréstimo</b>. <code>COUNT(*)</code> conta empréstimos, não livros — um livro emprestado várias vezes conta várias vezes (e a linha com <code>livro_id</code> NULL também).`},
-      {dom:'Biblioteca',q:'Quantos empréstimos estão por devolver?',
+       typical:`SELECT COUNT(*) AS livros FROM emprestimos;`},
+      {dom:'Biblioteca',q:'Quantos empréstimos estão por devolver?', correct:3, trap:0, pit:'= NULL em vez de IS NULL',
+       why:`<b>0</b> é o sintoma: <code>= NULL</code> nunca é verdadeiro (comparar com NULL dá <i>unknown</i>), e a contagem vem 0 sem erro nenhum. O correto é <code>IS NULL</code> → 3.`,
+       note:`3 empréstimos por devolver (<code>devolvido_em IS NULL</code>). Com <code>= NULL</code> daria 0.`,
+       hint:`Há 3 empréstimos em curso. Se obtém 0, trocou <code>IS NULL</code> por <code>= NULL</code>.`,
        ref:`SELECT COUNT(*) AS abertos FROM emprestimos WHERE devolvido_em IS NULL;`,
-       typical:`SELECT COUNT(*) AS abertos FROM emprestimos WHERE devolvido_em = NULL;`, pit:'= NULL em vez de IS NULL',
-       why:`Em SQL, <code>= NULL</code> nunca é verdadeiro — comparar com NULL dá <i>unknown</i>, e a contagem vem <b>0</b>, sem erro nenhum. O correto é <code>IS NULL</code>. É a armadilha de NULL mais comum.`},
-      {dom:'Biblioteca',q:'Que livros nunca foram emprestados?',
-       ref:`SELECT id, titulo FROM livros l\nWHERE NOT EXISTS (\n  SELECT 1 FROM emprestimos e WHERE e.livro_id = l.id\n);`,
-       typical:`SELECT id, titulo FROM livros\nWHERE id NOT IN (SELECT livro_id FROM emprestimos);`, pit:'NOT IN + NULL',
-       why:`Há um <code>livro_id</code> a <b>NULL</b> em <code>emprestimos</code>. Com um NULL na subconsulta, <code>NOT IN</code> devolve <b>conjunto vazio</b>. <code>NOT EXISTS</code> não sofre disso.`},
+       typical:`SELECT COUNT(*) AS abertos FROM emprestimos WHERE devolvido_em = NULL;`},
+      {dom:'Biblioteca',q:'Quantos livros nunca foram emprestados?', correct:2, trap:0, pit:'NOT IN + NULL',
+       why:`<b>0</b> é a armadilha: há um <code>livro_id</code> a NULL em <code>emprestimos</code>, e <code>NOT IN</code> com NULL devolve conjunto vazio. São 2. Use <code>NOT EXISTS</code>.`,
+       note:`2 livros nunca emprestados. A armadilha <code>NOT IN</code> + NULL daria 0.`,
+       hint:`São 2 livros. Se obtém 0, é o NULL no <code>NOT IN</code> — use <code>NOT EXISTS</code>.`,
+       ref:`SELECT COUNT(*) FROM livros l\nWHERE NOT EXISTS (\n  SELECT 1 FROM emprestimos e WHERE e.livro_id = l.id\n);`,
+       typical:`SELECT COUNT(*) FROM livros\nWHERE id NOT IN (SELECT livro_id FROM emprestimos);`},
     ],
     er:{ viewBox:[1000,360], tables:{
         livros:{x:80,y:70,w:250,cols:[['id','pk'],['titulo',''],['disponivel','']]},
@@ -277,7 +291,6 @@ function tableHTML(t){
   h+='</tbody></table>'; if(rows.length===0) h+='<p class="empty">0 linhas</p>'; return h;
 }
 function scalar(t){ const r=t.toArray(); if(r.length===1 && t.schema.fields.length===1) return numify(r[0][t.schema.fields[0].name]); return null; }
-function signature(t){ const {rows}=rowsOf(t); return rows.map(r=>r.join(String.fromCharCode(1))).sort().join(String.fromCharCode(2)); }
 
 // ---------- ER (genérico) ----------
 const HEAD=34, ROW=28;
@@ -355,8 +368,8 @@ function select(i){
       <div class="result" id="userout"></div>
     </div>
     <div class="step hide" id="cmpstep">
-      <span class="n">3 · Compare com a referência</span>
-      <button class="btn" id="cmpbtn">Comparar com a referência</button>
+      <span class="n">3 · Verifique a resposta</span>
+      <button class="btn" id="cmpbtn">Verificar</button>
       <div id="cmpout"></div>
     </div>`;
   $('#copyp').onclick=()=>copyPrompt(t.q);
@@ -374,20 +387,29 @@ async function runUser(){
   try{ userRes=await conn.query(sql); $('#userout').innerHTML=tableHTML(userRes); $('#cmpstep').classList.remove('hide'); $('#cmpbtn').onclick=compare; }
   catch(e){ userRes=null; $('#userout').innerHTML=`<p class="empty">Erro: ${e.message}</p>`; }
 }
+// veredicto de 3 vias, comparando o VALOR (não a forma da consulta)
 async function compare(){
   const t=db().traps[current];
+  const us=userRes?scalar(userRes):null;
+  let cls='', head='', nums='', why='';
+  if(us!==null && us===t.correct){
+    cls='match'; head='✓ Correto.';
+    nums=`<div class="nums">o seu resultado: <b>${us}</b> — o valor esperado.</div>`;
+    why=t.note;
+  } else if(us!==null && us===t.trap){
+    head='✗ Caiu na armadilha: '+t.pit;
+    nums=`<div class="nums">o seu resultado: <b>${us}</b> &nbsp;·&nbsp; esperado: <b>${t.correct}</b></div>`;
+    why=t.why;
+  } else {
+    head='⚠ Resultado diferente do esperado';
+    const got = us!==null ? `obteve <b>${us}</b>` : 'a consulta não devolveu um único número';
+    nums=`<div class="nums">esperado: <b>${t.correct}</b> &nbsp;·&nbsp; ${got}</div>`;
+    why=t.hint;
+  }
   const refRes=await conn.query(t.ref);
-  const match=userRes && signature(userRes)===signature(refRes);
-  const us=userRes?scalar(userRes):null, rs=scalar(refRes);
-  let nums='';
-  if(us!==null && rs!==null) nums=`<div class="nums">o seu resultado: <b>${us}</b> &nbsp;·&nbsp; referência: <b>${rs}</b> &nbsp;·&nbsp; diferença: <b>${(us-rs>0?'+':'')+(us-rs)}</b></div>`;
-  else { const un=userRes?userRes.toArray().length:0, rn=refRes.toArray().length; nums=`<div class="nums">o seu resultado: <b>${un}</b> linha(s) &nbsp;·&nbsp; referência: <b>${rn}</b> linha(s)</div>`; }
   $('#cmpout').innerHTML=`
-    <div class="verdict ${match?'match':''}">
-      <span class="k">${match?'✓ A sua consulta coincide com a referência.':'✗ Não coincide — caiu na armadilha: '+t.pit}</span>
-      ${nums}<p class="why">${t.why}</p>
-    </div>
-    <div class="ref"><details ${match?'':'open'}><summary>ver a consulta de referência</summary><pre>${t.ref.replace(/</g,'&lt;')}</pre><div class="result">${tableHTML(refRes)}</div></details></div>`;
+    <div class="verdict ${cls}"><span class="k">${head}</span>${nums}${why?`<p class="why">${why}</p>`:''}</div>
+    <div class="ref"><details><summary>ver uma consulta de referência (há outras corretas)</summary><pre>${t.ref.replace(/</g,'&lt;')}</pre><div class="result">${tableHTML(refRes)}</div></details></div>`;
 }
 
 // ---------- consola livre ----------
