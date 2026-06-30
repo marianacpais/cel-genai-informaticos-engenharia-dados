@@ -10,8 +10,9 @@
     --head:"Libre Franklin",Helvetica,sans-serif;--body:"Open Sans",Helvetica,sans-serif;--mono:"JetBrains Mono","Courier New",monospace;}
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--text);font-family:var(--body);line-height:1.55}
-  header{background:var(--primary);color:#fff;padding:26px 40px;position:relative}
-  .header-logo{position:absolute;top:18px;right:34px;height:30px;background:#fff;padding:8px 12px;border-radius:6px}
+  header{background:var(--primary);color:#fff;padding:24px 40px;display:flex;align-items:center;justify-content:space-between;gap:36px}
+  .htext{flex:1;min-width:0}
+  .header-logo{height:88px;background:#fff;padding:12px 18px;border-radius:8px;flex:0 0 auto}
   header .kick{font-family:var(--head);text-transform:uppercase;letter-spacing:.08em;font-size:13px;color:var(--light);font-weight:600}
   header h1{font-family:var(--head);font-weight:700;font-size:30px;margin:6px 0 0}
   header p{margin:8px 0 0;color:#cfd6da;font-size:15px;max-width:940px}
@@ -54,9 +55,10 @@
 </head>
 <body>
 <header>
-  <img class="header-logo" src="assets/logo-cel-horizontal.svg" alt="Ciência e Letras"><div class="kick">GenAI · Engenharia de Dados · Sandbox EX-2</div>
+  <div class="htext"><div class="kick">GenAI · Engenharia de Dados · Sandbox EX-2</div>
   <h1>O extrator (LLM-como-ETL)</h1>
-  <p>O <code>T</code> do ETL pode ser um LLM: texto livre → registo estruturado. Escolha um caso, leve o texto e o schema ao seu chatbot, traga o <b>JSON</b> e cole-o aqui. O sandbox compara com uma extração de referência e mostra onde a extração escorrega — tipos errados, campos inventados, e os erros de <b>significado</b> (escopo da negação, inferência, raciocínio temporal) que só se apanham a ler com atenção. Os casos sobem de complexidade — e quanto mais denso o texto, mais o LLM tropeça.</p>
+  <p>O <code>T</code> do ETL pode ser um LLM: texto livre → registo estruturado. Escolha um caso, leve o texto e o schema ao seu chatbot, traga o <b>JSON</b> e cole-o aqui. O sandbox valida o schema e procura as <b>armadilhas semânticas</b> de cada caso — escopo da negação, inferência, raciocínio temporal — que só se apanham a ler com atenção. Os casos sobem de complexidade.</p></div>
+  <img class="header-logo" src="assets/logo-cel-horizontal.svg" alt="Ciência e Letras">
 </header>
 <main>
 
@@ -90,8 +92,10 @@
 
 <script>
 const $=s=>document.querySelector(s);
+const arrHas=(v,re)=>Array.isArray(v)&&v.some(x=>re.test(String(x)));   // deteta um termo proibido numa lista
 
 // ---------- casos (crescentemente complexos) ----------
+// notes[campo] = [etiqueta, explicação, detetor(valor)→true se exibe a armadilha]
 const CASOS={
   // ---- nível 1 ----
   clinico:{nivel:1,nome:'Saúde · nota de triagem',
@@ -99,19 +103,19 @@ const CASOS={
     schema:[['idade','number',true],['sexo','string',true],['diagnosticos','array',true],['alergias','array',true],['medicacao','array',true]],
     gold:{idade:54,sexo:"M",diagnosticos:["hipertensão arterial"],alergias:[],medicacao:["ramipril 5mg"]},
     typical:{idade:54,sexo:"M",diagnosticos:["hipertensão arterial"],alergias:["medicamentosas"],medicacao:["ramipril 5mg"],observacoes:"doente colaborante"},
-    notes:{alergias:['Negação','"Sem alergias medicamentosas conhecidas" → lista vazia <code>[]</code>. Não é uma alergia chamada "medicamentosas".']}},
+    notes:{alergias:['Negação','"Sem alergias medicamentosas conhecidas" → lista vazia <code>[]</code>. Não é uma alergia chamada "medicamentosas".', v=>Array.isArray(v)&&v.length>0]}},
   suporte:{nivel:1,nome:'Suporte · e-mail de cliente',
     texto:`Boa tarde. Desde a atualização de ontem, a vossa aplicação fecha sozinha sempre que exporto um PDF, no Windows 11. Já reinstalei e não resolveu. É urgente.`,
     schema:[['categoria','string',true],['severidade','string',true],['plataforma','string',true],['pedido_reembolso','boolean',true]],
     gold:{categoria:"bug",severidade:"alta",plataforma:"Windows 11",pedido_reembolso:false},
     typical:{categoria:"bug",severidade:"alta",plataforma:"Windows 11",pedido_reembolso:true},
-    notes:{pedido_reembolso:['Inferência indevida','O cliente diz que é urgente, mas <b>nunca pede reembolso</b>. Inferir <code>true</code> é alucinar uma intenção que o texto não tem.']}},
+    notes:{pedido_reembolso:['Inferência indevida','O cliente diz que é urgente, mas <b>nunca pede reembolso</b>. Inferir <code>true</code> é alucinar uma intenção que o texto não tem.', v=>v===true]}},
   recibo:{nivel:1,nome:'Finanças · recibo (OCR ruidoso)',
     texto:`MERCADO XPTO LDA\nFATURA SIMPLIFICADA\nTOTAL  23,90 EUR\nIVA 6%\n2026-06-12`,
     schema:[['comerciante','string',true],['total','number',true],['moeda','string',true],['iva_pct','number',true],['data','string',true]],
     gold:{comerciante:"MERCADO XPTO LDA",total:23.90,moeda:"EUR",iva_pct:6,data:"2026-06-12"},
     typical:{comerciante:"MERCADO XPTO LDA",total:2390,moeda:"EUR",iva_pct:6,data:"2026-06-12"},
-    notes:{total:['Unidades','A vírgula decimal portuguesa: <code>23,90</code> são 23,90 €, não 2390. Ler como inteiro é um erro de unidades clássico.']}},
+    notes:{total:['Unidades','A vírgula decimal portuguesa: <code>23,90</code> são 23,90 €, não 2390. Ler como inteiro é um erro de unidades clássico.', v=>typeof v==='number'&&v>=100]}},
 
   // ---- nível 2 ----
   juridico:{nivel:2,nome:'Jurídico · cláusula de renovação',
@@ -120,18 +124,18 @@ const CASOS={
     gold:{duracao_meses:12,renovacao_automatica:true,pre_aviso_dias:60},
     typical:{duracao_meses:60,renovacao_automatica:false,pre_aviso_dias:12},
     notes:{
-      renovacao_automatica:['Escopo da condição','"salvo se… denunciar" é uma <b>exceção</b>: o contrato renova-se sozinho até alguém o denunciar. Muitos LLMs leem "salvo" como negação e põem <code>false</code>.'],
-      duracao_meses:['Confusão de grandezas','12 meses é a duração; 60 dias é o pré-aviso. É fácil trocá-los — números diferentes, unidades diferentes.'],
-      pre_aviso_dias:['Confusão de grandezas','60 dias é o pré-aviso de denúncia, não a duração do contrato.']}},
+      renovacao_automatica:['Escopo da condição','"salvo se… denunciar" é uma <b>exceção</b>: o contrato renova-se sozinho até alguém o denunciar. Muitos LLMs leem "salvo" como negação e põem <code>false</code>.', v=>v===false],
+      duracao_meses:['Confusão de grandezas','12 meses é a duração; 60 dias é o pré-aviso. É fácil trocá-los — números diferentes, unidades diferentes.', v=>v!==12],
+      pre_aviso_dias:['Confusão de grandezas','60 dias é o pré-aviso de denúncia, não a duração do contrato.', v=>v!==60]}},
   rh:{nivel:2,nome:'RH · CV denso',
     texto:`Engenheiro de software com 7 anos de experiência, dos quais os últimos 3 a liderar uma equipa de 5 pessoas. Sólido em Python e Go; experiência pontual em Rust. Mestrado em Engenharia Informática em conclusão (defesa prevista para dezembro). Inglês fluente, francês básico.`,
     schema:[['anos_experiencia','number',true],['gere_equipa','boolean',true],['linguagens_solidas','array',true],['grau_concluido',['string','null'],true]],
     gold:{anos_experiencia:7,gere_equipa:true,linguagens_solidas:["Python","Go"],grau_concluido:null},
     typical:{anos_experiencia:3,gere_equipa:true,linguagens_solidas:["Python","Go","Rust"],grau_concluido:"Mestrado em Engenharia Informática"},
     notes:{
-      anos_experiencia:['Coreferência numérica','7 anos é a experiência total; os "3" são há quanto tempo lidera. Apanhar o número errado é colar a métrica à frase errada.'],
-      linguagens_solidas:['Qualificador ignorado','Rust é "experiência pontual", não sólida — não pertence à lista de linguagens sólidas.'],
-      grau_concluido:['Raciocínio temporal','O mestrado está "em conclusão" (defesa prevista) → ainda NÃO concluído. O campo deve ser <code>null</code>.']}},
+      anos_experiencia:['Coreferência numérica','7 anos é a experiência total; os "3" são há quanto tempo lidera. Apanhar o número errado é colar a métrica à frase errada.', v=>v!==7],
+      linguagens_solidas:['Qualificador ignorado','Rust é "experiência pontual", não sólida — não pertence à lista de linguagens sólidas.', v=>arrHas(v,/\brust\b/i)],
+      grau_concluido:['Raciocínio temporal','O mestrado está "em conclusão" (defesa prevista) → ainda NÃO concluído. O campo deve ser <code>null</code>.', v=>v!==null&&v!==undefined]}},
 
   // ---- nível 3 ----
   altaclinica:{nivel:3,nome:'Saúde · nota clínica longa',
@@ -140,18 +144,18 @@ const CASOS={
     gold:{idade:68,sexo:"F",antecedentes:["diabetes mellitus tipo 2","fibrilhação auricular"],sintomas:["dispneia"],alergias:[],medicacao_atual:["apixabano 5 mg 12/12h"],seguimento:"consulta de cardiologia em 2 semanas"},
     typical:{idade:68,sexo:"F",antecedentes:["diabetes mellitus tipo 2","fibrilhação auricular"],sintomas:["dispneia","febre","tosse","dor torácica"],alergias:["medicamentosas"],medicacao_atual:["varfarina","apixabano 5 mg 12/12h"],seguimento:"cardiologia"},
     notes:{
-      sintomas:['Escopo da negação','"Nega febre, tosse ou dor torácica" → nenhum destes é sintoma. A negação aplica-se aos três (escopo), e o LLM tende a listá-los na mesma.'],
-      alergias:['Negação','"Sem alergias medicamentosas conhecidas" → <code>[]</code>, não <code>["medicamentosas"]</code>.'],
-      medicacao_atual:['Raciocínio temporal','A varfarina foi SUSPENSA; o apixabano foi INICIADO. A medicação atual é só o apixabano — é preciso seguir a linha do tempo, não juntar tudo o que é mencionado.']}},
+      sintomas:['Escopo da negação','"Nega febre, tosse ou dor torácica" → nenhum destes é sintoma. A negação aplica-se aos três (escopo), e o LLM tende a listá-los na mesma.', v=>arrHas(v,/\bfebre\b|\btosse\b|dor\s+tor[áa]cica/i)],
+      alergias:['Negação','"Sem alergias medicamentosas conhecidas" → <code>[]</code>, não <code>["medicamentosas"]</code>.', v=>Array.isArray(v)&&v.length>0],
+      medicacao_atual:['Raciocínio temporal','A varfarina foi SUSPENSA; o apixabano foi INICIADO. A medicação atual é só o apixabano — é preciso seguir a linha do tempo, não juntar tudo o que é mencionado.', v=>arrHas(v,/varfarina/i)]}},
   imovel:{nivel:3,nome:'Imobiliário · anúncio denso',
     texto:`Vende-se T2+1 em Cedofeita, com 92 m² de área útil (110 m² de área bruta), no 2.º andar de um prédio sem elevador. Totalmente remodelado em 2021. Inclui lugar de garagem. Preço: 320.000 € (ligeiramente negociável). Certificado energético B-.`,
     schema:[['tipologia','string',true],['area_util_m2','number',true],['tem_elevador','boolean',true],['ano_remodelacao','number',true],['garagem','boolean',true],['preco_eur','number',true]],
     gold:{tipologia:"T2+1",area_util_m2:92,tem_elevador:false,ano_remodelacao:2021,garagem:true,preco_eur:320000},
     typical:{tipologia:"T2",area_util_m2:110,tem_elevador:true,ano_remodelacao:2021,garagem:true,preco_eur:320000},
     notes:{
-      area_util_m2:['Campo ambíguo','São dadas DUAS áreas: 92 m² útil e 110 m² bruta. O schema pede a útil — escolher a bruta é responder à pergunta errada.'],
-      tem_elevador:['Negação','"prédio sem elevador" → <code>false</code>. A negação está colada à palavra "elevador".'],
-      tipologia:['Parsing','"T2+1" (dois quartos + uma divisão extra) não é "T2".']}},
+      area_util_m2:['Campo ambíguo','São dadas DUAS áreas: 92 m² útil e 110 m² bruta. O schema pede a útil — escolher a bruta é responder à pergunta errada.', v=>v!==92],
+      tem_elevador:['Negação','"prédio sem elevador" → <code>false</code>. A negação está colada à palavra "elevador".', v=>v===true],
+      tipologia:['Parsing','"T2+1" (dois quartos + uma divisão extra) não é "T2".', v=>!/\+\s*1/.test(String(v))]}},
 };
 const ORDER=['clinico','suporte','recibo','juridico','rh','altaclinica','imovel'];
 
@@ -189,13 +193,6 @@ function typeOk(v,t){
     return true;
   });
 }
-function canon(v){
-  if(Array.isArray(v)) return JSON.stringify(v.map(x=>String(x).toLowerCase().replace(/\s+/g,' ').trim()).sort());
-  if(typeof v==='string') return JSON.stringify(v.toLowerCase().replace(/\s+/g,' ').trim());
-  return JSON.stringify(v);
-}
-const eq=(a,b)=>canon(a)===canon(b);
-
 function validate(){
   const c=CASOS[CUR]; let data;
   try{ data=JSON.parse($('#json').value); }
@@ -215,9 +212,9 @@ function validate(){
   }
   // campos inventados
   for(const k of Object.keys(data)) if(!fields.includes(k)) flags.push(['Campo inventado',`<b>${k}</b> não está no schema. Pedir "apenas os campos do schema" evita isto.`]);
-  // semântica: comparar com a referência nos campos curados
+  // semântica: detetor dirigido a cada armadilha (não dispara por fraseado diferente)
   for(const [f,note] of Object.entries(c.notes||{})){
-    if(Object.prototype.hasOwnProperty.call(data,f) && !eq(data[f],c.gold[f]))
+    if(Object.prototype.hasOwnProperty.call(data,f) && note[2](data[f]))
       flags.push([note[0], note[1]+` <span style="color:var(--slate)">(referência: <code>${JSON.stringify(c.gold[f])}</code>)</span>`]);
   }
 
@@ -225,11 +222,11 @@ function validate(){
   $('#valout').innerHTML=
     `<table class="val"><tr><th>campo</th><th>valor</th><th>tipo</th><th>estado</th></tr>${rows}</table>`+
     (clean
-      ? `<div class="verdict">✓ Conforme ao schema e alinhado com a referência.</div>`
+      ? `<div class="verdict">✓ Conforme ao schema, sem armadilhas detetadas.</div>`
       : `<div class="verdict bad">✗ ${flags.length} problema(s) — o JSON corre, mas a extração escorrega.</div>`
         +`<div class="flags">${flags.map(([tag,txt])=>`<div class="flag"><span class="ftag">${tag}</span>${txt}</div>`).join('')}</div>`)
     +`<details><summary>ver a extração de referência</summary><pre>${JSON.stringify(c.gold,null,2)}</pre></details>`
-    +`<p class="note">A resposta de engenharia: schema-constrain (Pydantic), validação de tipos e de domínio, "null se ausente", e uma bandeira de baixa confiança para revisão humana.</p>`;
+    +`<p class="note">A verificação semântica procura a armadilha de cada caso (não reprova fraseado diferente). A resposta de engenharia: schema-constrain (Pydantic), validação de tipos e de domínio, "null se ausente", e uma bandeira de baixa confiança para revisão humana.</p>`;
 }
 
 $('#caso').innerHTML=ORDER.map(k=>`<option value="${k}">${CASOS[k].nome}</option>`).join('');
