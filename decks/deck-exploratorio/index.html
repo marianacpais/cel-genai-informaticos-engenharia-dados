@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Antes de começar — conhecer a sala</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reset.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/theme/white.css" id="theme">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="cel-base.css">
+  <link rel="stylesheet" href="diagrams.css">
+  <style>
+    .ask { font-family: var(--mono); color: var(--cel-secondary); font-size: 18pt; }
+    .hand { font-size: 17pt; color: var(--cel-slate); text-align: center; margin: 6px auto 0; }
+    .hand i { color: var(--cel-secondary); margin-right: 8px; }
+  </style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+  <!-- CAPA -->
+  <section class="cover">
+    <div class="accent-line"></div>
+    <h1>Antes de começar</h1>
+    <p class="subtitle">GenAI para Informáticos · uma conversa rápida para conhecer a sala</p>
+    <img class="cover-logo" src="assets/logo-cel-horizontal.svg" alt="Ciência e Letras">
+  </section>
+
+  <!-- 01 · PORQUÊ -->
+  <section class="content-slide">
+    <span class="label-tag">Aquecimento</span>
+    <h2>Esta sessão adapta-se a quem está aqui</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="points">
+        <div class="point"><span class="m"></span><p>Cinco perguntas rápidas, de mão no ar e conversa. <b>Não há respostas certas.</b></p></div>
+        <div class="point"><span class="m"></span><p>Servem para calibrar o <b>ritmo</b> e escolher os <b>exemplos</b> ao que já fazem.</p></div>
+        <div class="point"><span class="m"></span><p>Quem vem mais de bases de dados, quem vem mais de ficheiros, quem já mexeu em IA — o percurso ajusta-se.</p></div>
+      </div>
+      <p class="lead" style="text-align:center; margin:0 auto; max-width:82%;">Conforme a sala, demoramo-nos mais nos fundamentos ou passamos por eles depressa.</p>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">01</span></div>
+    <aside class="notes">Abrir sem condescendência: o objetivo é genuinamente calibrar. A turma é mista — informáticos, mas com maturidades de dados muito diferentes. Estas cinco perguntas dizem-me se posso correr nos fundamentos (Introdução à Engenharia de Dados) ou se vale a pena demorar. Tomar nota mental das mãos por pergunta.</aside>
+  </section>
+
+  <!-- 02 · PERGUNTA 1 · STACK -->
+  <section class="content-slide">
+    <span class="label-tag">Pergunta 1 · a vossa stack</span>
+    <h2>Com que sistemas de dados trabalham?</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="tiles-grid">
+        <div class="tcard"><i class="fa-solid fa-database"></i><h4>Bases relacionais</h4><p>Postgres, MySQL, SQL Server, Oracle.</p></div>
+        <div class="tcard"><i class="fa-solid fa-layer-group"></i><h4>NoSQL</h4><p>Mongo, Redis, Cassandra, Elastic.</p></div>
+        <div class="tcard"><i class="fa-solid fa-warehouse"></i><h4>Warehouses / lakes</h4><p>BigQuery, Snowflake, Redshift, S3.</p></div>
+        <div class="tcard"><i class="fa-solid fa-bolt"></i><h4>Big data / streaming</h4><p>Spark, Hadoop, Kafka, Flink.</p></div>
+      </div>
+      <p class="hand"><i class="fa-regular fa-hand"></i>Mão no ar por cada um que usam no dia-a-dia.</p>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">02</span></div>
+    <aside class="notes">Mapear a stack real. Quero perceber a escala: quem só toca em bases relacionais e quem já lida com volumes que exigem Spark/streaming. Se quase ninguém usa big data, não vale a pena puxar muito por esses exemplos; se a sala é sénior, posso ir mais fundo. Perguntar também qual o papel deles — dev de aplicação que toca na BD, analista, alguém de plataforma de dados.</aside>
+  </section>
+
+  <!-- 03 · PERGUNTA 2 · BASES VS FICHEIROS -->
+  <section class="content-slide">
+    <span class="label-tag">Pergunta 2 · de onde vêm os dados</span>
+    <h2>Mais bases de dados, ou mais ficheiros?</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="doors">
+        <div class="door a">
+          <span class="kick">Bases de dados</span>
+          <h3>Modelar e consultar</h3>
+          <p>Esquemas, queries, transações, índices. O dado vive num sistema vivo.</p>
+          <div class="foot">SQL, modelação, performance</div>
+        </div>
+        <div class="door b">
+          <span class="kick">Ingestão de ficheiros</span>
+          <h3>Receber e processar</h3>
+          <p>CSV, Excel, Parquet, JSON, exportações e APIs. O dado chega de fora e é preciso limpá-lo.</p>
+          <div class="foot">ETL, parsing, validação</div>
+        </div>
+      </div>
+      <p class="hand"><i class="fa-regular fa-hand"></i>Onde passam mais tempo? (vale dividir a sala)</p>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">03</span></div>
+    <aside class="notes">Esta distinção orienta muito a aula. Quem vive em bases de dados vai ligar-se mais ao bloco "construir com a GenAI" (SQL que mente, schema linking). Quem vive de ficheiros vai ligar-se ao "construir para a GenAI" (o LLM-como-ETL, extração de texto sujo). A maioria faz as duas coisas — mas o equilíbrio diz-me que exemplos pesam mais.</aside>
+  </section>
+
+  <!-- 04 · PERGUNTA 3 · ORQUESTRAÇÃO -->
+  <section class="content-slide">
+    <span class="label-tag">Pergunta 3 · automação</span>
+    <h2>Como correm os vossos pipelines?</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="points two">
+        <div class="point"><span class="m sq2"></span><p><b>À mão</b><span class="sub">corro o script quando preciso</span></p></div>
+        <div class="point"><span class="m sq2"></span><p><b>Cron / agendador</b><span class="sub">corre a horas certas, sem dependências</span></p></div>
+        <div class="point"><span class="m sq2"></span><p><b>Orquestrador</b><span class="sub">Airflow, Dagster, Prefect — com dependências e retries</span></p></div>
+        <div class="point"><span class="m sq2"></span><p><b>Ainda não tenho pipelines</b><span class="sub">trabalho mais pontual / exploratório</span></p></div>
+      </div>
+      <p class="hand"><i class="fa-regular fa-hand"></i>Qual descreve melhor o vosso dia-a-dia?</p>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">04</span></div>
+    <aside class="notes">Termómetro de maturidade de engenharia de dados. Quem usa orquestrador já tem o vocabulário de DAG, idempotência, retries — posso ser breve nos fundamentos. Quem corre tudo à mão vai beneficiar do bloco de fundamentos por inteiro. É também a deixa para introduzir, mais tarde, porque a reprodutibilidade importa quando se mete um LLM (não-determinístico) no meio.</aside>
+  </section>
+
+  <!-- 05 · PERGUNTA 4 · FERRAMENTAS DE IA -->
+  <section class="content-slide">
+    <span class="label-tag">Pergunta 4 · ferramentas de IA</span>
+    <h2>Já usaram ferramentas que geram código?</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="tiles-grid">
+        <div class="tcard"><i class="fa-solid fa-wand-magic-sparkles"></i><h4>Autocompletar</h4><p>Copilot, Tabnine — sugestões enquanto escrevem.</p></div>
+        <div class="tcard"><i class="fa-solid fa-comments"></i><h4>Chat para código</h4><p>ChatGPT, Claude, Gemini no browser.</p></div>
+        <div class="tcard"><i class="fa-solid fa-terminal"></i><h4>Editores agênticos</h4><p>Cursor, Claude Code, Windsurf — agem no repositório.</p></div>
+        <div class="tcard"><i class="fa-solid fa-cube"></i><h4>App-builders</h4><p>Lovable, v0, Bolt — da ideia à app.</p></div>
+      </div>
+      <p class="hand"><i class="fa-regular fa-hand"></i>Quais já experimentaram — e para quê?</p>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">05</span></div>
+    <aside class="notes">Saber o ponto de partida com IA generativa. Há uma diferença grande entre quem já tem o Copilot ligado todos os dias e quem só experimentou o ChatGPT uma vez. Quem usa editores agénticos (Cursor, Claude Code) já viveu o "escrever → orientar → validar" — posso apoiar-me nisso. Perguntar para que usam: gerar boilerplate, traduzir entre linguagens, explicar código alheio, escrever testes. Liga ao bloco "construir com a GenAI".</aside>
+  </section>
+
+  <!-- 06 · PERGUNTA 5 · PERSPETIVA -->
+  <section class="content-slide">
+    <span class="label-tag">Pergunta 5 · a vossa leitura</span>
+    <h2>Qual é, para vocês, o papel dos LLMs no trabalho de dados?</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="points">
+        <div class="point"><span class="m"></span><p>Onde já <b>confiam</b> num LLM hoje — e onde <b>nunca</b> confiariam?</p></div>
+        <div class="point"><span class="m"></span><p>Que parte do vosso trabalho de dados <b>imaginam</b> que um LLM poderia fazer — e que ainda não faz?</p></div>
+        <div class="point"><span class="m"></span><p>O que vos parece <b>exagero</b> no que se diz por aí sobre IA e dados?</p></div>
+      </div>
+      <div class="panel-dark" style="max-width:88%; margin:0 auto;">
+        <p class="big">Não há resposta certa — é a conversa que interessa.</p>
+        <p class="tags">vamos guardar estas leituras e voltar a elas no fim</p>
+      </div>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">06</span></div>
+    <aside class="notes">Esta é a pergunta aberta, a mais valiosa. Deixar a sala falar. Recolher expetativas e ceticismos — vão servir de fio ao longo da aula e fechamos voltando a elas. Pontos a fazer emergir, sem os impor: o LLM brilha em texto livre e desambiguação, falha em garantias (determinismo, números, auditoria); o trabalho de dados por baixo é o que faz a diferença. Mas hoje só ouço — não corrijo.</aside>
+  </section>
+
+  <!-- 07 · FECHO / PONTE -->
+  <section class="content-slide">
+    <span class="label-tag">A seguir</span>
+    <h2>Com isto, ajustamos o resto da sessão</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="chain">
+        <div class="chain-col"><div class="chain-box fill">conhecer a sala</div><div class="cap">onde estamos</div></div>
+        <span class="arrow"></span>
+        <div class="chain-col"><div class="chain-box fill">o percurso dos dados</div><div class="cap">fundamentos</div></div>
+        <span class="arrow"></span>
+        <div class="chain-col"><div class="chain-box fill">GenAI na engenharia de dados</div><div class="cap">as duas formas</div></div>
+      </div>
+      <p class="lead" style="text-align:center; margin:0 auto; max-width:86%;">A seguir, o percurso dos dados de ponta a ponta — mais ou menos demorado, conforme a sala. Depois, as duas formas de a GenAI entrar nele: <strong>construir com</strong> e <strong>construir para</strong>.</p>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">07</span></div>
+    <aside class="notes">Fechar o aquecimento e abrir a sessão. Se a sala for sénior (orquestradores, big data, já usam IA), corro depressa pela Introdução à Engenharia de Dados e dou mais tempo ao deck principal. Se for mais júnior, faço a Introdução com calma. A ponte para o deck seguinte é literal: "o percurso dos dados".</aside>
+  </section>
+
+</div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.js"></script>
+<script>
+  Reveal.initialize({
+    controls: true, progress: true, slideNumber: false, hash: true,
+    transition: 'slide', transitionSpeed: 'slow', center: false,
+    width: 1920, height: 1080, margin: 0,
+  });
+</script>
+</body>
+</html>
