@@ -96,7 +96,9 @@
   <!-- ESPAÇO -->
   <section class="block">
     <h2>2 · O espaço semântico</h2>
-    <p class="sub">Uma frase por linha. Edite, acrescente as suas. Depois calcule os embeddings.</p>
+    <p class="sub">Escolha um espaço semântico pronto, ou escreva o seu. Uma frase por linha. Depois calcule os embeddings.</p>
+    <label>Espaço semântico</label>
+    <select id="preset" style="width:100%;font-family:var(--mono);font-size:14px;padding:11px 12px;border:1px solid #cfcfc6;background:#fbfbf8;color:var(--primary);margin-bottom:14px"></select>
     <label>Frases</label>
     <textarea id="sents">o carro não pega
 a viatura não arranca
@@ -296,6 +298,33 @@ async function dilui(){
     <div class="barrow"><span class="lab">chunk enorme</span><div class="bar" style="width:${(sb/mx)*420}px"></div><span class="sc">${sb.toFixed(3)}</span></div>
     <p class="note">Mesma informação lá dentro — mas o chunk enorme dilui o sinal na média de tudo, e a proximidade à pergunta cai. <b>Como parte o texto decide se a busca funciona.</b></p>`;
 }
+
+// ---------- espaços semânticos pré-carregados ----------
+const PRESETS = {
+  misto: { label:'Misto · sinónimos e duplos sentidos', query:'problema no automóvel', sents:[
+    'o carro não pega','a viatura não arranca','fui ao banco levantar dinheiro','sentei-me no banco do jardim',
+    'o doente tem dor no peito','o paciente queixa-se de dor torácica','amanhã vai chover muito','o céu está nublado e ameaça tempestade'] },
+  suporte: { label:'Suporte · tickets (conta vs faturação)', query:'não consigo aceder à conta', sents:[
+    'não consigo entrar na minha conta','o login falha desde a última atualização','esqueci-me da palavra-passe','como altero a minha password?',
+    'a fatura veio com o valor errado','o pagamento foi recusado','quero cancelar a subscrição','fui cobrado duas vezes este mês'] },
+  linguagens: { label:'Programação · "Java" e "Python" têm dois sentidos', query:'linguagem de programação', sents:[
+    'Java é uma linguagem de programação','passei férias na ilha de Java','bebi um café bem forte de manhã','Python é popular para análise de dados',
+    'vi uma cobra píton no jardim zoológico','o JavaScript corre no browser','compilei o projeto em Rust','a serpente deslizou pela relva'] },
+  noticias: { label:'Notícias · desporto / política / meteo / tech', query:'resultado do jogo de futebol', sents:[
+    'a equipa marcou nos descontos','o clube venceu o campeonato','o governo aprovou o orçamento','subiram os impostos sobre os combustíveis',
+    'vai chover todo o fim de semana','está calor demais para a época','lançaram um telemóvel dobrável','a bateria do portátil dura o dia todo'] },
+  reviews: { label:'Reviews · produto / entrega / preço', query:'problema com a entrega', sents:[
+    'o material é resistente e bem acabado','adorei a qualidade do produto','chegou com um risco na lateral','veio partido dentro da caixa',
+    'a entrega atrasou uma semana','o estafeta foi simpático e rápido','o preço é justo pelo que oferece','está caro para o que é'] },
+};
+const presetSel = $('#preset');
+for(const [k,p] of Object.entries(PRESETS)) presetSel.add(new Option(p.label, k));
+presetSel.onchange = () => {
+  const p = PRESETS[presetSel.value];
+  $('#sents').value = p.sents.join('\n');
+  $('#query').value = p.query;
+  $('#spaceout').classList.add('hide');   // força recalcular com o novo espaço
+};
 
 $('#tokbtn').onclick=tokenize;
 $('#embedbtn').onclick=computeSpace;
