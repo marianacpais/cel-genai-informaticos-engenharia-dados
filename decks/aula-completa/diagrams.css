@@ -236,3 +236,4 @@
 .zeitgeist .quote { font-family: var(--heading-font); font-weight: 600; font-size: 40pt; color: var(--cel-primary); line-height: 1.2; }
 .zeitgeist .quote em { color: var(--cel-secondary); font-style: italic; }
 .zeitgeist .src { font-size: 16pt; color: var(--cel-slate); margin-top: 22px; }
+.cap.gen { color: var(--cel-secondary); }

@@ -1,0 +1,63 @@
+<!-- PARQUEADO em 2026-06-30: dois slides de dbt removidos da Porta A da aula-completa.
+     Guardados para potencial uso futuro (ex.: edição com público mais sénior em engenharia de dados,
+     ou um deck dedicado a transformações). Reinserir antes do slide 'Traduzir Oracle -> BigQuery'.
+     Dependem de .etl/.doc/.llm/.out, .qbar/.sql-grid/.sql-card/.why (diagrams.css). -->
+
+<!-- GERAÇÃO DE TRANSFORMAÇÕES / dbt (PENDENTE DE DECISÃO) -->
+<section class="content-slide">
+  <span class="label-tag">A GenAI ao serviço do engenheiro · geração de transformações</span>
+  <h2>De uma descrição a um modelo, com testes e documentação</h2>
+  <div class="separator"></div>
+  <div class="stage">
+    <div class="etl">
+      <div class="doc">"Modelo de receita<br>diária por região,<br>com testes."</div>
+      <span class="ar">→</span>
+      <div class="llm">LLM<span class="sch">+ schema do projeto</span></div>
+      <span class="ar">→</span>
+      <div class="out">receita_diaria.sql<br>+ testes (unicidade, não-nulo)<br>+ descrição<br>+ dependências</div>
+    </div>
+    <div class="callout" style="max-width:84%; margin:0 auto;">
+      <span class="k">O que se ganha e o que falta</span>
+      <p>O esqueleto sai em segundos: SQL, testes genéricos, documentação. Mas o esqueleto não é o contrato — <strong>os testes que importam são os que o LLM não sabe que são precisos</strong>.</p>
+    </div>
+  </div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">32</span></div>
+  <aside class="notes">[PENDENTE DE DECISÃO — depende de explicar dbt à turma.] Ferramentas como o dbt definem cada tabela analítica como um "modelo" SQL versionado, com testes e documentação. O LLM gera esse esqueleto a partir de uma descrição. Poupa o trabalho aborrecido, mas o modelo gerado costuma ter testes a menos ou granularidade errada — o slide seguinte mostra-o.</aside>
+</section>
+
+<!-- dbt ERRADO-vs-CERTO (PENDENTE DE DECISÃO) -->
+<section class="content-slide">
+  <span class="label-tag">A GenAI ao serviço do engenheiro · rever o modelo gerado</span>
+  <h2>O modelo "compila" — e está errado</h2>
+  <div class="separator"></div>
+  <div class="stage">
+    <div class="qbar"><span class="ico">gerado →</span> receita_diaria.sql, produzido pelo copiloto</div>
+    <div class="sql-grid">
+      <div class="sql-card wrong">
+        <span class="tag">⟶ o que o LLM gera</span>
+        <pre>SELECT
+  e.data::date AS dia,
+  SUM(l.valor) AS receita
+FROM encomendas e
+JOIN linhas l
+  ON l.enc_id = e.id
+GROUP BY 1
+-- (sem testes)</pre>
+        <p class="res">compila ✓ · receita <b>inflada</b></p>
+      </div>
+      <div class="sql-card right">
+        <span class="tag">⟶ a revisão de engenharia</span>
+        <pre>-- agregar linhas ANTES do join
+-- (senão o fan-out duplica a receita)
+-- + testes:
+--   dia    → único, não-nulo
+--   receita → não-nulo
+-- + materialização incremental</pre>
+        <p class="res">testado ✓ · grão <b>correto</b></p>
+      </div>
+    </div>
+    <p class="why"><b>O LLM gera o esqueleto, não o contrato.</b> Faltam os testes, e o join repete a armadilha do fan-out. "Compila" não é "está certo".</p>
+  </div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">33</span></div>
+  <aside class="notes">[PENDENTE DE DECISÃO.] A armadilha do fan-out reaparece dentro de um modelo gerado — o copiloto não aprende a lição entre slides. A revisão acrescenta o que faz um modelo de produção: o teste de unicidade no grão, o não-nulo, e a materialização incremental. É exatamente o code review que vale mais, não menos.</aside>
+</section>
