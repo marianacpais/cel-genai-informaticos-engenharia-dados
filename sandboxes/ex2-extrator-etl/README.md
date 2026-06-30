@@ -11,10 +11,10 @@ Texto cada vez mais denso → o LLM tropeça mais.
 
 ## Pitfalls semânticos (o que o sandbox apanha)
 Cada caso tem campos curados com a sua armadilha; a validação compara com a referência e explica a divergência:
-- **Escopo da negação** — "Nega febre, tosse ou dor torácica" → nenhum é sintoma.
+- **Âmbito da negação** — "Nega febre, tosse ou dor torácica" → nenhum é sintoma.
 - **Negação** — "Sem alergias" → `[]`, não `["medicamentosas"]`.
 - **Raciocínio temporal** — varfarina *suspensa* / apixabano *iniciado* → medicação atual é só o apixabano.
-- **Escopo da condição** — "salvo se… denunciar" → a renovação é automática até alguém denunciar (não `false`).
+- **Âmbito da condição** — "salvo se… denunciar" → a renovação é automática até alguém denunciar (não `false`).
 - **Confusão de grandezas** — 12 meses (duração) vs 60 dias (pré-aviso).
 - **Coreferência numérica** — 7 anos de experiência vs 3 a liderar.
 - **Qualificador ignorado** — "experiência pontual em Rust" não é linguagem sólida.

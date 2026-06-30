@@ -66,7 +66,7 @@ Cada um já tem CSS. Vê exemplos vivos no `index.html`.
 ## Regras de layout (lições já aprendidas — não repitas os erros)
 - O corpo vai **sempre** dentro de `<div class="stage">` (centra na vertical, preenche a altura).
 - **Caixas `.chain-box` não cabem palavras > ~11 caracteres** a 22pt → usa rótulos curtos (ex.: "armazém", não "armazenamento") ou deixa a legenda `.cap` levar o resto.
-- Diagramas **grandes** (preencher a tela), pouco texto. Evita o slide "colado ao topo".
+- Diagramas **grandes** (preencher o ecrã), pouco texto. Evita o slide "colado ao topo".
 - SVG: define `max-width` no `.figure` para a altura não rebentar (viewBox largo e baixo).
 
 ## Saída esperada

@@ -355,10 +355,12 @@ function select(i){
   $('#work').innerHTML=`
     <div class="qbar"><span class="ico">NL →</span> ${t.q}</div>
     <div class="step">
-      <span class="n">1 · Leve ao seu chatbot</span>
-      <p style="margin:0 0 4px">Copie o contexto e a pergunta, cole no seu chatbot (ChatGPT, Claude, …) e traga a consulta SQL de volta.</p>
-      <button class="btn sm" id="copyp">Copiar contexto + pergunta</button><span class="toast hide" id="toast">copiado ✓</span>
-      <details><summary>ver o prompt</summary><pre id="promptpre">${buildPrompt(t.q).replace(/</g,'&lt;')}</pre></details>
+      <span class="n">1 · Leve a pergunta ao seu chatbot</span>
+      <p style="margin:0 0 4px">Tente você primeiro: dê o modelo de dados (o ER acima ou o schema) e esta pergunta ao seu chatbot, e traga a consulta SQL. Depois execute-a e veja se acerta — só se precisar, abra o prompt pronto.</p>
+      <details><summary>Preciso de ajuda — ver/copiar um prompt pronto</summary>
+        <button class="btn sm" id="copyp" style="margin-top:12px">Copiar contexto + pergunta</button><span class="toast hide" id="toast">copiado ✓</span>
+        <pre id="promptpre">${buildPrompt(t.q).replace(/</g,'&lt;')}</pre>
+      </details>
     </div>
     <div class="step">
       <span class="n">2 · Execute a consulta</span>

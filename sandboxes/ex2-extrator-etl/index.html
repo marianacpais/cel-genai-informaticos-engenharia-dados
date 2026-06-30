@@ -57,7 +57,7 @@
 <header>
   <div class="htext"><div class="kick">GenAI · Engenharia de Dados · Sandbox EX-2</div>
   <h1>O extrator (LLM-como-ETL)</h1>
-  <p>O <code>T</code> do ETL pode ser um LLM: texto livre → registo estruturado. Escolha um caso, leve o texto e o schema ao seu chatbot, traga o <b>JSON</b> e cole-o aqui. O sandbox valida o schema e procura as <b>armadilhas semânticas</b> de cada caso — escopo da negação, inferência, raciocínio temporal — que só se apanham a ler com atenção. Os casos sobem de complexidade.</p></div>
+  <p>O <code>T</code> do ETL pode ser um LLM: texto livre → registo estruturado. Escolha um caso, leve o texto e o schema ao seu chatbot, traga o <b>JSON</b> e cole-o aqui. O sandbox valida o schema e procura as <b>armadilhas semânticas</b> de cada caso — âmbito da negação, inferência, raciocínio temporal — que só se apanham a ler com atenção. Os casos sobem de complexidade.</p></div>
   <img class="header-logo" src="assets/logo-cel-horizontal.svg" alt="Ciência e Letras">
 </header>
 <main>
@@ -74,10 +74,12 @@
   </section>
 
   <section class="block">
-    <h2>2 · Leve ao seu chatbot</h2>
-    <p class="sub">Copie o texto + o schema, peça a extração ao seu chatbot e traga o JSON de volta.</p>
-    <button class="btn sm" id="copyp">Copiar texto + schema para o chatbot</button><span class="toast hide" id="toast">copiado ✓</span>
-    <details><summary>ver o prompt</summary><pre id="promptpre"></pre></details>
+    <h2>2 · Leve a extração ao seu chatbot</h2>
+    <p class="sub">Tente você primeiro: dê o texto e o schema ao seu chatbot (ChatGPT, Claude, …), peça a extração em JSON e traga-a de volta. Veja se ele cai na armadilha — só depois recorra ao prompt pronto.</p>
+    <details><summary>Preciso de ajuda — ver/copiar um prompt pronto</summary>
+      <button class="btn sm" id="copyp" style="margin-top:12px">Copiar texto + schema</button><span class="toast hide" id="toast">copiado ✓</span>
+      <pre id="promptpre"></pre>
+    </details>
   </section>
 
   <section class="block">
@@ -124,7 +126,7 @@ const CASOS={
     gold:{duracao_meses:12,renovacao_automatica:true,pre_aviso_dias:60},
     typical:{duracao_meses:60,renovacao_automatica:false,pre_aviso_dias:12},
     notes:{
-      renovacao_automatica:['Escopo da condição','"salvo se… denunciar" é uma <b>exceção</b>: o contrato renova-se sozinho até alguém o denunciar. Muitos LLMs leem "salvo" como negação e põem <code>false</code>.', v=>v===false],
+      renovacao_automatica:['Âmbito da condição','"salvo se… denunciar" é uma <b>exceção</b>: o contrato renova-se sozinho até alguém o denunciar. Muitos LLMs leem "salvo" como negação e põem <code>false</code>.', v=>v===false],
       duracao_meses:['Confusão de grandezas','12 meses é a duração; 60 dias é o pré-aviso. É fácil trocá-los — números diferentes, unidades diferentes.', v=>v!==12],
       pre_aviso_dias:['Confusão de grandezas','60 dias é o pré-aviso de denúncia, não a duração do contrato.', v=>v!==60]}},
   rh:{nivel:2,nome:'RH · CV denso',
@@ -144,7 +146,7 @@ const CASOS={
     gold:{idade:68,sexo:"F",antecedentes:["diabetes mellitus tipo 2","fibrilhação auricular"],sintomas:["dispneia"],alergias:[],medicacao_atual:["apixabano 5 mg 12/12h"],seguimento:"consulta de cardiologia em 2 semanas"},
     typical:{idade:68,sexo:"F",antecedentes:["diabetes mellitus tipo 2","fibrilhação auricular"],sintomas:["dispneia","febre","tosse","dor torácica"],alergias:["medicamentosas"],medicacao_atual:["varfarina","apixabano 5 mg 12/12h"],seguimento:"cardiologia"},
     notes:{
-      sintomas:['Escopo da negação','"Nega febre, tosse ou dor torácica" → nenhum destes é sintoma. A negação aplica-se aos três (escopo), e o LLM tende a listá-los na mesma.', v=>arrHas(v,/\bfebre\b|\btosse\b|dor\s+tor[áa]cica/i)],
+      sintomas:['Âmbito da negação','"Nega febre, tosse ou dor torácica" → nenhum destes é sintoma. A negação aplica-se aos três (âmbito), e o LLM tende a listá-los na mesma.', v=>arrHas(v,/\bfebre\b|\btosse\b|dor\s+tor[áa]cica/i)],
       alergias:['Negação','"Sem alergias medicamentosas conhecidas" → <code>[]</code>, não <code>["medicamentosas"]</code>.', v=>Array.isArray(v)&&v.length>0],
       medicacao_atual:['Raciocínio temporal','A varfarina foi SUSPENSA; o apixabano foi INICIADO. A medicação atual é só o apixabano — é preciso seguir a linha do tempo, não juntar tudo o que é mencionado.', v=>arrHas(v,/varfarina/i)]}},
   imovel:{nivel:3,nome:'Imobiliário · anúncio denso',
