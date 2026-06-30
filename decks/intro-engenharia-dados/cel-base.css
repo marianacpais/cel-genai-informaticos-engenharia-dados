@@ -1,0 +1,588 @@
+@import url('https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;600;700&family=Open+Sans:wght@400;600&display=swap');
+
+:root {
+  /* Brand palette — Ciência e Letras */
+  --cel-primary: #2F4E5E;
+  --cel-secondary: #6D6D3E;
+  --cel-light: #B8B59D;
+  --cel-slate: #74808D;
+  --cel-text: #3A3838;
+  --cel-bg: #F3F3F3;
+  --cel-white: #FFFFFF;
+
+  /* Animations */
+  --cel-ease: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Typography */
+  --heading-font: "Libre Franklin", Helvetica, sans-serif;
+  --body-font: "Open Sans", Helvetica, sans-serif;
+  --base-font-size: 32px;
+  --text-size: 22pt;
+  --h1-size: 72pt;
+  --h2-size: 44pt;
+  --h3-size: 28pt;
+  --label-size: 16pt;
+  --caption-size: 18pt;
+}
+
+html, body {
+  background: var(--cel-bg);
+}
+
+.reveal {
+  font-family: var(--body-font);
+  color: var(--cel-text);
+  font-size: var(--base-font-size);
+}
+
+.reveal .slides {
+  text-align: left;
+}
+
+.reveal .slides section {
+  padding: 80px 100px 60px 100px;
+  text-align: left;
+  height: 100%;
+  box-sizing: border-box;
+  background: var(--cel-bg);
+}
+
+.reveal h1, .reveal h2, .reveal h3 {
+  font-family: var(--heading-font);
+  font-weight: 700;
+  text-transform: none;
+  color: var(--cel-primary);
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+  margin: 0 0 24px 0;
+}
+
+.reveal h1 { font-size: var(--h1-size); }
+.reveal h2 { font-size: var(--h2-size); font-weight: 600; }
+.reveal h3 { font-size: var(--h3-size); font-weight: 600; }
+
+.reveal p, .reveal li {
+  font-size: var(--text-size);
+  color: var(--cel-text);
+  line-height: 1.55;
+  font-weight: 400;
+}
+
+.reveal strong { font-weight: 600; color: var(--cel-primary); }
+.reveal em { font-style: italic; }
+
+.reveal a {
+  color: var(--cel-primary);
+  text-decoration: none;
+  border-bottom: 1px solid var(--cel-light);
+}
+
+/* ===========================================
+   Slide patterns
+   =========================================== */
+
+/* Title (cover) slide */
+.cover {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+}
+
+.cover .accent-line {
+  width: 80px;
+  height: 1px;
+  background: var(--cel-secondary);
+  margin-bottom: 32px;
+}
+
+.cover h1 {
+  font-size: var(--h1-size);
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+.cover .subtitle {
+  font-family: var(--body-font);
+  font-size: 28pt;
+  color: var(--cel-slate);
+  font-weight: 400;
+  max-width: 70%;
+}
+
+.cover .cover-logo {
+  position: absolute;
+  bottom: 60px;
+  left: 100px;
+  height: 64px;
+}
+
+/* Section divider — full primary background, left-aligned */
+.section-divider {
+  background: var(--cel-primary) !important;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.section-divider .label {
+  font-family: var(--heading-font);
+  font-size: var(--label-size);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--cel-light);
+  font-weight: 600;
+  margin-bottom: 24px;
+}
+
+.section-divider h2 {
+  color: var(--cel-white);
+  font-size: 64pt;
+  font-weight: 700;
+  margin: 0;
+}
+
+/* Content slide — title + thin separator + body */
+.content-slide h2 {
+  margin-bottom: 16px;
+}
+
+.content-slide .separator {
+  width: 100%;
+  height: 1px;
+  background: var(--cel-light);
+  margin-bottom: 40px;
+}
+
+/* Cards (3-up) */
+.card {
+  background: var(--cel-white);
+  padding: 32px;
+  border-left: 3px solid var(--cel-primary);
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.card.secondary { border-left-color: var(--cel-secondary); }
+.card.accent { border-left-color: var(--cel-light); }
+
+.card .swatch {
+  width: 100%;
+  height: 64px;
+  margin-bottom: 20px;
+}
+
+.card .swatch.primary { background: var(--cel-primary); }
+.card .swatch.secondary { background: var(--cel-secondary); }
+.card .swatch.accent { background: var(--cel-light); }
+
+.card h3 {
+  font-size: 22pt;
+  margin-bottom: 8px;
+  color: var(--cel-primary);
+}
+
+.card .hex {
+  font-family: "JetBrains Mono", "Courier New", monospace;
+  font-size: 14pt;
+  color: var(--cel-slate);
+  margin-bottom: 16px;
+  display: block;
+}
+
+.card p {
+  font-size: 18pt;
+  line-height: 1.5;
+}
+
+/* Quote slide */
+.quote-slide {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.reveal .quote-slide blockquote {
+  border-left: 2px solid var(--cel-secondary);
+  padding-left: 32px;
+  margin: 0;
+  background: none;
+  box-shadow: none;
+  width: auto;
+  max-width: 80%;
+  font-style: italic;
+  font-size: 32pt;
+  font-family: var(--body-font);
+  font-weight: 400;
+  color: var(--cel-text);
+  line-height: 1.45;
+}
+
+.reveal .quote-slide cite {
+  display: block;
+  margin-top: 24px;
+  font-style: normal;
+  font-size: var(--caption-size);
+  color: var(--cel-slate);
+  letter-spacing: 0.02em;
+}
+
+/* Closing slide — primary background */
+.closing {
+  background: var(--cel-primary) !important;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.closing h2 {
+  color: var(--cel-white);
+  font-size: 60pt;
+  margin-bottom: 24px;
+}
+
+.closing .accent-line {
+  width: 80px;
+  height: 1px;
+  background: var(--cel-light);
+  margin-bottom: 32px;
+}
+
+.closing p { color: var(--cel-light); font-size: 24pt; }
+.closing a { color: var(--cel-white); border-bottom-color: var(--cel-light); }
+
+/* Footer with logo + slide number */
+.footer {
+  position: absolute;
+  bottom: 32px;
+  left: 100px;
+  right: 100px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.footer .footer-logo { height: 32px; opacity: 0.7; }
+.footer .slide-num {
+  font-family: var(--body-font);
+  font-size: 14pt;
+  color: var(--cel-slate);
+}
+
+/* Misc */
+.label-tag {
+  font-family: var(--heading-font);
+  font-size: var(--label-size);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--cel-secondary);
+  font-weight: 600;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.muted { color: var(--cel-slate); }
+
+/* ===========================================
+   Stats grid (big numbers)
+   =========================================== */
+.stat {
+  border-top: 1px solid var(--cel-light);
+  padding-top: 20px;
+}
+
+.reveal .stat .stat-num {
+  font-family: var(--heading-font);
+  font-size: 80pt;
+  font-weight: 700;
+  color: var(--cel-primary);
+  line-height: 1;
+  margin: 0 0 12px 0;
+  letter-spacing: -0.02em;
+}
+
+.reveal .stat .stat-label {
+  font-size: 16pt;
+  color: var(--cel-slate);
+  margin: 0;
+  line-height: 1.3;
+}
+
+/* ===========================================
+   Process diagram (horizontal steps)
+   =========================================== */
+.process {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 48px;
+  margin-top: 32px;
+  position: relative;
+}
+
+.process::before {
+  content: "";
+  position: absolute;
+  top: 32px;
+  left: 8%;
+  right: 8%;
+  height: 1px;
+  background: var(--cel-light);
+  z-index: 0;
+}
+
+.step {
+  position: relative;
+  z-index: 1;
+  background: var(--cel-bg);
+  padding-top: 0;
+}
+
+.step .step-num {
+  font-family: var(--heading-font);
+  font-size: 14pt;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--cel-secondary);
+  background: var(--cel-bg);
+  width: 64px;
+  height: 64px;
+  border: 1px solid var(--cel-secondary);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.reveal .step h3 {
+  font-size: 22pt;
+  margin-bottom: 12px;
+}
+
+.reveal .step p {
+  font-size: 18pt;
+  color: var(--cel-text);
+}
+
+.reveal .step code {
+  font-family: "JetBrains Mono", "Courier New", monospace;
+  font-size: 16pt;
+  background: var(--cel-white);
+  padding: 2px 8px;
+  color: var(--cel-primary);
+}
+
+/* ===========================================
+   Split image + text
+   =========================================== */
+.reveal .split-slide {
+  padding: 0 !important;
+  display: grid !important;
+  grid-template-columns: 1fr 1fr;
+  height: 100%;
+  background: var(--cel-bg);
+}
+
+.split-image {
+  height: 100%;
+  overflow: hidden;
+}
+
+.split-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  margin: 0;
+}
+
+.split-content {
+  padding: 100px 80px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.reveal .split-content h2 { margin-bottom: 24px; }
+.reveal .split-content p { margin-bottom: 16px; max-width: 90%; }
+
+/* ===========================================
+   Full-bleed image with caption
+   =========================================== */
+.reveal .fullbleed-slide {
+  padding: 0 !important;
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+}
+
+.fullbleed-caption {
+  background: var(--cel-primary);
+  color: var(--cel-white);
+  padding: 48px 60px;
+  margin: 80px;
+  max-width: 560px;
+  border-left: 3px solid var(--cel-secondary);
+}
+
+.reveal .fullbleed-caption h2 {
+  color: var(--cel-white);
+  font-size: 36pt;
+  margin-bottom: 16px;
+}
+
+.reveal .fullbleed-caption p {
+  color: var(--cel-light);
+  font-size: 20pt;
+  margin: 0;
+}
+
+/* ===========================================
+   Icon feature grid
+   =========================================== */
+.feature {
+  border-top: 1px solid var(--cel-light);
+  padding-top: 24px;
+}
+
+.feature i {
+  font-size: 32pt;
+  color: var(--cel-secondary);
+  margin-bottom: 20px;
+  display: block;
+}
+
+.reveal .feature h3 {
+  font-size: 24pt;
+  margin-bottom: 8px;
+}
+
+.reveal .feature p {
+  font-size: 18pt;
+  color: var(--cel-text);
+  max-width: 90%;
+}
+
+/* ===========================================
+   Animações de entrada
+   Princípio: o slide assenta primeiro, depois o conteúdo emerge.
+   Camadas: etiquetas/linhas → títulos → corpo → grelha → diagramas.
+   =========================================== */
+
+@keyframes cel-fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes cel-scale-x {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+/* Camada 1 — Etiquetas */
+.reveal section.present .label,
+.reveal section.present .label-tag {
+  animation: cel-fade-up 900ms var(--cel-ease) 100ms both;
+}
+
+/* Camada 1 — Linhas (escala horizontal a partir da esquerda) */
+.reveal section.present .accent-line,
+.reveal section.present .separator {
+  transform-origin: left center;
+  animation: cel-scale-x 1200ms var(--cel-ease) 350ms both;
+}
+
+/* Camada 2 — Títulos */
+.reveal section.present h1,
+.reveal section.present h2,
+.reveal section.present h3 {
+  animation: cel-fade-up 900ms var(--cel-ease) 250ms both;
+}
+
+/* Camada 3 — Corpo de texto */
+.reveal section.present p,
+.reveal section.present ul,
+.reveal section.present ol,
+.reveal section.present blockquote {
+  animation: cel-fade-up 900ms var(--cel-ease) 500ms both;
+}
+
+.reveal section.present .subtitle {
+  animation-delay: 800ms;
+}
+
+/* Camada 4 — Grelha (cards, stats, features, steps) com stagger */
+.reveal section.present .card,
+.reveal section.present .stat,
+.reveal section.present .feature,
+.reveal section.present .step {
+  animation: cel-fade-up 900ms var(--cel-ease) both;
+}
+
+.reveal section.present .card:nth-child(1),
+.reveal section.present .stat:nth-child(1),
+.reveal section.present .feature:nth-child(1),
+.reveal section.present .step:nth-child(1) { animation-delay: 450ms; }
+
+.reveal section.present .card:nth-child(2),
+.reveal section.present .stat:nth-child(2),
+.reveal section.present .feature:nth-child(2),
+.reveal section.present .step:nth-child(2) { animation-delay: 600ms; }
+
+.reveal section.present .card:nth-child(3),
+.reveal section.present .stat:nth-child(3),
+.reveal section.present .feature:nth-child(3),
+.reveal section.present .step:nth-child(3) { animation-delay: 750ms; }
+
+.reveal section.present .stat:nth-child(4),
+.reveal section.present .feature:nth-child(4) { animation-delay: 900ms; }
+
+/* Camada 5 — Linha do diagrama de processo */
+.process::before { transform-origin: left center; }
+
+.reveal section.present .process::before {
+  animation: cel-scale-x 1400ms var(--cel-ease) 800ms both;
+}
+
+/* Slides especiais — re-ordenar a sequência */
+
+/* Capa: linha desenha primeiro, depois título, depois subtítulo */
+.reveal .cover.present .accent-line { animation-delay: 100ms; }
+.reveal .cover.present h1 { animation-delay: 450ms; }
+.reveal .cover.present .subtitle { animation-delay: 1000ms; }
+
+/* Separador de secção: etiqueta primeiro, título depois */
+.reveal .section-divider.present .label { animation-delay: 100ms; }
+.reveal .section-divider.present h2 { animation-delay: 500ms; }
+
+/* Slide final: linha → título → contacto */
+.reveal .closing.present .accent-line { animation-delay: 100ms; }
+.reveal .closing.present h2 { animation-delay: 500ms; }
+.reveal .closing.present p { animation-delay: 1000ms; }
+
+/* Caixa do full-bleed entra como bloco coeso */
+.reveal .fullbleed-slide.present .fullbleed-caption {
+  animation: cel-fade-up 1100ms var(--cel-ease) 500ms both;
+}
+
+.reveal .fullbleed-slide.present .fullbleed-caption .label-tag,
+.reveal .fullbleed-slide.present .fullbleed-caption h2,
+.reveal .fullbleed-slide.present .fullbleed-caption p {
+  animation: none;
+}
+
+/* Logos no rodapé não animam (já lá estão, sentidos como fixos) */
+.reveal section.present .footer-logo,
+.reveal section.present .cover-logo {
+  animation: none;
+}
+
+/* Acessibilidade — respeitar reduced-motion do SO */
+@media (prefers-reduced-motion: reduce) {
+  .reveal section.present *,
+  .reveal section.present *::before {
+    animation: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+  }
+}

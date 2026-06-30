@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Engenharia de Dados — Fundamentos</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reset.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/theme/white.css" id="theme">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="cel-base.css">
+  <link rel="stylesheet" href="diagrams.css">
+  <style>
+    .mono { font-family: var(--mono); color: var(--cel-primary); }
+    .hcenter { display: flex; align-items: center; }
+    .cap.gen { color: var(--cel-secondary); }
+  </style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+  <!-- CAPA -->
+  <section class="cover">
+    <div class="accent-line"></div>
+    <h1>Engenharia de Dados</h1>
+    <p class="subtitle">Fundamentos — o que está a montante dos dados que analisamos</p>
+    <img class="cover-logo" src="assets/logo-cel-horizontal.svg" alt="Ciência e Letras">
+  </section>
+
+  <!-- 01 · A MONTANTE DA ANÁLISE -->
+  <section class="content-slide">
+    <span class="label-tag">Ponto de partida</span>
+    <h2>A montante da análise</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="chain">
+        <div class="chain-col"><div class="chain-box fill">fontes</div><div class="cap">onde os dados existem</div></div>
+        <span class="arrow"></span>
+        <div class="chain-col"><div class="chain-box fill">engenharia de dados</div><div class="cap">produz · integra · mantém</div></div>
+        <span class="arrow"></span>
+        <div class="chain-col"><div class="chain-box fill">conjunto de dados</div><div class="cap">fiável e atual</div></div>
+        <span class="arrow"></span>
+        <div class="chain-col"><div class="chain-box fill">análise</div><div class="cap">o que já foi feito</div></div>
+      </div>
+      <p class="lead" style="text-align:center; margin:0 auto; max-width:84%;">A análise parte de um conjunto de dados já preparado. A montante existe uma disciplina inteira que o produz, integra e mantém fiável — a engenharia de dados. É o tema desta sessão.</p>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">01</span></div>
+    <aside class="notes">Enquadramento, sem condescendência: a análise de dados trabalha sobre dados já preparados; a engenharia de dados é a disciplina que os torna fiáveis, atuais e acessíveis. A fronteira entre as duas tem sobreposição (feature engineering, MLOps), mas a divisão de responsabilidades é útil e é o que estrutura esta sessão.</aside>
+  </section>
+
+  <!-- 02 · DUAS DISCIPLINAS -->
+  <section class="content-slide">
+    <span class="label-tag">Enquadramento conceptual</span>
+    <h2>Duas disciplinas, duas perguntas</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="doors">
+        <div class="door a">
+          <span class="kick">Ciência de dados</span>
+          <h3>O que dizem os dados?</h3>
+          <p>Parte de dados preparados e extrai valor: explorar, modelar, prever.</p>
+          <div class="foot">trata os dados como adquiridos</div>
+        </div>
+        <div class="door b">
+          <span class="kick">Engenharia de dados</span>
+          <h3>Como garanto que os dados existem, certos e a tempo?</h3>
+          <p>Produz, integra e mantém esses dados — de forma fiável, repetível e à escala.</p>
+          <div class="foot">responde pela fiabilidade</div>
+        </div>
+      </div>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">02</span></div>
+    <aside class="notes">A distinção não é rígida — há zonas de sobreposição — mas as duas perguntas centrais são genuinamente diferentes. O fio que percorre tudo o que se segue é a fiabilidade: tornar os dados um recurso previsível, não um achado pontual.</aside>
+  </section>
+
+  <!-- 03 · O PERCURSO DOS DADOS -->
+  <section class="content-slide">
+    <span class="label-tag">O percurso</span>
+    <h2>Dos dados de origem a quem os usa</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="chain">
+        <div class="chain-col"><div class="chain-box fill">fontes</div><div class="cap">de onde vêm</div></div>
+        <span class="arrow"></span>
+        <div class="chain-col"><div class="chain-box fill">ingestão</div><div class="cap">trazer para dentro</div></div>
+        <span class="arrow"></span>
+        <div class="chain-col"><div class="chain-box fill">armazém</div><div class="cap">guardar à escala</div></div>
+        <span class="arrow"></span>
+        <div class="chain-col"><div class="chain-box fill">transformar</div><div class="cap">limpar e modelar</div></div>
+        <span class="arrow"></span>
+        <div class="chain-col"><div class="chain-box fill">serviço</div><div class="cap">quem usa no fim</div></div>
+      </div>
+      <p class="chain-hint">É a espinha de qualquer plataforma de dados — muda a escala e as ferramentas, não a forma.</p>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">03</span></div>
+    <aside class="notes">Tudo o que se segue se pendura nestes cinco estágios: ETL/ELT vive na transformação, batch/streaming na ingestão, warehouse/lake no armazém, a orquestração costura os cinco. Convém fixá-lo como mapa.</aside>
+  </section>
+
+  <!-- 04 · A GENAI EM CADA ETAPA -->
+  <section class="content-slide">
+    <span class="label-tag">Onde a GenAI entra</span>
+    <h2>A GenAI toca em cada etapa do percurso</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="chain">
+        <div class="chain-col"><div class="chain-box fill">fontes</div><div class="cap gen">extrair estrutura de não-estruturado</div></div>
+        <span class="arrow"></span>
+        <div class="chain-col"><div class="chain-box fill">ingestão</div><div class="cap gen">classificar e encaminhar</div></div>
+        <span class="arrow"></span>
+        <div class="chain-col"><div class="chain-box fill">armazém</div><div class="cap gen">base de dados vetorial</div></div>
+        <span class="arrow"></span>
+        <div class="chain-col"><div class="chain-box fill">transformar</div><div class="cap gen">text-to-SQL · dbt · o LLM como T</div></div>
+        <span class="arrow"></span>
+        <div class="chain-col"><div class="chain-box fill">serviço</div><div class="cap gen">RAG · copilotos</div></div>
+      </div>
+      <p class="lead" style="text-align:center; margin:0 auto; max-width:86%;">A azeitona marca onde a GenAI já entra hoje. Em cada etapa, de duas formas: como <strong>copiloto</strong> de quem constrói, e como <strong>novo consumidor</strong> para o qual se constrói.</p>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">04</span></div>
+    <aside class="notes">Visão de conjunto antes do detalhe: a GenAI não é um apêndice no fim do pipeline, atravessa-o todo. Esta dualidade — copiloto de quem constrói, e consumidor novo para quem se constrói — é o que a sessão seguinte desenvolve. Aqui fica só o mapa.</aside>
+  </section>
+
+  <!-- 05 · FONTES DE DADOS -->
+  <section class="content-slide">
+    <span class="label-tag">Estágio 1</span>
+    <h2>Fontes de dados</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px 40px; max-width:920px; margin:0 auto;">
+        <div class="feature"><i class="fa-solid fa-database"></i><h3>Bases operacionais</h3><p>Postgres, MySQL — o sistema vivo da aplicação (OLTP).</p></div>
+        <div class="feature"><i class="fa-solid fa-plug"></i><h3>APIs e serviços</h3><p>Stripe, CRM, ERP — dados de terceiros por API.</p></div>
+        <div class="feature"><i class="fa-solid fa-file-csv"></i><h3>Ficheiros e exportações</h3><p>CSV, Excel, Parquet — cargas e extrações.</p></div>
+        <div class="feature"><i class="fa-solid fa-tower-broadcast"></i><h3>Eventos e sensores</h3><p>Kafka, cliques, logs — fluxo contínuo.</p></div>
+      </div>
+      <p class="lead" style="margin:24px auto 0; text-align:center; max-width:86%;">Cada fonte tem o seu ritmo, formato e dono. A engenharia de dados raramente controla a origem — responde a ela. É por isso que os contratos, mais à frente, são centrais.</p>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">05</span></div>
+    <aside class="notes">As fontes são sistemas de outras equipas, com prioridades próprias — o engenheiro de dados é quase sempre consumidor, não dono. Distinção útil: dados operacionais (OLTP, escrever uma linha depressa) vs analíticos (OLAP, ler milhões e agregar). As fontes de eventos empurram para streaming; bases e ficheiros, tipicamente, para batch.</aside>
+  </section>
+
+  <!-- 06 · BATCH VS STREAMING -->
+  <section class="content-slide">
+    <span class="label-tag">Estágio 2 · Ingestão</span>
+    <h2>Batch ou streaming</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="figure" style="max-width:1180px;">
+        <svg viewBox="0 0 1000 360" role="img" aria-label="Comparação entre processamento batch e streaming">
+          <defs><marker id="bs-ah" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#2F4E5E"/></marker></defs>
+          <text x="40" y="46" class="svg-label" style="fill:#2F4E5E; font-weight:700;">BATCH</text>
+          <rect x="40" y="64" width="120" height="64" rx="6" fill="#FFFFFF" stroke="#B8B59D"/><text x="100" y="102" class="svg-mono" text-anchor="middle">fonte</text>
+          <g fill="#B8B59D"><rect x="200" y="104" width="22" height="18"/><rect x="228" y="104" width="22" height="18"/><rect x="256" y="104" width="22" height="18"/><rect x="214" y="82" width="22" height="18"/><rect x="242" y="82" width="22" height="18"/></g>
+          <text x="240" y="146" class="svg-label muted" text-anchor="middle">acumula (horas · dia)</text>
+          <line x1="290" y1="96" x2="372" y2="96" stroke="#2F4E5E" stroke-width="2" stroke-dasharray="4 5" marker-end="url(#bs-ah)"/>
+          <rect x="380" y="64" width="170" height="64" rx="6" fill="#2F4E5E"/><text x="465" y="102" class="svg-mono" style="fill:#FFFFFF;" text-anchor="middle">processa o lote</text>
+          <line x1="550" y1="96" x2="612" y2="96" stroke="#2F4E5E" stroke-width="2" marker-end="url(#bs-ah)"/>
+          <rect x="620" y="64" width="170" height="64" rx="6" fill="#FFFFFF" stroke="#B8B59D"/><text x="705" y="102" class="svg-mono" text-anchor="middle">tabela atualizada</text>
+          <text x="900" y="100" class="svg-label muted" text-anchor="middle">simples<tspan x="900" dy="22">barato</tspan></text>
+          <line x1="40" y1="190" x2="960" y2="190" stroke="#B8B59D" stroke-opacity="0.4"/>
+          <text x="40" y="236" class="svg-label" style="fill:#2F4E5E; font-weight:700;">STREAMING</text>
+          <rect x="40" y="252" width="120" height="64" rx="6" fill="#FFFFFF" stroke="#B8B59D"/><text x="100" y="290" class="svg-mono" text-anchor="middle">fonte</text>
+          <line x1="170" y1="284" x2="372" y2="284" stroke="#74808D" stroke-width="2" stroke-dasharray="2 10" stroke-linecap="round"/>
+          <g fill="#6D6D3E"><circle cx="200" cy="284" r="6"/><circle cx="250" cy="284" r="6"/><circle cx="300" cy="284" r="6"/><circle cx="350" cy="284" r="6"/></g>
+          <text x="270" y="262" class="svg-label muted" text-anchor="middle">evento a evento (ms)</text>
+          <rect x="380" y="252" width="170" height="64" rx="6" fill="#2F4E5E"/><text x="465" y="290" class="svg-mono" style="fill:#FFFFFF;" text-anchor="middle">processa contínuo</text>
+          <line x1="550" y1="284" x2="612" y2="284" stroke="#2F4E5E" stroke-width="2" marker-end="url(#bs-ah)"/>
+          <rect x="620" y="252" width="170" height="64" rx="6" fill="#FFFFFF" stroke="#B8B59D"/><text x="705" y="290" class="svg-mono" text-anchor="middle">vista sempre fresca</text>
+          <text x="900" y="288" class="svg-label muted" text-anchor="middle">complexo<tspan x="900" dy="22">caro</tspan></text>
+        </svg>
+      </div>
+      <p class="lead" style="margin:0 auto; text-align:center; max-width:88%;">Quase tudo o que parece exigir "tempo real" vive bem com batch de poucos minutos. <strong>Streaming é uma decisão de custo e de latência, não de moda.</strong></p>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">06</span></div>
+    <aside class="notes">Batch: acumula e processa de tempos a tempos — simples, fácil de reprocessar, barato. Streaming: processa cada evento à medida que chega, latência de ms a s, mas obriga a pensar em janelas, dados fora de ordem, estado, exactly-once. Heurística honesta: a maioria dos casos tolera micro-batch de 1–5 min; só vale streaming verdadeiro quando a latência é do próprio produto (fraude, monitorização). Volta na sessão seguinte: indexar embeddings é tipicamente batch/CDC; servir a consulta é online.</aside>
+  </section>
+
+  <!-- 07 · ARMAZENAMENTO -->
+  <section class="content-slide">
+    <span class="label-tag">Estágio 3 · Armazenamento</span>
+    <h2>Onde os dados vivem</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="layers">
+        <div class="layer l1"><span>Data Warehouse</span><span class="tag">estruturado · schema-on-write · SQL e BI</span></div>
+        <div class="layer l2"><span>Data Lake</span><span class="tag">bruto · schema-on-read · ficheiros, ML, qualquer formato</span></div>
+        <div class="layer l3"><span>Lakehouse</span><span class="tag">convergência · tabelas ACID sobre o lake (Delta · Iceberg)</span></div>
+      </div>
+      <p class="lead" style="margin:0 auto; text-align:center; max-width:88%;">O <strong>warehouse</strong> exige estrutura à entrada; o <strong>lake</strong> aceita tudo e adia a estrutura; o <strong>lakehouse</strong> procura o melhor dos dois — e é onde a base de dados vetorial passa a viver ao lado.</p>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">07</span></div>
+    <aside class="notes">Warehouse (BigQuery, Snowflake): schema na escrita, ótimo para SQL analítico, mau para PDFs/imagens. Lake (S3 + Parquet): barato, aceita qualquer ficheiro, schema só na leitura — flexível, mas vira "swamp" sem governança. Lakehouse (Delta, Iceberg): tabelas ACID sobre o lake — transações, time travel, schema enforcement. Importa para a sessão seguinte: o texto não-estruturado que alimenta os embeddings vive no lake/lakehouse, e a base vetorial entra como vizinho novo deste stack.</aside>
+  </section>
+
+  <!-- 08 · ETL VS ELT -->
+  <section class="content-slide">
+    <span class="label-tag">Estágio 4 · Transformação</span>
+    <h2>ETL e ELT — a ordem mudou</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="figure" style="max-width:1180px;">
+        <svg viewBox="0 0 1000 340" role="img" aria-label="ETL transforma antes de carregar; ELT carrega cru e transforma dentro do armazém">
+          <defs><marker id="etl-ah" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#74808D"/></marker></defs>
+          <text x="40" y="42" class="svg-label" style="fill:#2F4E5E; font-weight:700;">ETL <tspan class="svg-label muted">— a tradição</tspan></text>
+          <rect x="40" y="58" width="130" height="62" rx="6" fill="#FFFFFF" stroke="#B8B59D"/><text x="105" y="94" class="svg-mono" text-anchor="middle">Extract</text>
+          <line x1="170" y1="89" x2="222" y2="89" stroke="#74808D" stroke-width="2" marker-end="url(#etl-ah)"/>
+          <rect x="230" y="58" width="150" height="62" rx="6" fill="#f0f0e6" stroke="#6D6D3E" stroke-width="2"/><text x="305" y="94" class="svg-mono" style="fill:#6D6D3E;" text-anchor="middle">Transform</text>
+          <line x1="380" y1="89" x2="432" y2="89" stroke="#74808D" stroke-width="2" marker-end="url(#etl-ah)"/>
+          <rect x="440" y="50" width="220" height="80" rx="6" fill="#2F4E5E"/><text x="550" y="86" class="svg-mono" style="fill:#FFFFFF;" text-anchor="middle">Load</text><text x="550" y="110" class="svg-label muted" style="fill:#B8B59D;" text-anchor="middle">→ armazém</text>
+          <text x="305" y="148" class="svg-label muted" text-anchor="middle">transforma ANTES · fora do armazém</text>
+          <line x1="40" y1="186" x2="960" y2="186" stroke="#B8B59D" stroke-opacity="0.4"/>
+          <text x="40" y="226" class="svg-label" style="fill:#2F4E5E; font-weight:700;">ELT <tspan class="svg-label muted">— hoje, na cloud</tspan></text>
+          <rect x="40" y="242" width="130" height="62" rx="6" fill="#FFFFFF" stroke="#B8B59D"/><text x="105" y="278" class="svg-mono" text-anchor="middle">Extract</text>
+          <line x1="170" y1="273" x2="222" y2="273" stroke="#74808D" stroke-width="2" marker-end="url(#etl-ah)"/>
+          <rect x="230" y="228" width="300" height="96" rx="6" fill="#2F4E5E"/><text x="300" y="262" class="svg-mono" style="fill:#FFFFFF;" text-anchor="middle">Load</text><text x="300" y="284" class="svg-label muted" style="fill:#B8B59D;" text-anchor="middle">cru → armazém</text>
+          <rect x="360" y="244" width="158" height="64" rx="5" fill="#f0f0e6" stroke="#6D6D3E" stroke-width="2"/><text x="439" y="274" class="svg-mono" style="fill:#6D6D3E;" text-anchor="middle">Transform</text><text x="439" y="296" class="svg-label muted" text-anchor="middle">SQL · dbt</text>
+          <text x="690" y="280" class="svg-label muted" text-anchor="middle">transforma DENTRO, com SQL versionado</text>
+        </svg>
+      </div>
+      <p class="lead" style="margin:0 auto; text-align:center; max-width:90%;">O armazém ficou barato e elástico → carrega-se cru e transforma-se lá dentro. <strong>O <span class="mono">T</span> passou a ser SQL versionado — e, na sessão seguinte, pode até ser um LLM.</strong></p>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">07</span></div>
+    <aside class="notes">ETL clássico transformava num servidor próprio antes de carregar, porque o armazenamento era caro. ELT inverte: a cloud tornou o armazém barato e elástico, por isso carrega-se cru e transforma-se com SQL lá dentro — versionado, testado (dbt). O dado cru fica disponível para reprocessar. Foreshadowing: quando dissermos "o T do ETL pode ser um LLM", é este passo de Transform que se substitui/aumenta — e é por isso que herda os problemas de determinismo.</aside>
+  </section>
+
+  <!-- 09 · O GRÃO -->
+  <section class="content-slide">
+    <span class="label-tag">Transformação · modelação</span>
+    <h2>O grão: o que uma linha representa</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="cols2 l-wide">
+        <div>
+          <p>Modelar é decidir, para cada tabela, <strong>o que é uma linha</strong>. Esse é o <em>grão</em> (grain).</p>
+          <p>Errar o grão é a raiz de metade dos números errados: contagens infladas, médias diluídas, somas em dobro. E é precisamente o que um LLM <strong>não consegue inferir</strong> ao ler apenas o nome da tabela.</p>
+          <div class="callout" style="margin-top:8px;">
+            <span class="k">Porque é central</span>
+            <p>É a primeira armadilha do sandbox de SQL — e a defesa contra ela é a modelação.</p>
+          </div>
+        </div>
+        <div class="center-x">
+          <div style="text-align:center;">
+            <div class="tile big" style="margin:0 auto 14px;">encomendas</div>
+            <div style="font-size:22pt; color:var(--cel-secondary); font-family:var(--heading-font); font-weight:600;">1 linha = 1 encomenda</div>
+            <p style="font-size:16pt; color:var(--cel-slate); margin-top:12px;">um cliente com 5 compras → 5 linhas<br><span class="mono">COUNT(*)</span> conta encomendas, não clientes</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">08</span></div>
+    <aside class="notes">Grão = o nível de detalhe de uma linha de facto. "Uma linha por encomenda", "uma por linha-de-encomenda", "uma por cliente por dia" — grãos diferentes, respostas diferentes à mesma pergunta. A modelação dimensional existe para tornar as agregações inequívocas. O LLM lê o schema, não a semântica — o grão é conhecimento de negócio que mora na equipa, não no nome das colunas.</aside>
+  </section>
+
+  <!-- 10 · QUEM CONSOME OS DADOS -->
+  <section class="content-slide">
+    <span class="label-tag">Estágio 5 · Serviço</span>
+    <h2>Quem consome os dados</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px 40px; max-width:920px; margin:0 auto;">
+        <div class="feature"><i class="fa-solid fa-chart-column"></i><h3>BI e relatórios</h3><p>Tabelas agregadas para análise e decisão.</p></div>
+        <div class="feature"><i class="fa-solid fa-robot"></i><h3>Modelos de ML</h3><p>Features para treino e inferência.</p></div>
+        <div class="feature"><i class="fa-solid fa-arrows-rotate"></i><h3>Aplicações</h3><p>Reverse ETL — devolver dados ao CRM, ao produto.</p></div>
+        <div class="feature"><i class="fa-solid fa-comments"></i><h3>GenAI e RAG</h3><p>O consumidor novo — alimenta embeddings e contexto.</p></div>
+      </div>
+      <p class="lead" style="margin:24px auto 0; text-align:center; max-width:86%;">A qualidade de uma plataforma de dados mede-se à saída: um pipeline impecável que entrega um número com o grão errado falhou na mesma.</p>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">09</span></div>
+    <aside class="notes">Quatro grandes consumidores: BI (o clássico), ML (features), aplicações operacionais via reverse ETL, e a GenAI — o consumidor que justifica a sessão seguinte. A mensagem: a qualidade percebida mede-se à saída, não à entrada. Isto prepara a dualidade: a GenAI entra aqui como consumidor e, ao mesmo tempo, como copiloto de quem constrói os estágios anteriores.</aside>
+  </section>
+
+  <!-- 11 · ORQUESTRAÇÃO -->
+  <section class="content-slide">
+    <span class="label-tag">Transversal · orquestração</span>
+    <h2>Orquestração: agendar, depender, recuperar</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="points two">
+        <div class="point"><span class="m sq2"></span><p><b>DAG</b><span class="sub">grafo de tarefas com dependências, sem ciclos</span></p></div>
+        <div class="point"><span class="m sq2"></span><p><b>Scheduling</b><span class="sub">quando corre — agenda, cron, ou por evento</span></p></div>
+        <div class="point"><span class="m sq2"></span><p><b>Retries</b><span class="sub">falhou? tenta de novo com backoff, sem intervenção</span></p></div>
+        <div class="point"><span class="m sq2"></span><p><b>Backfill</b><span class="sub">reprocessar o passado quando algo muda</span></p></div>
+      </div>
+      <div class="callout" style="max-width:86%; margin:0 auto;">
+        <span class="k">Porque isto exige idempotência</span>
+        <p>Se uma tarefa pode correr <strong>de novo</strong> — por retry ou backfill, sem intervenção humana — então tem de poder repetir-se sem estragar nada. Airflow e Dagster são as ferramentas habituais.</p>
+      </div>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">10</span></div>
+    <aside class="notes">A orquestração costura os cinco estágios: ordem, tempo, reação a falhas. Airflow é o padrão histórico (DAGs em Python); Dagster é a geração mais nova, orientada a assets e a testes/observabilidade. Conceitos: DAG (dependências sem ciclos → ordem de execução sempre possível), scheduling, retries com backoff, backfill. O ponto crítico: retries e backfill só são seguros se as tarefas forem idempotentes — a ponte para os próximos dois slides.</aside>
+  </section>
+
+  <!-- 12 · UM DAG, POR DENTRO -->
+  <section class="content-slide">
+    <span class="label-tag">Orquestração · um DAG</span>
+    <h2>Um DAG, por dentro</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="figure" style="max-width:1240px;">
+        <svg viewBox="0 0 1000 380" role="img" aria-label="Grafo dirigido acíclico de tarefas com fan-in no join e gate de qualidade antes do load">
+          <defs>
+            <marker id="dag-ah" markerWidth="11" markerHeight="11" refX="7.5" refY="3" orient="auto"><path d="M0,0 L7.5,3 L0,6 Z" fill="#2F4E5E"/></marker>
+            <marker id="dag-ah-olive" markerWidth="11" markerHeight="11" refX="7.5" refY="3" orient="auto"><path d="M0,0 L7.5,3 L0,6 Z" fill="#6D6D3E"/></marker>
+          </defs>
+          <text x="40" y="34" class="svg-label muted">schedule: <tspan class="svg-mono">agenda diária · 02:00</tspan></text>
+          <g fill="none" stroke="#2F4E5E" stroke-width="2.5">
+            <path d="M214,96 H300" marker-end="url(#dag-ah)"/>
+            <path d="M214,292 H300" marker-end="url(#dag-ah)"/>
+            <path d="M474,96 L560,178" marker-end="url(#dag-ah)"/>
+            <path d="M474,292 L560,206" marker-end="url(#dag-ah)"/>
+            <path d="M714,182 L800,104" marker-end="url(#dag-ah)"/>
+            <path d="M714,200 L800,280" marker-end="url(#dag-ah)"/>
+            <path d="M880,124 V256" marker-end="url(#dag-ah)"/>
+          </g>
+          <path d="M338,64 C338,24 432,24 432,64" fill="none" stroke="#6D6D3E" stroke-width="2" stroke-dasharray="4 4" marker-end="url(#dag-ah-olive)"/>
+          <text x="385" y="20" class="svg-label muted" text-anchor="middle" style="fill:#6D6D3E;">retry ×3 · backoff</text>
+          <g>
+            <rect x="44" y="68" width="170" height="56" rx="6" fill="#FFFFFF" stroke="#B8B59D"/><text x="129" y="101" class="svg-mono" text-anchor="middle">extract_orders</text>
+            <rect x="44" y="264" width="170" height="56" rx="6" fill="#FFFFFF" stroke="#B8B59D"/><text x="129" y="297" class="svg-mono" text-anchor="middle">extract_users</text>
+            <rect x="300" y="68" width="174" height="56" rx="6" fill="#FFFFFF" stroke="#B8B59D"/><text x="387" y="101" class="svg-mono" text-anchor="middle">clean_orders</text>
+            <rect x="300" y="264" width="174" height="56" rx="6" fill="#FFFFFF" stroke="#B8B59D"/><text x="387" y="297" class="svg-mono" text-anchor="middle">clean_users</text>
+            <rect x="560" y="162" width="154" height="56" rx="6" fill="#FFFFFF" stroke="#B8B59D"/><text x="637" y="195" class="svg-mono" text-anchor="middle">join</text>
+            <rect x="800" y="68" width="160" height="56" rx="6" fill="#f0f0e6" stroke="#6D6D3E" stroke-width="2"/><text x="880" y="101" class="svg-mono" style="fill:#6D6D3E;" text-anchor="middle">quality_check</text>
+            <rect x="800" y="262" width="160" height="58" rx="6" fill="#2F4E5E"/><text x="880" y="289" class="svg-mono" style="fill:#FFFFFF;" text-anchor="middle">load_dw</text><text x="880" y="309" class="svg-label muted" style="fill:#B8B59D;" text-anchor="middle">overwrite partição</text>
+          </g>
+        </svg>
+      </div>
+      <p class="lead" style="margin:0 auto; text-align:center; max-width:88%;">Dois extratos correm em paralelo, juntam-se, passam pelo <strong>gate de qualidade</strong> — e só então carregam. O <span class="mono">load_dw</span> <strong>sobrescreve</strong> a partição: pode correr 10×, dá o mesmo.</p>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">11</span></div>
+    <aside class="notes">Dois extratos independentes correm ao mesmo tempo, convergem num join (fan-in), passam por um quality_check que é gate (se falhar, o load não corre — não publica dados maus), e só então load_dw. O retry ×3 com backoff em clean_orders tolera falhas transitórias. O rótulo "overwrite partição" no load é a escolha que torna a tarefa idempotente: correr de novo não duplica. Acíclico é essencial — um ciclo não teria ordem de execução possível.</aside>
+  </section>
+
+  <!-- 13 · IDEMPOTÊNCIA -->
+  <section class="content-slide">
+    <span class="label-tag">A propriedade-chave · 1/2</span>
+    <h2>Idempotência: correr 2× = correr 1×</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="figure" style="max-width:1200px;">
+        <svg viewBox="0 0 1000 320" role="img" aria-label="Overwrite idempotente mantém o mesmo estado; append cego duplica a cada corrida">
+          <text x="40" y="40" class="svg-label" style="fill:#2F4E5E; font-weight:700;">overwrite (idempotente)</text>
+          <text x="40" y="92" class="svg-label muted">run #1 →</text>
+          <text x="40" y="150" class="svg-label muted">run #2 →</text>
+          <rect x="150" y="64" width="250" height="150" rx="8" fill="#FFFFFF" stroke="#B8B59D"/>
+          <text x="275" y="58" class="svg-label muted" text-anchor="middle">partição 2026-07-01</text>
+          <g><rect x="172" y="84" width="206" height="34" fill="#eef0ee" stroke="#B8B59D"/><text x="186" y="106" class="svg-mono">A</text>
+            <rect x="172" y="122" width="206" height="34" fill="#eef0ee" stroke="#B8B59D"/><text x="186" y="144" class="svg-mono">B</text>
+            <rect x="172" y="160" width="206" height="34" fill="#eef0ee" stroke="#B8B59D"/><text x="186" y="182" class="svg-mono">C</text></g>
+          <text x="275" y="244" class="svg-label" style="fill:#2F4E5E;" text-anchor="middle">✓ correr N× → mesmo estado</text>
+          <line x1="500" y1="40" x2="500" y2="280" stroke="#B8B59D" stroke-opacity="0.4"/>
+          <text x="560" y="40" class="svg-label" style="fill:#6D6D3E; font-weight:700;">append cego (NÃO idempotente)</text>
+          <rect x="600" y="64" width="250" height="196" rx="8" fill="#FFFFFF" stroke="#6D6D3E"/>
+          <g><rect x="622" y="80" width="206" height="28" fill="#eef0ee" stroke="#B8B59D"/><text x="636" y="100" class="svg-mono">A</text>
+            <rect x="622" y="110" width="206" height="28" fill="#eef0ee" stroke="#B8B59D"/><text x="636" y="130" class="svg-mono">B</text>
+            <rect x="622" y="140" width="206" height="28" fill="#eef0ee" stroke="#B8B59D"/><text x="636" y="160" class="svg-mono">C</text>
+            <rect x="622" y="172" width="206" height="28" fill="#efeede" stroke="#6D6D3E"/><text x="636" y="192" class="svg-mono" style="fill:#6D6D3E;">A</text>
+            <rect x="622" y="202" width="206" height="28" fill="#efeede" stroke="#6D6D3E"/><text x="636" y="222" class="svg-mono" style="fill:#6D6D3E;">B</text>
+            <rect x="622" y="232" width="206" height="22" fill="#efeede" stroke="#6D6D3E"/><text x="636" y="249" class="svg-mono" style="fill:#6D6D3E;">C</text></g>
+          <text x="900" y="170" class="svg-label" style="fill:#6D6D3E;" text-anchor="middle" transform="rotate(90 900 170)">cada corrida duplica</text>
+        </svg>
+      </div>
+      <p class="why" style="text-align:center; max-width:90%; margin:0 auto;"><b>A regra:</b> desenhar tarefas que se podem repetir sem efeito colateral — sobrescrever uma partição, fazer <span class="mono">upsert</span> por chave. Não <span class="mono">INSERT</span> cego.</p>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">12</span></div>
+    <aside class="notes">Idempotência: aplicar uma operação N vezes tem o mesmo efeito que aplicá-la uma vez. Em dados, reprocessar uma partição deve substituí-la, não acumular. À esquerda, overwrite — retry/backfill seguros. À direita, INSERT cego: cada corrida acrescenta de novo as mesmas linhas e o backfill duplica os factos em silêncio. Técnicas: overwrite por partição, upsert/MERGE por chave, chaves determinísticas. É a propriedade que dá fiabilidade — e a que um passo estocástico não respeita.</aside>
+  </section>
+
+  <!-- 14 · REPRODUTIBILIDADE E A TENSÃO -->
+  <section class="content-slide">
+    <span class="label-tag">A propriedade-chave · 2/2</span>
+    <h2>Reprodutibilidade — e a tensão que se segue</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="panel-dark" style="max-width:92%; margin:0 auto;">
+        <p class="big">A mesma entrada, o mesmo código, a mesma versão → o mesmo resultado. Sempre. É isto que torna os dados <em>auditáveis</em>.</p>
+        <p class="tags">determinístico · versionado · re-executável</p>
+      </div>
+      <div class="callout" style="max-width:88%; margin:0 auto;">
+        <span class="k">A tensão central da matéria</span>
+        <p>Um LLM é <strong>estocástico</strong>: corre duas vezes, devolve saídas diferentes. Inseri-lo num pipeline parte a idempotência e a reprodutibilidade ao mesmo tempo — e é precisamente essa tensão que a sessão seguinte tem de resolver.</p>
+      </div>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">13</span></div>
+    <aside class="notes">Reprodutibilidade é a irmã da idempotência: repetir não só não estraga como produz exatamente o mesmo output — o que exige versionar código, dados de entrada, dependências e configuração. É a base da auditabilidade. Aqui planta-se a tensão central: a engenharia de dados foi construída sobre determinismo; os LLMs são estocásticos por natureza. Quando o LLM entra como passo de transformação, esta garantia parte-se — e a resposta de engenharia (schema-constrain, validação, caching, flags de confiança) é tentar reconstruí-la.</aside>
+  </section>
+
+  <!-- 15 · DATA CONTRACTS -->
+  <section class="content-slide">
+    <span class="label-tag">Fiabilidade · contratos</span>
+    <h2>Contratos de dados: o acordo produtor↔consumidor</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="etl">
+        <div class="doc"><b>Produtor</b><br>app de encomendas<br><span class="muted">emite os eventos</span></div>
+        <span class="ar">→</span>
+        <div class="llm">CONTRATO<span class="sch">schema · tipos · nullability · SLA de frescura · semântica dos campos</span></div>
+        <span class="ar">→</span>
+        <div class="out"><b>Consumidor</b><br>pipeline analítico<br><span style="color:var(--cel-slate)">confia no formato</span></div>
+      </div>
+      <div class="callout" style="max-width:88%; margin:0 auto;">
+        <span class="k">O que o contrato garante</span>
+        <p>O produtor não pode alterar o schema sem aviso. Uma alteração que parta o contrato é uma <strong>breaking change</strong> — versionada, comunicada, testada no CI, como numa API. Sem contrato, cada mudança a montante é uma surpresa a jusante.</p>
+      </div>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">14</span></div>
+    <aside class="notes">Um contrato de dados é um acordo explícito e versionado entre quem produz (a equipa da app) e quem consome (a equipa de dados): schema, tipos, nullability, valores permitidos, SLAs de frescura e volume, e a semântica de cada campo. Resolve um problema real: o produtor desconhece quem consome a jusante, e uma renomeação inocente parte dashboards e modelos sem ninguém saber. Com contrato, o schema é uma interface pública — mudanças que o quebram passam por versionamento e validação em CI. A ausência ou violação de contrato manifesta-se como schema drift, o slide seguinte.</aside>
+  </section>
+
+  <!-- 16 · SCHEMA DRIFT -->
+  <section class="content-slide">
+    <span class="label-tag">Fiabilidade · a falha</span>
+    <h2>Schema drift: quando o contrato se quebra</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="figure" style="max-width:1200px;">
+        <svg viewBox="0 0 1000 360" role="img" aria-label="O produtor muda o tipo de um campo ao longo do tempo e o consumidor a jusante quebra">
+          <defs>
+            <marker id="drift-ah" markerWidth="11" markerHeight="11" refX="7.5" refY="3" orient="auto"><path d="M0,0 L7.5,3 L0,6 Z" fill="#74808D"/></marker>
+            <marker id="drift-ah-olive" markerWidth="11" markerHeight="11" refX="7.5" refY="3" orient="auto"><path d="M0,0 L7.5,3 L0,6 Z" fill="#6D6D3E"/></marker>
+          </defs>
+          <rect x="40" y="40" width="220" height="96" rx="6" fill="#FFFFFF" stroke="#B8B59D"/>
+          <text x="56" y="70" class="svg-mono">{ "amount": 9.90 }</text>
+          <text x="56" y="98" class="svg-label muted">tipo: number</text>
+          <text x="150" y="126" class="svg-label muted" text-anchor="middle">dia 1</text>
+          <rect x="300" y="40" width="220" height="96" rx="6" fill="#FFFFFF" stroke="#B8B59D"/>
+          <text x="316" y="70" class="svg-mono">{ "amount": 12.50 }</text>
+          <text x="316" y="98" class="svg-label muted">tipo: number</text>
+          <text x="410" y="126" class="svg-label muted" text-anchor="middle">dia 30</text>
+          <rect x="560" y="36" width="240" height="104" rx="6" fill="#f7f6ee" stroke="#6D6D3E" stroke-width="2.5"/>
+          <text x="578" y="68" class="svg-mono" style="fill:#6D6D3E;">{ "amount": "12,50€" }</text>
+          <text x="578" y="96" class="svg-label" style="fill:#6D6D3E;">tipo: string  ⚠ drift</text>
+          <text x="680" y="126" class="svg-label muted" text-anchor="middle">dia 47 — sem aviso</text>
+          <line x1="40" y1="178" x2="900" y2="178" stroke="#74808D" stroke-width="2" marker-end="url(#drift-ah)"/>
+          <text x="900" y="170" class="svg-label muted" text-anchor="end">tempo</text>
+          <line x1="680" y1="178" x2="680" y2="232" stroke="#6D6D3E" stroke-width="2.5" stroke-dasharray="5 4" marker-end="url(#drift-ah-olive)"/>
+          <rect x="500" y="244" width="360" height="88" rx="6" fill="#2F4E5E"/>
+          <text x="680" y="282" class="svg-mono" style="fill:#FFFFFF;" text-anchor="middle">SUM(amount)  espera number</text>
+          <text x="680" y="312" class="svg-label" style="fill:#B8B59D;" text-anchor="middle">→ erro, ou pior: NULL silencioso</text>
+        </svg>
+      </div>
+      <p class="lead" style="margin:0 auto; text-align:center; max-width:90%;">O produtor mudou o tipo de um campo. <strong>O pipeline não rebenta logo — soma errado durante semanas.</strong> Corrupção silenciosa, outra vez.</p>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">15</span></div>
+    <aside class="notes">Schema drift é a deriva, ao longo do tempo, da estrutura dos dados de origem: um campo muda de tipo, é renomeado, deixa de vir, passa a aceitar NULL, ou ganha um valor de enum novo. No exemplo, "amount" passou de número para string formatada — talvez uma alteração inocente no frontend. O consumidor que faz SUM ou rebenta (melhor caso) ou faz cast silencioso para NULL/0 e soma errado sem ninguém ver, durante semanas. Defesas: contratos, schema enforcement no lakehouse, testes de contrato, e observabilidade para detetar cedo.</aside>
+  </section>
+
+  <!-- 17 · DIMENSÕES DA QUALIDADE -->
+  <section class="content-slide">
+    <span class="label-tag">Fiabilidade · qualidade</span>
+    <h2>Dimensões da qualidade de dados</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <p class="lead" style="text-align:center; margin:0 auto 18px; max-width:80%;">A qualidade mede-se em várias dimensões. Algumas, a título de exemplo:</p>
+      <div class="tiles-grid" style="grid-template-columns:repeat(5,1fr);">
+        <div class="tcard"><i class="fa-solid fa-circle-check"></i><h4>Completude</h4><p>Faltam linhas ou valores que deviam existir?</p></div>
+        <div class="tcard"><i class="fa-solid fa-ruler"></i><h4>Validade</h4><p>Respeita tipos, formatos e domínios permitidos?</p></div>
+        <div class="tcard"><i class="fa-solid fa-scale-balanced"></i><h4>Consistência</h4><p>Bate certo entre tabelas e sistemas?</p></div>
+        <div class="tcard"><i class="fa-solid fa-fingerprint"></i><h4>Unicidade</h4><p>Há duplicados onde devia haver uma só linha?</p></div>
+        <div class="tcard"><i class="fa-solid fa-clock"></i><h4>Atualidade</h4><p>Está fresco o suficiente para a decisão?</p></div>
+      </div>
+      <p class="lead" style="margin:18px auto 0; text-align:center; max-width:86%;">Na prática, cada dimensão <strong>traduz-se em verificações automáticas</strong> no pipeline — não em confiança no "deve estar bem".</p>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">16</span></div>
+    <aside class="notes">As dimensões clássicas (completude, validade, consistência, unicidade, atualidade — algumas frameworks acrescentam exatidão e integridade referencial). Estas são exemplos, não um cânone fechado. O ponto operacional: cada uma traduz-se em verificações executáveis que correm no pipeline a cada corrida e o fazem falhar (ou disparam um gate). Ferramentas: dbt tests, Great Expectations, Soda. A diferença entre uma plataforma amadora e uma profissional é esta: a qualidade é asserida por código, não descoberta por um analista três semanas depois.</aside>
+  </section>
+
+  <!-- 18 · OBSERVABILIDADE -->
+  <section class="content-slide">
+    <span class="label-tag">Fiabilidade · observabilidade</span>
+    <h2>Observabilidade dos dados</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="points two">
+        <div class="point"><span class="m"></span><p><b>Frescura</b><span class="sub">os dados chegaram a horas?</span></p></div>
+        <div class="point"><span class="m"></span><p><b>Volume</b><span class="sub">o nº de linhas é o esperado, sem quedas nem picos?</span></p></div>
+        <div class="point"><span class="m"></span><p><b>Distribuição</b><span class="sub">os valores ainda têm a forma de sempre?</span></p></div>
+        <div class="point"><span class="m"></span><p><b>Linhagem</b><span class="sub">de onde veio cada coluna, e o que parto se mexer?</span></p></div>
+        <div class="point"><span class="m"></span><p><b>Deteção de anomalias</b><span class="sub">alarme quando algo foge do padrão histórico</span></p></div>
+      </div>
+      <p class="lead" style="margin:0 auto; text-align:center; max-width:84%;">A qualidade testa o que <em>esperamos</em>; a observabilidade apanha o que <strong>não esperávamos</strong> — como o schema drift de há dois slides.</p>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">17</span></div>
+    <aside class="notes">Observabilidade de dados é o equivalente, para dados, do monitoring de software. Pilares habituais: freshness, volume, distribuição/schema, e lineage (o grafo de dependências coluna-a-coluna, essencial para impact analysis). Por cima, deteção de anomalias com baselines aprendidos do histórico. Distinção face ao slide anterior: os testes de qualidade verificam hipóteses já formuladas (known unknowns); a observabilidade existe para os unknown unknowns — a falha que ninguém previu. A linhagem volta na sessão seguinte (a GenAI pode construí-la; e a versão do modelo de embedding faz parte dela).</aside>
+  </section>
+
+  <!-- 19 · GOVERNANÇA (BIDIRECIONAL) -->
+  <section class="content-slide">
+    <span class="label-tag">Fiabilidade · governança</span>
+    <h2>Governança e catálogo — nos dois sentidos</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="doors">
+        <div class="door a">
+          <span class="kick">A governança ajuda a GenAI</span>
+          <h3>Dados com contexto e linhagem</h3>
+          <p>Catálogo, descrições, ownership e contratos são o que torna um copiloto fiável: sem contexto, um LLM "junta na coluna errada com confiança".</p>
+        </div>
+        <div class="door b">
+          <span class="kick">A GenAI ajuda a governança</span>
+          <h3>Catalogar, descrever, detetar</h3>
+          <p>Auto-descrição de tabelas e colunas, deteção de dados pessoais, linhagem inferida do código — trabalho que antes ninguém tinha tempo de fazer.</p>
+        </div>
+      </div>
+      <p class="lead" style="margin:0 auto; text-align:center; max-width:88%;">Num contexto de GenAI, a governança deixou de ser burocracia: é, ao mesmo tempo, <strong>pré-requisito e beneficiária</strong> — e cada vez mais central.</p>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">18</span></div>
+    <aside class="notes">Governança = políticas e processos que mantêm os dados fiáveis, seguros e usáveis à escala: ownership, definições partilhadas, acesso, privacidade (PII, RGPD, retenção), e o catálogo — o inventário pesquisável de ativos com descrições, donos e linhagem. A relação com a GenAI é bidirecional: por um lado, a qualidade dos metadados é o teto de desempenho dos copilotos (catálogo rico → copiloto útil); por outro, a própria GenAI acelera a catalogação, a deteção de PII e a construção de linhagem. É um dos temas onde os dois mundos mais se reforçam.</aside>
+  </section>
+
+  <!-- 20 · SÍNTESE -->
+  <section class="content-slide">
+    <span class="label-tag">Síntese</span>
+    <h2>O que sustenta uma plataforma de dados</h2>
+    <div class="separator"></div>
+    <div class="stage">
+      <div class="contrast">
+        <div class="c">
+          <h3>O percurso, num fôlego</h3>
+          <p>Fontes → ingestão → armazém → transformação → serviço, costurados por orquestração, contratos, qualidade e observabilidade.</p>
+        </div>
+        <div class="c weight">
+          <h3>A propriedade que tudo sustenta</h3>
+          <p style="margin-bottom:22px;">determinismo — correr de novo não estraga e dá sempre o mesmo:</p>
+          <div class="chips"><span>idempotente</span><span>reprodutível</span><span>auditável</span><span>com contrato</span></div>
+        </div>
+      </div>
+      <p class="lead" style="max-width:90%;">A engenharia de dados é a disciplina de tornar os dados <strong>determinísticos e fiáveis</strong>. É contra este pano de fundo que a GenAI — um passo estocástico — faz sentido e cria tensão. É aí que entra a sessão seguinte.</p>
+    </div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">19</span></div>
+    <aside class="notes">Fecho e ponte. Recapitular o percurso e as camadas transversais, mas o que tem de ficar é a card da direita: a engenharia de dados torna os dados determinísticos e fiáveis. Esse é o pano de fundo contra o qual a GenAI faz sentido — como copiloto de quem constrói, e como consumidor novo que parte a idempotência que acabámos de estabelecer. Transição para a sessão sobre GenAI na engenharia de dados.</aside>
+  </section>
+
+  <!-- FECHO -->
+  <section class="closing" data-transition="fade" data-background-transition="fade">
+    <div class="accent-line"></div>
+    <h2>Engenharia de Dados</h2>
+    <p>Fundamentos · Ciência e Letras</p>
+  </section>
+
+</div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.js"></script>
+<script>
+  Reveal.initialize({
+    controls: true, progress: true, slideNumber: false, hash: true,
+    transition: 'slide', transitionSpeed: 'slow', center: false,
+    width: 1920, height: 1080, margin: 0,
+  });
+</script>
+</body>
+</html>

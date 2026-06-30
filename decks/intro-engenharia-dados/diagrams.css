@@ -1,0 +1,233 @@
+/* Diagramas — Aula 5 Embeddings. Assenta sobre cel-base.css (tokens da marca). */
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root { --mono: "JetBrains Mono", "Courier New", monospace; }
+
+/* ---------- preencher a tela: corpo centra-se na altura disponível ---------- */
+/* !important porque o reveal injeta display:block inline no slide ativo */
+.reveal .slides section.content-slide { display: flex !important; flex-direction: column; }
+.reveal .content-slide .separator { margin-bottom: 0; }
+.reveal .content-slide .stage {
+  flex: 1 1 auto; min-height: 0;
+  display: flex; flex-direction: column; justify-content: center;
+  gap: 28px;
+  padding: 34px 0 56px;
+}
+.stage .lead { font-size: 22pt; max-width: 80%; }
+
+/* ---------- pílula-vetor ---------- */
+.vec {
+  font-family: var(--mono);
+  font-size: 19pt;
+  background: var(--cel-white);
+  border: 1px solid var(--cel-slate);
+  border-radius: 999px;
+  padding: 14px 28px;
+  color: var(--cel-primary);
+  display: inline-block;
+  white-space: nowrap;
+  letter-spacing: 0.04em;
+}
+.vec.warm { border-color: var(--cel-secondary); box-shadow: inset 4px 0 0 var(--cel-secondary); }
+.vec.cool { border-color: var(--cel-slate); box-shadow: inset 4px 0 0 var(--cel-slate); }
+
+/* ---------- tiles de token (subpalavra) ---------- */
+.tiles { display: flex; gap: 14px; align-items: flex-start; flex-wrap: wrap; }
+.tile {
+  font-family: var(--mono);
+  font-size: 28pt;
+  background: var(--cel-white);
+  border: 1px solid var(--cel-light);
+  padding: 20px 26px;
+  color: var(--cel-primary);
+  text-align: center;
+  line-height: 1.1;
+}
+.tile .id { display: block; font-size: 14pt; color: var(--cel-slate); margin-top: 10px; }
+.tile.hl { border-color: var(--cel-secondary); background: #fbfbf6; }
+.tile.big { font-size: 34pt; padding: 24px 32px; }
+.word-arrow { font-size: 30pt; color: var(--cel-slate); align-self: center; }
+
+/* ---------- cadeia que se preenche (com legendas) ---------- */
+.chain { display: flex; align-items: flex-start; justify-content: center; gap: 0; }
+.chain .node {
+  font-family: var(--mono); font-size: 22pt; color: var(--cel-slate);
+  padding: 0 12px; margin-top: 54px;
+}
+.chain-col { display: flex; flex-direction: column; align-items: center; gap: 18px; width: 188px; }
+.chain-box {
+  position: relative;
+  width: 188px; height: 132px;
+  border: 2px solid var(--cel-light);
+  background: var(--cel-white);
+  display: flex; align-items: center; justify-content: center;
+  text-align: center;
+  font-family: var(--heading-font); font-weight: 600; font-size: 22pt;
+  color: var(--cel-primary);
+  padding: 8px 12px; box-sizing: border-box;
+}
+.chain-box .q { font-size: 46pt; color: var(--cel-light); }
+.chain-box .lbl { display: none; }
+.chain-box .lbl.visible { display: block; }
+.chain-box:has(.lbl.visible) { background: var(--cel-primary); border-color: var(--cel-primary); color: var(--cel-white); }
+.chain-box:has(.lbl.visible) .q { display: none; }
+.chain-col .cap { font-size: 15pt; color: var(--cel-slate); text-align: center; line-height: 1.32; }
+.chain .arrow { width: 44px; height: 2px; background: var(--cel-secondary); position: relative; flex: 0 0 auto; margin-top: 65px; }
+.chain .arrow::after {
+  content: ""; position: absolute; right: -1px; top: -6px;
+  border-left: 11px solid var(--cel-secondary);
+  border-top: 7px solid transparent; border-bottom: 7px solid transparent;
+}
+.chain-hint { text-align: center; font-size: 17pt; color: var(--cel-slate); }
+
+/* ---------- fluxo "banco" (atenção) ---------- */
+.attn { display: flex; flex-direction: column; align-items: center; gap: 22px; }
+.attn .phrase {
+  font-family: var(--mono); font-size: 22pt; color: var(--cel-text);
+  background: var(--cel-white); border: 1px solid var(--cel-light);
+  padding: 18px 28px; width: 880px; text-align: center; box-sizing: border-box;
+}
+.attn .phrase b { color: var(--cel-primary); background: #ece9da; padding: 2px 10px; border-radius: 3px; }
+.attn .box {
+  background: var(--cel-primary); color: var(--cel-white);
+  font-family: var(--heading-font); font-weight: 600; font-size: 24pt;
+  letter-spacing: 0.06em; padding: 18px 64px;
+}
+.attn .down { color: var(--cel-secondary); font-size: 30pt; line-height: 1; }
+.attn .outs { display: flex; gap: 90px; align-items: flex-start; }
+.attn .outs .cap { font-size: 16pt; color: var(--cel-slate); margin-top: 12px; }
+.attn .cos {
+  font-family: var(--heading-font); font-weight: 600; font-size: 20pt;
+  color: var(--cel-primary); border: 1px dashed var(--cel-slate);
+  padding: 12px 24px; margin-top: 6px;
+}
+.attn .cos b { color: var(--cel-secondary); }
+
+/* ---------- diagramas SVG (scatter, forças) ---------- */
+.figure { margin: 0 auto; max-width: 1040px; width: 100%; }
+.figure svg { width: 100%; height: auto; display: block; }
+.svg-label { font-family: var(--body-font); font-size: 18px; fill: var(--cel-text); paint-order: stroke; stroke: var(--cel-bg); stroke-width: 5px; stroke-linejoin: round; }
+.svg-label.muted { fill: var(--cel-slate); font-size: 16px; }
+.svg-mono { font-family: var(--mono); font-size: 16px; fill: var(--cel-primary); }
+
+/* ---------- painel de síntese escuro ---------- */
+.panel-dark {
+  background: var(--cel-primary); color: var(--cel-white);
+  border-left: 5px solid var(--cel-secondary);
+  padding: 40px 48px;
+}
+.panel-dark .big { font-family: var(--heading-font); font-weight: 600; font-size: 33pt; line-height: 1.25; margin: 0; color: var(--cel-white); }
+.panel-dark .tags { font-family: var(--mono); font-size: 20pt; color: var(--cel-light); margin-top: 20px; letter-spacing: 0.04em; }
+
+/* ---------- cards de contraste (fecho) ---------- */
+.contrast { display: grid; grid-template-columns: 1fr 1.25fr; gap: 32px; align-items: stretch; }
+.contrast .c {
+  background: var(--cel-white); border-left: 4px solid var(--cel-secondary);
+  padding: 44px 48px; min-height: 320px;
+  display: flex; flex-direction: column; justify-content: center;
+}
+.contrast .c.weight { background: var(--cel-primary); border-left-color: var(--cel-secondary); color: var(--cel-white); }
+.contrast .c h3 { font-size: 28pt; margin-bottom: 20px; }
+.contrast .c.weight h3 { color: var(--cel-white); }
+.contrast .c p { font-size: 21pt; color: var(--cel-text); margin: 0; }
+.contrast .c.weight p { color: var(--cel-light); }
+.contrast .c.weight .chips { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 4px; }
+.contrast .c.weight .chips span {
+  font-family: var(--mono); font-size: 17pt; color: var(--cel-white);
+  border: 1px solid rgba(255,255,255,0.4); padding: 10px 16px;
+}
+
+/* fragmentos SVG entram suaves */
+.reveal .fragment { transition: opacity 600ms var(--cel-ease), transform 600ms var(--cel-ease); }
+
+/* =================================================================
+   Componentes do deck completo (Portas A/B, SQL, pipelines, stack)
+   ================================================================= */
+
+.cols2 { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center; width: 100%; }
+.cols2.l-wide { grid-template-columns: 1.15fr 0.85fr; }
+.cols2 p { font-size: 21pt; }
+.center-x { display: flex; justify-content: center; }
+
+/* callout (sálvia, indicador azeitona) */
+.callout { background: rgba(184,181,157,0.28); border-left: 5px solid var(--cel-secondary); padding: 26px 32px; }
+.callout .k { font-family: var(--heading-font); font-weight: 600; color: var(--cel-primary); font-size: 19pt; display: block; margin-bottom: 8px; }
+.callout p { font-size: 20pt; margin: 0; }
+
+/* lista de pontos com marcador geométrico */
+.points { display: grid; gap: 20px; width: 100%; }
+.points.two { grid-template-columns: 1fr 1fr; gap: 22px 48px; }
+.point { display: flex; gap: 18px; align-items: flex-start; }
+.point .m { width: 14px; height: 14px; background: var(--cel-secondary); margin-top: 9px; flex: 0 0 auto; }
+.point .m.sq2 { background: var(--cel-primary); }
+.point p { margin: 0; font-size: 20pt; }
+.point p b { color: var(--cel-primary); }
+.point p .sub { display: block; font-size: 16pt; color: var(--cel-slate); margin-top: 2px; }
+
+/* duas portas */
+.doors { display: grid; grid-template-columns: 1fr 1fr; gap: 34px; align-items: stretch; width: 100%; }
+.door { padding: 40px 44px; min-height: 380px; display: flex; flex-direction: column; border-top: 6px solid var(--cel-secondary); }
+.door.a { background: var(--cel-white); }
+.door.b { background: var(--cel-primary); color: var(--cel-white); }
+.door .kick { font-family: var(--heading-font); text-transform: uppercase; letter-spacing: 0.08em; font-size: 16pt; font-weight: 600; color: var(--cel-secondary); margin-bottom: 16px; }
+.door.b .kick { color: var(--cel-light); }
+.etl .out { max-width: 430px; }
+.door h3 { font-size: 30pt; margin-bottom: 18px; }
+.door.b h3 { color: var(--cel-white); }
+.door p { font-size: 20pt; }
+.door.b p { color: var(--cel-light); }
+.door .foot { margin-top: auto; font-size: 16pt; color: var(--cel-secondary); font-family: var(--mono); padding-top: 20px; }
+.door.b .foot { color: var(--cel-light); }
+
+/* caixa de cadeia já preenchida (pipelines fora dos embeddings) */
+.chain-box.fill { background: var(--cel-primary); border-color: var(--cel-primary); color: var(--cel-white); }
+.chain-box.fill .q { display: none; }
+
+/* SQL errado vs certo */
+.qbar { background: var(--cel-primary); color: var(--cel-white); font-family: var(--heading-font); font-weight: 600; font-size: 25pt; padding: 20px 30px; display: flex; align-items: center; gap: 16px; }
+.qbar .ico { color: var(--cel-light); font-family: var(--mono); font-weight: 400; }
+.sql-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; width: 100%; }
+.sql-card { background: var(--cel-white); padding: 26px 30px; border-left: 5px solid var(--cel-slate); }
+.sql-card.wrong { border-left-color: var(--cel-secondary); }
+.sql-card.right { border-left-color: var(--cel-primary); }
+.sql-card .tag { font-family: var(--heading-font); text-transform: uppercase; letter-spacing: 0.08em; font-size: 14pt; font-weight: 600; margin-bottom: 14px; display: block; }
+.sql-card.wrong .tag { color: var(--cel-secondary); }
+.sql-card.right .tag { color: var(--cel-primary); }
+.sql-card pre { font-family: var(--mono); font-size: 16pt; background: #f6f6f1; padding: 16px 18px; margin: 0 0 16px; color: var(--cel-primary); line-height: 1.45; white-space: pre-wrap; border: none; }
+.sql-card .res { font-size: 18pt; color: var(--cel-text); }
+.sql-card .res b { font-family: var(--mono); font-size: 24pt; color: var(--cel-primary); display: inline-block; }
+.why { font-size: 20pt; }
+.why b { color: var(--cel-primary); }
+
+/* camadas do stack de dados */
+.layers { display: flex; flex-direction: column; gap: 14px; width: 100%; }
+.layer { padding: 22px 30px; font-size: 21pt; display: flex; justify-content: space-between; align-items: center; font-family: var(--heading-font); font-weight: 600; color: var(--cel-primary); }
+.layer.l1 { background: #e9e9e3; }
+.layer.l2 { background: #deded4; }
+.layer.l3 { background: var(--cel-primary); color: var(--cel-white); }
+.layer .tag { font-family: var(--mono); font-size: 15pt; font-weight: 400; opacity: 0.85; }
+
+/* cartões de plataforma/exemplos (grelha) */
+.tiles-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px; width: 100%; }
+.tiles-grid.three { grid-template-columns: repeat(3, 1fr); }
+.tcard { background: var(--cel-white); border-top: 3px solid var(--cel-secondary); padding: 26px 26px; }
+.tcard i { font-size: 28pt; color: var(--cel-secondary); margin-bottom: 14px; display: block; }
+.tcard h4 { font-family: var(--heading-font); font-weight: 600; font-size: 20pt; color: var(--cel-primary); margin: 0 0 8px; }
+.tcard p { font-size: 16pt; color: var(--cel-text); margin: 0; line-height: 1.4; }
+.tcard .mono-tag { font-family: var(--mono); font-size: 14pt; color: var(--cel-slate); }
+
+/* fluxo ETL: doc -> LLM+schema -> JSON */
+.etl { display: flex; align-items: center; justify-content: center; gap: 30px; width: 100%; flex-wrap: wrap; }
+.etl .doc, .etl .out { background: var(--cel-white); border: 1px solid var(--cel-light); padding: 24px 28px; font-family: var(--mono); font-size: 16pt; color: var(--cel-text); max-width: 380px; line-height: 1.5; }
+.etl .out { color: var(--cel-primary); }
+.etl .llm { background: var(--cel-primary); color: var(--cel-white); padding: 26px 34px; text-align: center; font-family: var(--heading-font); font-weight: 600; font-size: 21pt; }
+.etl .llm .sch { display: block; font-family: var(--mono); font-weight: 400; font-size: 14pt; color: var(--cel-light); margin-top: 8px; }
+.etl .ar { color: var(--cel-secondary); font-size: 30pt; }
+.etl .doc .neg { color: var(--cel-secondary); font-weight: 600; }
+.etl .out .ok { color: var(--cel-secondary); font-weight: 600; }
+
+/* zeitgeist / citação grande */
+.zeitgeist { text-align: center; max-width: 82%; margin: 0 auto; }
+.zeitgeist .quote { font-family: var(--heading-font); font-weight: 600; font-size: 40pt; color: var(--cel-primary); line-height: 1.2; }
+.zeitgeist .quote em { color: var(--cel-secondary); font-style: italic; }
+.zeitgeist .src { font-size: 16pt; color: var(--cel-slate); margin-top: 22px; }
