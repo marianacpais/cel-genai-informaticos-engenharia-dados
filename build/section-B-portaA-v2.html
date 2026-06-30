@@ -1,0 +1,502 @@
+<!-- ===================== PORTA A · SEPARADOR ===================== -->
+<section class="section-divider" data-transition="fade" data-background-transition="fade">
+  <p class="label">Primeira abordagem</p>
+  <h2>A GenAI ao serviço do engenheiro de dados</h2>
+  <aside class="notes">A primeira das duas abordagens: o LLM senta-se ao lado de quem já faz o trabalho e acelera-o. Atravessamos com olho crítico, porque é aqui que mora o erro mais perigoso — o que corre sem dar erro. Primeiro o mito do "não é preciso saber SQL", com alguns exemplos reais; depois onde a GenAI acelera de facto.</aside>
+</section>
+
+<!-- O MITO -->
+<section class="content-slide">
+  <span class="label-tag">O mito</span>
+  <h2>"Já não é preciso escrever SQL — os LLMs escrevem-no"</h2>
+  <div class="separator"></div>
+  <div class="stage">
+    <div class="zeitgeist">
+      <p class="quote">Os LLMs escrevem SQL impecável. <em>Conhecer a sintaxe não é conhecer a base de dados.</em></p>
+      <p class="src">Perguntas simples em português. SQL bonito. Números errados — e nenhum erro de execução.</p>
+    </div>
+    <div class="callout" style="max-width:82%; margin:0 auto;">
+      <span class="k">A ideia central desta secção</span>
+      <p>O LLM não conhece o seu <strong>grão</strong>, as suas <strong>definições de negócio</strong>, nem o comportamento dos seus <strong>NULLs</strong>. Sabe SQL; não conhece a <em>sua</em> base de dados. Alguns exemplos — o resto explora-se no sandbox.</p>
+    </div>
+  </div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">NN</span></div>
+  <aside class="notes">O perigo não é o SQL que rebenta — esse vê-se. É o SQL sintaticamente perfeito que devolve um número plausível e errado. Aqui mostramos uma seleção; o sandbox "O SQL que mente" tem o conjunto completo, para experimentarem com o próprio chatbot.</aside>
+</section>
+
+<!-- LINHAS EM FALTA (saúde) -->
+<section class="content-slide">
+  <span class="label-tag">O SQL que mente · linhas em falta</span>
+  <h2>"Tempo médio até à primeira consulta"</h2>
+  <div class="separator"></div>
+  <div class="stage">
+    <div class="qbar"><span class="ico">NL →</span> Qual o tempo médio de espera até à primeira consulta?</div>
+    <div class="sql-grid">
+      <div class="sql-card wrong">
+        <span class="tag">⟶ o que o LLM gera</span>
+        <pre>SELECT AVG(data_consulta - data_referencia)
+FROM referencias
+WHERE data_consulta IS NOT NULL;</pre>
+        <p class="res">→ <b>18 dias</b> <span style="color:var(--cel-slate)">(parece excelente)</span></p>
+      </div>
+      <div class="sql-card right">
+        <span class="tag">⟶ a realidade</span>
+        <pre>-- 1 240 referências ainda SEM
+-- consulta marcada nem entram
+-- na média. A fila real é outra.</pre>
+        <p class="res">→ mediana de espera <b>142 dias</b></p>
+      </div>
+    </div>
+    <p class="why"><b>Pitfall: linhas em falta.</b> Quem ainda espera não tem <span class="mono">data_consulta</span> → cai fora do denominador. A média mede só quem já foi atendido — um viés de sobrevivência que torna o número irreconhecível.</p>
+  </div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">NN</span></div>
+  <aside class="notes">A mesma armadilha veste-se de "tempo de resolução de tickets" no suporte. O viés de sobrevivência: medimos os que sobreviveram ao processo. Os que ainda esperam — os que mais importam — são invisíveis para a média. O número diz 18 dias; a realidade são meses.</aside>
+</section>
+
+<!-- NOT IN + NULL (logística) -->
+<section class="content-slide">
+  <span class="label-tag">O SQL que mente · NOT IN + NULL</span>
+  <h2>"Armazéns que nunca expediram nada"</h2>
+  <div class="separator"></div>
+  <div class="stage">
+    <div class="qbar"><span class="ico">NL →</span> Que armazéns nunca expediram uma encomenda?</div>
+    <div class="sql-grid">
+      <div class="sql-card wrong">
+        <span class="tag">⟶ o que o LLM gera</span>
+        <pre>SELECT * FROM armazens
+WHERE id NOT IN (
+  SELECT armazem_id FROM expedicoes);</pre>
+        <p class="res">→ <b>0 linhas</b> <span style="color:var(--cel-slate)">(sem erro)</span></p>
+      </div>
+      <div class="sql-card right">
+        <span class="tag">⟶ o que estava certo</span>
+        <pre>SELECT * FROM armazens a
+WHERE NOT EXISTS (
+  SELECT 1 FROM expedicoes e
+  WHERE e.armazem_id = a.id);</pre>
+        <p class="res">→ <b>3 armazéns</b></p>
+      </div>
+    </div>
+    <p class="why"><b>Pitfall: NOT IN + NULL.</b> Basta uma <span class="mono">expedicoes.armazem_id</span> a NULL para <strong>NOT IN</strong> devolver conjunto vazio. Lógica de três valores: <span class="mono">x NOT IN (…, NULL)</span> nunca é verdadeiro. <span class="mono">NOT EXISTS</span> é imune.</p>
+  </div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">NN</span></div>
+  <aside class="notes">Footgun clássico de SQL. O NULL na subquery contamina toda a comparação NOT IN. NOT EXISTS é imune porque trabalha por correspondência, não por pertença. O LLM escolhe NOT IN porque é a forma mais frequente no treino — não porque é segura.</aside>
+</section>
+
+<!-- DEFINIÇÃO AMBÍGUA (vendas) -->
+<section class="content-slide">
+  <span class="label-tag">O SQL que mente · definição ambígua</span>
+  <h2>"Qual o produto mais vendido?"</h2>
+  <div class="separator"></div>
+  <div class="stage">
+    <div class="qbar"><span class="ico">NL →</span> Qual é o produto mais vendido?</div>
+    <div class="sql-grid">
+      <div class="sql-card wrong">
+        <span class="tag">⟶ o LLM escolhe um critério em silêncio</span>
+        <pre>SELECT produto, COUNT(*) n
+FROM linhas_venda
+GROUP BY produto
+ORDER BY n DESC LIMIT 1;</pre>
+        <p class="res">→ <b>Caneta</b> <span style="color:var(--cel-slate)">(por nº de linhas)</span></p>
+      </div>
+      <div class="sql-card right">
+        <span class="tag">⟶ "mais vendido" não é uma métrica</span>
+        <pre>-- por unidades:  SUM(qtd)
+--   → Monitor 27"
+-- por receita:   SUM(qtd*preco)
+--   → Portátil</pre>
+        <p class="res">→ <b>três produtos diferentes</b></p>
+      </div>
+    </div>
+    <p class="why"><b>Pitfall: definição ambígua.</b> "Mais vendido" pode ser nº de transações, unidades ou receita. O LLM resolve a ambiguidade por si — e não diz qual critério escolheu.</p>
+  </div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">NN</span></div>
+  <aside class="notes">Aqui não falta contexto de negócio escondido numa coluna — falta desambiguar a própria pergunta. A caneta ganha em nº de linhas, o portátil em receita. Nenhuma resposta está "errada"; errada é a confiança com que o LLM serve uma só.</aside>
+</section>
+
+<!-- DEFINIÇÃO DE NEGÓCIO "ativo" (SaaS) -->
+<section class="content-slide">
+  <span class="label-tag">O SQL que mente · definição de negócio</span>
+  <h2>"Mostra-me os utilizadores ativos"</h2>
+  <div class="separator"></div>
+  <div class="stage">
+    <div class="qbar"><span class="ico">NL →</span> Quantos utilizadores ativos temos?</div>
+    <div class="sql-grid">
+      <div class="sql-card wrong">
+        <span class="tag">⟶ o LLM agarra a coluna óbvia</span>
+        <pre>SELECT COUNT(*)
+FROM utilizadores
+WHERE estado = 'ativo';</pre>
+        <p class="res">→ <b>8 410</b> <span style="color:var(--cel-slate)">(a coluna até existe)</span></p>
+      </div>
+      <div class="sql-card right">
+        <span class="tag">⟶ "ativo" no negócio = a usar o produto</span>
+        <pre>SELECT COUNT(DISTINCT utilizador_id)
+FROM sessoes
+WHERE inicio &gt; NOW() - INTERVAL '30 days';</pre>
+        <p class="res">→ <b>2 933</b></p>
+      </div>
+    </div>
+    <p class="why"><b>Pitfall: definição de negócio.</b> <span class="mono">estado='ativo'</span> significa "conta não suspensa", não "utilizador a usar". O LLM apanha a palavra, não o conceito. 2,9× de diferença.</p>
+  </div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">NN</span></div>
+  <aside class="notes">A armadilha mais traiçoeira: a coluna existe e o nome bate certo. "Ativo" é um termo de negócio com definição própria — utilizador ativo mensal — que vive na convenção da equipa, não no schema. É onde uma camada semântica faz toda a diferença.</aside>
+</section>
+
+<!-- UNIDADES / LIMIAR (saúde) -->
+<section class="content-slide">
+  <span class="label-tag">O SQL que mente · unidades e limiar</span>
+  <h2>"Doentes com glicemia alta"</h2>
+  <div class="separator"></div>
+  <div class="stage">
+    <div class="qbar"><span class="ico">NL →</span> Quantos doentes têm glicemia alta?</div>
+    <div class="sql-grid">
+      <div class="sql-card wrong">
+        <span class="tag">⟶ o LLM crava um limiar</span>
+        <pre>SELECT COUNT(*)
+FROM analises
+WHERE glicemia &gt; 126;</pre>
+        <p class="res">→ <b>5 110</b> <span style="color:var(--cel-slate)">(um número qualquer)</span></p>
+      </div>
+      <div class="sql-card right">
+        <span class="tag">⟶ o contexto que falta</span>
+        <pre>-- mg/dL e mmol/L na MESMA coluna:
+--   7,0 mmol/L = 126 mg/dL
+-- "alta" depende de jejum vs ocasional
+-- (126 em jejum ≠ 126 pós-prandial)</pre>
+        <p class="res">→ a contagem <b>não tem sentido</b></p>
+      </div>
+    </div>
+    <p class="why"><b>Pitfall: unidades e limiar.</b> O 126 é um número de manual aplicado sem saber a unidade nem a condição da colheita. Mistura mmol/L com mg/dL e ainda assume jejum. Plausível, preciso e errado.</p>
+  </div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">NN</span></div>
+  <aside class="notes">O LLM sabe que 126 mg/dL é o limiar de diabetes em jejum — e despeja-o. Não sabe que esta coluna mistura unidades, nem que metade das colheitas é ocasional. Em qualquer domínio com unidades (€ vs cêntimos, kg vs g) é o mesmo erro. O limiar tem de vir do negócio, não do treino do modelo.</aside>
+</section>
+
+<!-- SOFT DELETE (vendas) -->
+<section class="content-slide">
+  <span class="label-tag">O SQL que mente · soft delete</span>
+  <h2>"Quantas encomendas este mês?"</h2>
+  <div class="separator"></div>
+  <div class="stage">
+    <div class="qbar"><span class="ico">NL →</span> Quantas encomendas tivemos este mês?</div>
+    <div class="sql-grid">
+      <div class="sql-card wrong">
+        <span class="tag">⟶ o que o LLM gera</span>
+        <pre>SELECT COUNT(*)
+FROM encomendas
+WHERE data &gt;= date_trunc('month', now());</pre>
+        <p class="res">→ <b>1 980</b></p>
+      </div>
+      <div class="sql-card right">
+        <span class="tag">⟶ o que estava certo</span>
+        <pre>SELECT COUNT(*)
+FROM encomendas
+WHERE data &gt;= date_trunc('month', now())
+  AND cancelada = false;</pre>
+        <p class="res">→ <b>1 642</b></p>
+      </div>
+    </div>
+    <p class="why"><b>Pitfall: soft delete.</b> As encomendas canceladas não são apagadas — ficam com uma flag. Sem o filtro <span class="mono">cancelada = false</span>, contam como reais. 17% a mais.</p>
+  </div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">NN</span></div>
+  <aside class="notes">Soft delete é a regra em sistemas modernos: nada se apaga, marca-se. O LLM não sabe que existe uma coluna `cancelada` (ou `deleted_at`) a não ser que o schema lho diga — e mesmo com o schema, raramente a aplica sozinho. Toda a métrica deste tipo de tabela precisa do filtro. É a convenção mais esquecida.</aside>
+</section>
+
+<!-- EMPATES NO TOP-N (RH) -->
+<section class="content-slide">
+  <span class="label-tag">O SQL que mente · empates no top-N</span>
+  <h2>"Os 3 melhores vendedores do trimestre"</h2>
+  <div class="separator"></div>
+  <div class="stage">
+    <div class="qbar"><span class="ico">NL →</span> Quem são os 3 melhores vendedores do trimestre?</div>
+    <div class="sql-grid">
+      <div class="sql-card wrong">
+        <span class="tag">⟶ o que o LLM gera</span>
+        <pre>SELECT vendedor, SUM(valor) total
+FROM vendas
+GROUP BY vendedor
+ORDER BY total DESC
+LIMIT 3;</pre>
+        <p class="res">→ corta o 4º que <b>empata</b> com o 3º</p>
+      </div>
+      <div class="sql-card right">
+        <span class="tag">⟶ o que estava certo</span>
+        <pre>-- 3º e 4º empatados a 48 000 €.
+-- LIMIT 3 escolhe UM ao acaso.
+SELECT *, DENSE_RANK() OVER (
+  ORDER BY total DESC) r
+-- ... WHERE r &lt;= 3   (decide a regra)</pre>
+        <p class="res">→ <b>4 vendedores</b> (empate incluído)</p>
+      </div>
+    </div>
+    <p class="why"><b>Pitfall: empates no top-N.</b> <span class="mono">LIMIT</span> não tem critério de desempate — devolve uma ordem arbitrária entre iguais. Hoje exclui um, amanhã outro. Não-determinístico e injusto.</p>
+  </div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">NN</span></div>
+  <aside class="notes">Em RH é um problema de equidade: dois vendedores com o mesmo número, um fica de fora do bónus por acaso da ordenação. RANK/DENSE_RANK tornam a regra explícita e estável. O LLM gera o LIMIT porque é o padrão — não pensa em empates porque os dados de exemplo raramente os têm. Pensar nos casos-limite é trabalho humano.</aside>
+</section>
+
+<!-- SÍNTESE DAS ARMADILHAS -->
+<section class="content-slide">
+  <span class="label-tag">O SQL que mente · síntese</span>
+  <h2>Porque é que isto é pior do que um erro de execução</h2>
+  <div class="separator"></div>
+  <div class="stage">
+    <div class="points">
+      <div class="point"><span class="m"></span><p>São todos <b>sintaticamente perfeitos</b> e <b>correm sem erro</b>.</p></div>
+      <div class="point"><span class="m"></span><p>O erro é <b>semântico e silencioso</b> — um número plausível, não uma falha visível.</p></div>
+      <div class="point"><span class="m"></span><p>Propaga-se a jusante durante semanas: <b>corrupção silenciosa de dados</b>.</p></div>
+    </div>
+    <div class="panel-dark" style="margin-top:8px;">
+      <p class="big">A consulta corre. Ninguém repara. O número entra no relatório, no dashboard, na decisão.</p>
+      <p class="tags">o copiloto acelera quem sabe ler SQL · não substitui essa competência</p>
+    </div>
+  </div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">NN</span></div>
+  <aside class="notes">Uma falha de execução rebenta e alguém investiga. Isto não rebenta — instala-se. Os exemplos partilham a mesma assinatura: SQL bonito, resultado credível, erro invisível. A defesa não é deixar de usar o copiloto; é saber ler o que ele produz.</aside>
+</section>
+
+<!-- BRIDGE · ONDE ACELERA MESMO (visual) -->
+<section class="content-slide">
+  <span class="label-tag">A GenAI ao serviço do engenheiro de dados</span>
+  <h2>Onde a GenAI acelera de facto</h2>
+  <div class="separator"></div>
+  <div class="stage">
+    <div class="tiles-grid" style="grid-template-columns:repeat(5,1fr);">
+      <div class="tcard"><i class="fa-solid fa-diagram-project"></i><h4>Schema linking</h4><p>Ligar a pergunta às tabelas certas — o passo crítico do NL2SQL.</p></div>
+      <div class="tcard"><i class="fa-solid fa-cubes"></i><h4>Geração de transformações</h4><p>Modelos SQL, testes e descrições a partir de uma descrição.</p></div>
+      <div class="tcard"><i class="fa-solid fa-right-left"></i><h4>Migração de dialetos</h4><p>Oracle → BigQuery, legacy → moderno. Tarefa bem definida.</p></div>
+      <div class="tcard"><i class="fa-solid fa-table-list"></i><h4>Catalogação</h4><p>Descrição de tabelas, colunas e candidatos a PII.</p></div>
+      <div class="tcard"><i class="fa-solid fa-magnifying-glass-chart"></i><h4>Qualidade semântica</h4><p>Erros contextuais de uma linha, para além das regras.</p></div>
+    </div>
+    <p class="lead" style="margin:22px auto 0; text-align:center; max-width:86%;">Cinco tarefas bem definidas, com entrada e saída claras, e com revisão humana no fim. É aqui que o copiloto rende.</p>
+  </div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">NN</span></div>
+  <aside class="notes">Saímos do modo cético. Estas cinco tarefas são onde o copiloto rende de verdade — bem definidas, entrada e saída claras, validação humana no fim. O fio condutor: o LLM faz o primeiro rascunho; o engenheiro orienta e valida. Abrimos cada uma.</aside>
+</section>
+
+<!-- SCHEMA LINKING (SVG) -->
+<section class="content-slide">
+  <span class="label-tag">A GenAI ao serviço do engenheiro · porque o NL2SQL falha</span>
+  <h2>O passo crítico: ligar a pergunta ao schema</h2>
+  <div class="separator"></div>
+  <div class="stage">
+    <div class="figure" style="max-width:1280px;">
+      <svg viewBox="0 0 1000 380" role="img" aria-label="Schema linking: a pergunta ligada às tabelas e colunas certas">
+        <rect x="8" y="8" width="984" height="364" rx="10" fill="none" stroke="#B8B59D" stroke-opacity="0.5"/>
+        <text x="28" y="40" class="svg-label muted">schema linking — onde o NL2SQL vive ou morre</text>
+        <rect x="40" y="150" width="300" height="86" rx="6" fill="#2F4E5E"/>
+        <text x="190" y="190" text-anchor="middle" style="fill:#fff; font-family:var(--mono); font-size:21px;">« utilizadores</text>
+        <text x="190" y="216" text-anchor="middle" style="fill:#fff; font-family:var(--mono); font-size:21px;">ativos »</text>
+        <rect x="650" y="56"  width="300" height="72" rx="6" fill="#fff" stroke="#74808D" stroke-width="2"/>
+        <text x="670" y="86"  class="svg-mono">utilizadores.estado</text>
+        <text x="670" y="112" class="svg-label muted">= 'ativo' → conta não suspensa</text>
+        <rect x="650" y="154" width="300" height="72" rx="6" fill="#fff" stroke="#6D6D3E" stroke-width="3"/>
+        <text x="670" y="184" class="svg-mono">sessoes.inicio</text>
+        <text x="670" y="210" class="svg-label muted">últimos 30 dias → a usar mesmo</text>
+        <rect x="650" y="252" width="300" height="72" rx="6" fill="#fff" stroke="#B8B59D" stroke-width="2"/>
+        <text x="670" y="282" class="svg-mono">subscricoes.estado</text>
+        <text x="670" y="308" class="svg-label muted">paga e não cancelada</text>
+        <defs>
+          <marker id="ah-sl-slate" markerWidth="11" markerHeight="11" refX="8" refY="3.5" orient="auto"><path d="M0,0 L8,3.5 L0,7 Z" fill="#74808D"/></marker>
+          <marker id="ah-sl-olive" markerWidth="11" markerHeight="11" refX="8" refY="3.5" orient="auto"><path d="M0,0 L8,3.5 L0,7 Z" fill="#6D6D3E"/></marker>
+        </defs>
+        <line x1="340" y1="178" x2="648" y2="92"  stroke="#74808D" stroke-width="2" stroke-dasharray="3 6" marker-end="url(#ah-sl-slate)"/>
+        <text x="470" y="120" class="svg-label muted">escolha ingénua do LLM</text>
+        <line x1="340" y1="193" x2="648" y2="190" stroke="#6D6D3E" stroke-width="3" marker-end="url(#ah-sl-olive)"/>
+        <text x="470" y="178" class="svg-label" style="fill:#6D6D3E;">definição real de negócio</text>
+        <line x1="340" y1="208" x2="648" y2="288" stroke="#B8B59D" stroke-width="2" stroke-dasharray="3 6"/>
+      </svg>
+    </div>
+    <p class="lead" style="margin:0 auto; text-align:center; max-width:86%;">O SQL é a parte fácil. O difícil é decidir <strong>que tabelas e colunas</strong> a pergunta quer dizer. É aqui que o NL2SQL erra — e onde quem conhece o modelo de dados é insubstituível.</p>
+  </div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">NN</span></div>
+  <aside class="notes">A literatura (NL2SQL, VLDB 2025) é clara: a gramática SQL os modelos já dominam; o gargalo é o schema linking — ligar termos da pergunta às entidades certas. Numa BD com 300 tabelas e nomes ambíguos é onde tudo descarrila. Dar ao modelo um bom dicionário de dados, uma camada semântica e exemplos rende mais do que trocar de modelo. O conhecimento do domínio é a vantagem da equipa.</aside>
+</section>
+
+<!-- GERAÇÃO DE TRANSFORMAÇÕES / dbt (PENDENTE DE DECISÃO) -->
+<section class="content-slide">
+  <span class="label-tag">A GenAI ao serviço do engenheiro · geração de transformações</span>
+  <h2>De uma descrição a um modelo, com testes e documentação</h2>
+  <div class="separator"></div>
+  <div class="stage">
+    <div class="etl">
+      <div class="doc">"Modelo de receita<br>diária por região,<br>com testes."</div>
+      <span class="ar">→</span>
+      <div class="llm">LLM<span class="sch">+ schema do projeto</span></div>
+      <span class="ar">→</span>
+      <div class="out">receita_diaria.sql<br>+ testes (unicidade, não-nulo)<br>+ descrição<br>+ dependências</div>
+    </div>
+    <div class="callout" style="max-width:84%; margin:0 auto;">
+      <span class="k">O que se ganha e o que falta</span>
+      <p>O esqueleto sai em segundos: SQL, testes genéricos, documentação. Mas o esqueleto não é o contrato — <strong>os testes que importam são os que o LLM não sabe que são precisos</strong>.</p>
+    </div>
+  </div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">NN</span></div>
+  <aside class="notes">[PENDENTE DE DECISÃO — depende de explicar dbt à turma.] Ferramentas como o dbt definem cada tabela analítica como um "modelo" SQL versionado, com testes e documentação. O LLM gera esse esqueleto a partir de uma descrição. Poupa o trabalho aborrecido, mas o modelo gerado costuma ter testes a menos ou granularidade errada — o slide seguinte mostra-o.</aside>
+</section>
+
+<!-- dbt ERRADO-vs-CERTO (PENDENTE DE DECISÃO) -->
+<section class="content-slide">
+  <span class="label-tag">A GenAI ao serviço do engenheiro · rever o modelo gerado</span>
+  <h2>O modelo "compila" — e está errado</h2>
+  <div class="separator"></div>
+  <div class="stage">
+    <div class="qbar"><span class="ico">gerado →</span> receita_diaria.sql, produzido pelo copiloto</div>
+    <div class="sql-grid">
+      <div class="sql-card wrong">
+        <span class="tag">⟶ o que o LLM gera</span>
+        <pre>SELECT
+  e.data::date AS dia,
+  SUM(l.valor) AS receita
+FROM encomendas e
+JOIN linhas l
+  ON l.enc_id = e.id
+GROUP BY 1
+-- (sem testes)</pre>
+        <p class="res">compila ✓ · receita <b>inflada</b></p>
+      </div>
+      <div class="sql-card right">
+        <span class="tag">⟶ a revisão de engenharia</span>
+        <pre>-- agregar linhas ANTES do join
+-- (senão o fan-out duplica a receita)
+-- + testes:
+--   dia    → único, não-nulo
+--   receita → não-nulo
+-- + materialização incremental</pre>
+        <p class="res">testado ✓ · grão <b>correto</b></p>
+      </div>
+    </div>
+    <p class="why"><b>O LLM gera o esqueleto, não o contrato.</b> Faltam os testes, e o join repete a armadilha do fan-out. "Compila" não é "está certo".</p>
+  </div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">NN</span></div>
+  <aside class="notes">[PENDENTE DE DECISÃO.] A armadilha do fan-out reaparece dentro de um modelo gerado — o copiloto não aprende a lição entre slides. A revisão acrescenta o que faz um modelo de produção: o teste de unicidade no grão, o não-nulo, e a materialização incremental. É exatamente o code review que vale mais, não menos.</aside>
+</section>
+
+<!-- MIGRAÇÃO / TRADUÇÃO DE DIALETOS -->
+<section class="content-slide">
+  <span class="label-tag">A GenAI ao serviço do engenheiro · migração de dialetos</span>
+  <h2>Traduzir Oracle → BigQuery não é trocar funções</h2>
+  <div class="separator"></div>
+  <div class="stage">
+    <div class="qbar"><span class="ico">Oracle →</span> SELECT * FROM (… ORDER BY b DESC) WHERE ROWNUM &lt;= 10;</div>
+    <div class="sql-grid">
+      <div class="sql-card wrong">
+        <span class="tag">⟶ tradução linha-a-linha do LLM</span>
+        <pre>-- BigQuery
+SELECT nome, IFNULL(bonus,0) AS b
+FROM emp
+QUALIFY ROW_NUMBER() OVER () &lt;= 10
+ORDER BY b DESC;</pre>
+        <p class="res">→ <b>10 nomes ao acaso</b> <span style="color:var(--cel-slate)">(corre)</span></p>
+      </div>
+      <div class="sql-card right">
+        <span class="tag">⟶ tradução fiel à semântica</span>
+        <pre>-- BigQuery
+SELECT nome, IFNULL(bonus,0) AS b
+FROM emp
+ORDER BY b DESC
+LIMIT 10;</pre>
+        <p class="res">→ <b>os 10 maiores bónus</b></p>
+      </div>
+    </div>
+    <p class="why"><b>Em Oracle, <span class="mono">ROWNUM</span> filtra ANTES do <span class="mono">ORDER BY</span>.</b> O LLM traduz <span class="mono">IFNULL</span> bem, mas mantém a ordem das operações errada. Outras caudas: <span class="mono">NULL</span> em ordenações, datas e fusos, <span class="mono">NUMBER</span> vs <span class="mono">FLOAT</span>. Dialeto é semântica, não vocabulário.</p>
+  </div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">NN</span></div>
+  <aside class="notes">A migração é uma das melhores aplicações do copiloto — tarefa fechada, alto volume, padrões repetitivos. Mas tem caudas longas: a ordem de avaliação de ROWNUM, NULL em ordenações, datas e fusos, NUMBER vs FLOAT, sintaxe de janelas. O LLM acerta o caso comum e falha o canto. Por isso a migração assistida precisa de testes de equivalência: correr ambas e comparar resultados.</aside>
+</section>
+
+<!-- CATALOGAÇÃO E METADADOS -->
+<section class="content-slide">
+  <span class="label-tag">A GenAI ao serviço do engenheiro · catalogação</span>
+  <h2>Documentar o data warehouse que ninguém documentou</h2>
+  <div class="separator"></div>
+  <div class="stage">
+    <div class="etl">
+      <div class="doc">information_schema<br>+ amostra de linhas<br><span style="color:var(--cel-slate)">tabela `fct_vendas`,<br>colunas crípticas:<br>val, qt, dt, cli_id</span></div>
+      <span class="ar">→</span>
+      <div class="llm">LLM<span class="sch">+ nomes vizinhos + dados</span></div>
+      <span class="ar">→</span>
+      <div class="out">descrição da tabela<br>descrição por coluna<br><span class="ok">candidato a PII</span> (cli_id)<br>termos de glossário</div>
+    </div>
+    <div class="tiles-grid three" style="margin-top:6px;">
+      <div class="tcard"><i class="fa-solid fa-table-list"></i><h4>Descrições</h4><p>Tabela e colunas descritas a partir do schema e de exemplos.</p></div>
+      <div class="tcard"><i class="fa-solid fa-user-shield"></i><h4>Deteção de PII</h4><p>Sinaliza candidatos a dados pessoais para classificação.</p></div>
+      <div class="tcard"><i class="fa-solid fa-book"></i><h4>Glossário</h4><p>Liga colunas a termos de negócio — primeiro rascunho do dicionário.</p></div>
+    </div>
+  </div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">NN</span></div>
+  <aside class="notes">O catálogo de dados é o trabalho que toda a gente adia. O LLM lê os nomes das colunas, umas linhas de amostra e os nomes vizinhos, e produz um primeiro rascunho de documentação — incluindo candidatos a PII. As descrições são plausíveis, mas o LLM pode inventar a semântica de negócio (o que `val` significa exatamente): serve para arrancar, não para publicar sem revisão. É também onde se fixa o que "ativo" quer dizer.</aside>
+</section>
+
+<!-- QUALIDADE DE DADOS SEMÂNTICA -->
+<section class="content-slide">
+  <span class="label-tag">A GenAI ao serviço do engenheiro · qualidade semântica</span>
+  <h2>O erro que passa em todas as regras</h2>
+  <div class="separator"></div>
+  <div class="stage">
+    <div class="attn" style="gap:10px;">
+      <div class="phrase">doente: <b>0 anos</b> · diagnóstico: <b>menopausa</b> · medicação: <b>terapêutica hormonal</b></div>
+      <div class="phrase">admissão: <b>2026-05-10</b> · alta: <b>2026-05-03</b> <span style="color:var(--cel-slate)">(alta antes da admissão)</span></div>
+    </div>
+    <div class="contrast">
+      <div class="c">
+        <h3>Validação por regras</h3>
+        <p><span class="mono">idade ≥ 0</span> ✓ &nbsp; <span class="mono">não-nulo</span> ✓ &nbsp; <span class="mono">datas válidas</span> ✓</p>
+        <p style="margin-top:14px; color:var(--cel-slate); font-size:18pt;">cada campo passa isolado. As linhas são aceites.</p>
+      </div>
+      <div class="c weight">
+        <h3>Deteção com LLM</h3>
+        <p style="margin-bottom:20px;">lê a linha como um todo e apanha a <em>incoerência</em>:</p>
+        <div class="chips"><span>⚑ menopausa aos 0 anos</span><span>⚑ alta antes da admissão</span><span>rever</span></div>
+      </div>
+    </div>
+    <p class="why"><b>O contexto é a anomalia.</b> Nenhuma regra de coluna apanha isto — só a relação entre campos. O LLM é bom a sinalizar o improvável; o humano confirma.</p>
+  </div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">NN</span></div>
+  <aside class="notes">A qualidade clássica é por regras: tipos, intervalos, não-nulos. Apanha o malformado, não o implausível. Um bebé com menopausa, ou uma alta antes da admissão, passa em todos os testes de coluna — cada valor é válido por si. O LLM lê a linha como uma frase e estranha a combinação. Não substitui as regras: complementa-as, levantando candidatos a revisão (e inventa falsos positivos, por isso humano no fim).</aside>
+</section>
+
+<!-- COPILOTOS DE PLATAFORMA -->
+<section class="content-slide">
+  <span class="label-tag">A GenAI ao serviço do engenheiro · nas plataformas</span>
+  <h2>Estes copilotos já vêm nas plataformas de dados</h2>
+  <div class="separator"></div>
+  <div class="stage">
+    <div class="tiles-grid">
+      <div class="tcard"><i class="fa-solid fa-bolt"></i><h4>Databricks Genie</h4><p>NL → SQL e pipelines sobre o lakehouse.</p></div>
+      <div class="tcard"><i class="fa-regular fa-snowflake"></i><h4>Snowflake Cortex</h4><p>Cortex Analyst / Code: consultas e workflows.</p></div>
+      <div class="tcard"><i class="fa-brands fa-google"></i><h4>BigQuery + Gemini</h4><p>Assistente de dados e geração de SQL.</p></div>
+      <div class="tcard"><i class="fa-solid fa-layer-group"></i><h4>MS Fabric Copilot</h4><p>Pipelines e notebooks assistidos.</p></div>
+    </div>
+    <div class="callout" style="max-width:86%; margin:0 auto;">
+      <span class="k">A limitação comum a todos</span>
+      <p>Têm acesso ao schema, mas não à camada de negócio: o que é "ativo", que datas contam, onde está o soft delete. Sem essa camada, repetem as mesmas armadilhas dentro da plataforma.</p>
+    </div>
+  </div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">NN</span></div>
+  <aside class="notes">Não é preciso adotar nada novo — o copiloto já vem na plataforma que usam. Têm acesso ao schema, o que ajuda no schema linking, mas continuam sem a camada de negócio. A observação é frequente na comunidade de dados (ver SOURCES). A defesa de fundo é a mesma dos exemplos: uma camada semântica e um humano que sabe ler o resultado.</aside>
+</section>
+
+<!-- A LIÇÃO DA PORTA A (reescrita) -->
+<section class="content-slide">
+  <span class="label-tag">A GenAI ao serviço do engenheiro · em síntese</span>
+  <h2>O valor mudou de lugar</h2>
+  <div class="separator"></div>
+  <div class="stage">
+    <div class="contrast">
+      <div class="c">
+        <h3>Escrever SQL que corre</h3>
+        <p>Comoditizado: o copiloto fá-lo em segundos, em qualquer dialeto.</p>
+      </div>
+      <div class="c weight">
+        <h3>Ler SQL e apanhar o erro semântico</h3>
+        <p style="margin-bottom:18px;">o grão, o NULL, a definição de negócio — o que o modelo não vê.</p>
+        <div class="chips"><span>conhecimento do domínio</span><span>camada semântica</span><span>revisão</span></div>
+      </div>
+    </div>
+    <p class="lead" style="max-width:90%;">O copiloto é real e útil — schema linking, geração, migração, catálogo, qualidade. Mas todas estas tarefas terminam na mesma palavra: <strong>rever</strong>. O code review passou a valer mais, não menos.</p>
+  </div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">NN</span></div>
+  <aside class="notes">Fecho da primeira abordagem. O copiloto é útil em tarefas bem definidas, mas todas terminam em revisão. O engenheiro deixou de ser quem escreve mais SQL e passou a ser quem o lê melhor. A seguir, a segunda abordagem — onde o trabalho deixa de ser acelerado e passa a ser novo: a engenharia de dados ao serviço da própria GenAI.</aside>
+</section>

@@ -210,6 +210,11 @@
 /* cartões de plataforma/exemplos (grelha) */
 .tiles-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px; width: 100%; }
 .tiles-grid.three { grid-template-columns: repeat(3, 1fr); }
+.tiles-grid.five { grid-template-columns: repeat(5, 1fr); gap: 14px; }
+.tiles-grid.five .tcard { padding: 18px 16px; min-width: 0; }
+.tiles-grid.five .tcard i { font-size: 22pt; margin-bottom: 10px; }
+.tiles-grid.five .tcard h4 { font-size: 15pt; overflow-wrap: break-word; }
+.tiles-grid.five .tcard p { font-size: 13pt; }
 .tcard { background: var(--cel-white); border-top: 3px solid var(--cel-secondary); padding: 26px 26px; }
 .tcard i { font-size: 28pt; color: var(--cel-secondary); margin-bottom: 14px; display: block; }
 .tcard h4 { font-family: var(--heading-font); font-weight: 600; font-size: 20pt; color: var(--cel-primary); margin: 0 0 8px; }

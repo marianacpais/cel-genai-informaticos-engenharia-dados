@@ -57,7 +57,7 @@
       </div>
       <p class="chain-hint">As aulas 3–4 começaram aqui à direita. Hoje é sobre a caixa do "?".</p>
     </div>
-    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">01</span></div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">1</span></div>
     <aside class="notes">As aulas 3–4 trataram os dados como um dado adquirido. Mas alguém produziu, limpou e mantém fresco aquele ficheiro. Isso é engenharia de dados — a canalização antes da água.</aside>
   </section>
 
@@ -90,7 +90,7 @@
       </div>
     </div>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">02</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">2</span></div>
   <aside class="notes">A fronteira não é rígida — há sobreposição (feature engineering, MLOps) — mas a divisão de papéis é útil. O cientista trata os dados como adquiridos; o engenheiro responde por eles existirem, estarem corretos e chegarem a tempo. A palavra-chave que vai atravessar a aula: fiabilidade. A engenharia de dados é a disciplina de tornar os dados um produto previsível, não um achado pontual. Tudo o que se segue — pipeline, contratos, idempotência — existe ao serviço dessa previsibilidade.</aside>
 </section>
 
@@ -113,7 +113,7 @@
     </div>
     <p class="chain-hint">Cinco estágios. Vamos abrir cada caixa — e em cada uma a GenAI vai bater à porta.</p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">03</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">3</span></div>
   <aside class="notes">Este é o esqueleto de qualquer plataforma de dados, das PME às big tech — só muda a escala e as ferramentas. Convém fixá-lo porque tudo o que vem a seguir se pendura aqui: ETL/ELT vive no "transformar", batch/streaming no "ingestão", warehouse/lake no "armazém", a orquestração costura os cinco. E quando chegarmos às duas portas: a Porta A (copiloto) acelera quem escreve cada estágio; a Porta B (construir para a GenAI) acrescenta um pipeline novo — o de RAG — que tem exatamente esta forma.</aside>
 </section>
 
@@ -131,7 +131,7 @@
     </div>
     <p class="lead" style="margin:0 auto; text-align:center; max-width:84%;">Cada fonte tem o seu ritmo, o seu formato e o seu dono. A engenharia começa por não controlar nada disto — só por <strong>reagir bem</strong> a quando muda.</p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">04</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">4</span></div>
   <aside class="notes">Ponto-chave: as fontes são sistemas de outras equipas, com prioridades próprias. O engenheiro de dados é quase sempre consumidor, não dono — daí a importância dos contratos mais à frente. Distinção útil: dados operacionais (OLTP, otimizado para escrever uma linha rápido) vs dados analíticos (OLAP, otimizado para ler milhões e agregar). O trabalho de ingestão é a ponte entre os dois mundos. As fontes de eventos/IoT são as que empurram para streaming; as bases e ficheiros tipicamente para batch — o que liga ao próximo slide.</aside>
 </section>
 
@@ -174,7 +174,7 @@
     </div>
     <p class="lead" style="margin:0 auto; text-align:center; max-width:88%;">Quase tudo o que parece exigir "tempo real" vive bem com batch de poucos minutos. <strong>Streaming é uma decisão de custo, não de moda.</strong></p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">05</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">5</span></div>
   <aside class="notes">Batch: junta os dados e processa-os de tempos a tempos (de hora a hora, à noite). Simples de raciocinar, fácil de reprocessar, barato. Streaming: processa cada evento à medida que chega, latência de milissegundos a segundos — mas obriga a pensar em janelas, dados que chegam fora de ordem, estado, exactly-once. Heurística honesta: a maioria dos casos de "negócio em tempo real" tolera micro-batch de 1–5 min. Só vale streaming verdadeiro quando a latência é mesmo do produto (deteção de fraude, monitorização, recomendação ao vivo). Esta escolha vai voltar na Porta B: indexar embeddings para RAG é tipicamente batch/CDC; servir a query é online.</aside>
 </section>
 
@@ -191,7 +191,7 @@
     </div>
     <p class="lead" style="margin:0 auto; text-align:center; max-width:88%;">O <strong>warehouse</strong> exige estrutura à entrada; o <strong>lake</strong> aceita tudo e adia a estrutura. O <strong>lakehouse</strong> tenta o melhor dos dois — e é onde a base vetorial do RAG vai morar ao lado.</p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">06</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">6</span></div>
   <aside class="notes">Warehouse (BigQuery, Snowflake, Redshift): impõe schema na escrita, otimizado para SQL analítico e BI; ótimo para tabelas, mau para PDFs e imagens. Data lake (S3, ADLS + Parquet): armazenamento barato que aceita qualquer ficheiro, schema só na leitura; flexível, mas vira facilmente "data swamp" sem governança. Lakehouse (Databricks/Delta, Iceberg): formatos de tabela transacionais por cima dos ficheiros do lake — transações ACID, time travel, schema enforcement — convergindo as duas tradições. Porque importa para esta aula: os dados não-estruturados (texto, que alimenta os embeddings) vivem no lake/lakehouse; a base de dados vetorial entra como um novo vizinho neste stack, como veremos na Porta B.</aside>
 </section>
 
@@ -227,7 +227,7 @@
     </div>
     <p class="lead" style="margin:0 auto; text-align:center; max-width:90%;">O armazém ficou barato e elástico → carrega-se cru e transforma-se lá dentro. <strong>O <span class="mono">T</span> passou a ser SQL versionado — e, na Porta B, pode até ser um LLM.</strong></p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">07</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">7</span></div>
   <aside class="notes">ETL clássico: transformava-se num servidor próprio antes de carregar, porque o armazenamento era caro e só queríamos lá dentro o dado limpo. ELT inverte: a cloud tornou o armazém barato e com computação elástica, por isso carrega-se o dado cru e transforma-se com SQL lá dentro — versionado, testado, com ferramentas como dbt. Vantagens do ELT: o dado cru fica disponível para reprocessar, a transformação é código revisível, escala com o armazém. Foreshadow deliberado: quando, na Porta B, dissermos "o T do ETL pode ser um LLM", é exatamente este passo de Transform que estamos a substituir/aumentar — e é por isso que herda todos os problemas de determinismo que veremos.</aside>
 </section>
 
@@ -255,7 +255,7 @@
       </div>
     </div>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">08</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">8</span></div>
   <aside class="notes">Grain = o nível de detalhe de uma linha de facto. "Uma linha por encomenda", "uma linha por linha-de-encomenda", "uma linha por cliente por dia" — são grãos diferentes e dão respostas diferentes à mesma pergunta. Boa modelação dimensional (estrela: factos no grão certo + dimensões) existe justamente para tornar as agregações inequívocas. Liga diretamente à Porta A: a demo do text-to-SQL falha por desconhecer o grão (contar encomendas em vez de clientes distintos, somar valor com fan-out de join). O LLM lê o schema, não a semântica — o grão é conhecimento de negócio que mora na cabeça da equipa, não no nome das colunas.</aside>
 </section>
 
@@ -273,7 +273,7 @@
     </div>
     <p class="lead" style="margin:0 auto; text-align:center; max-width:84%;">O serviço é o teste de fogo: <strong>se o consumidor recebe lixo, toda a fábrica falhou</strong> — por mais elegante que seja lá dentro.</p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">09</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">9</span></div>
   <aside class="notes">O estágio de serviço é onde os dados encontram o utilizador final, humano ou máquina. Quatro grandes consumidores: BI (o clássico), ML (features), aplicações operacionais via reverse ETL (empurrar de volta para sistemas de negócio), e agora a GenAI — o consumidor que justifica esta aula. A mensagem: a qualidade percebida da plataforma mede-se à saída, não à entrada. Um pipeline impecável que entrega um número com o grão errado falhou. Este enquadramento prepara a tese das duas portas: a GenAI entra aqui como consumidor (Porta B) e, ao mesmo tempo, como copiloto de quem constrói os estágios anteriores (Porta A).</aside>
 </section>
 
@@ -478,7 +478,7 @@
   <h2>Qualidade de dados: cinco dimensões</h2>
   <div class="separator"></div>
   <div class="stage">
-    <div class="tiles-grid" style="grid-template-columns:repeat(5,1fr);">
+    <div class="tiles-grid five">
       <div class="tcard"><i class="fa-solid fa-circle-check"></i><h4>Completude</h4><p>Faltam linhas ou valores que deviam existir?</p></div>
       <div class="tcard"><i class="fa-solid fa-ruler"></i><h4>Validade</h4><p>Respeita tipos, formatos e domínios permitidos?</p></div>
       <div class="tcard"><i class="fa-solid fa-scale-balanced"></i><h4>Consistência</h4><p>Bate certo entre tabelas e sistemas?</p></div>
@@ -557,91 +557,65 @@
 <!-- ===================== AS DUAS PORTAS ===================== -->
   <section class="section-divider" data-transition="fade" data-background-transition="fade">
     <p class="label">A tese</p>
-    <h2>Duas portas opostas</h2>
+    <h2>Duas formas de abordar o tema</h2>
   </section>
 
   <section class="content-slide">
-    <span class="label-tag">Como a GenAI entra na engenharia de dados</span>
-    <h2>Duas portas — e a segunda mudou tudo</h2>
+    <span class="label-tag">GenAI e engenharia de dados</span>
+    <h2>Duas relações entre uma coisa e a outra</h2>
     <div class="separator"></div>
     <div class="stage">
       <div class="doors">
         <div class="door a">
-          <span class="kick">Porta A</span>
-          <h3>GenAI como copiloto <em>do</em> engenheiro de dados</h3>
-          <p>Acelera as tarefas clássicas — escrever SQL, ETL, modelar, documentar.</p>
-          <div class="foot">é o esperado · atravessar com firmeza</div>
+          <span class="kick">Primeira abordagem</span>
+          <h3>A GenAI ao serviço <em>do</em> engenheiro de dados</h3>
+          <p>Como ajuda no trabalho que já existe: escrever SQL, transformar, modelar, documentar.</p>
+          <div class="foot">acelera tarefas conhecidas</div>
         </div>
         <div class="door b">
-          <span class="kick">Porta B</span>
+          <span class="kick">Segunda abordagem</span>
           <h3>O engenheiro de dados a construir <em>para</em> a GenAI</h3>
-          <p>Categoria de trabalho que quase não existia: alimentar RAG, embeddings, extrair estrutura com o próprio LLM.</p>
-          <div class="foot">a estrela · o coração da aula</div>
+          <p>Engenharia de dados como parte do próprio funcionamento da GenAI: alimentar RAG, produzir embeddings, extrair estrutura com o LLM.</p>
+          <div class="foot">trabalho que quase não existia</div>
         </div>
       </div>
     </div>
     <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">20</span></div>
-    <aside class="notes">Espelha a Aula 1 ("escrever → orientar → validar"). Aqui é a evolução do pipeline. Agentes ficam para outra aula — aviso honesto.</aside>
+    <aside class="notes">Duas maneiras de pensar a relação entre GenAI e engenharia de dados. A primeira é a esperada — a GenAI como ferramenta de quem já faz o trabalho; atravessamos com olho crítico. A segunda é onde a engenharia de dados passa a ser parte do funcionamento da própria GenAI: é o núcleo da aula. Agentes ficam para outra sessão — aviso honesto.</aside>
   </section>
 
   
       <!-- ============ B · PORTA A ============ -->
+
 <!-- ===================== PORTA A · SEPARADOR ===================== -->
 <section class="section-divider" data-transition="fade" data-background-transition="fade">
-  <p class="label">Porta A</p>
-  <h2>O copiloto do engenheiro de dados</h2>
-  <aside class="notes">A porta esperada. O LLM senta-se ao lado de quem já faz o trabalho e acelera-o. Vamos atravessá-la com firmeza — mas com olho crítico, porque é aqui que mora o erro mais perigoso: o que corre sem dar erro. Estrutura: primeiro desmontamos o mito do "não é preciso saber SQL" com onze armadilhas reais; depois mostramos onde a GenAI acelera mesmo o engenheiro.</aside>
+  <p class="label">Primeira abordagem</p>
+  <h2>A GenAI ao serviço do engenheiro de dados</h2>
+  <aside class="notes">A primeira das duas abordagens: o LLM senta-se ao lado de quem já faz o trabalho e acelera-o. Atravessamos com olho crítico, porque é aqui que mora o erro mais perigoso — o que corre sem dar erro. Primeiro o mito do "não é preciso saber SQL", com alguns exemplos reais; depois onde a GenAI acelera de facto.</aside>
 </section>
 
 <!-- O MITO -->
 <section class="content-slide">
-  <span class="label-tag">Porta A · o mito</span>
+  <span class="label-tag">O mito</span>
   <h2>"Já não é preciso escrever SQL — os LLMs escrevem-no"</h2>
   <div class="separator"></div>
   <div class="stage">
     <div class="zeitgeist">
-      <p class="quote">Vamos provar, por A + B, que isto é <em>perigosamente</em> falso.</p>
-      <p class="src">Onze perguntas em português. Onze SQLs lindos. Onze números errados — e nenhum crash.</p>
+      <p class="quote">Os LLMs escrevem SQL impecável. <em>Conhecer a sintaxe não é conhecer a base de dados.</em></p>
+      <p class="src">Perguntas simples em português. SQL bonito. Números errados — e nenhum erro de execução.</p>
     </div>
     <div class="callout" style="max-width:82%; margin:0 auto;">
-      <span class="k">A tese desta secção</span>
-      <p>O LLM não conhece o teu <strong>grão</strong>, as tuas <strong>definições de negócio</strong>, nem o comportamento dos teus <strong>NULLs</strong>. Sabe SQL; não sabe a <em>tua</em> base de dados.</p>
+      <span class="k">A ideia central desta secção</span>
+      <p>O LLM não conhece o seu <strong>grão</strong>, as suas <strong>definições de negócio</strong>, nem o comportamento dos seus <strong>NULLs</strong>. Sabe SQL; não conhece a <em>sua</em> base de dados. Alguns exemplos — o resto explora-se no sandbox.</p>
     </div>
   </div>
   <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">21</span></div>
-  <aside class="notes">O perigo não é o SQL que rebenta — esse vê-se. É o SQL sintaticamente perfeito que devolve um número plausível e errado. Vou mostrar onze armadilhas, espalhadas por vendas, suporte, RH, saúde e logística. Todas universais. O domínio só muda a roupagem.</aside>
+  <aside class="notes">O perigo não é o SQL que rebenta — esse vê-se. É o SQL sintaticamente perfeito que devolve um número plausível e errado. Aqui mostramos uma seleção; o sandbox "O SQL que mente" tem o conjunto completo, para experimentarem com o próprio chatbot.</aside>
 </section>
 
-<!-- ARMADILHA 1 · GRAIN (vendas) -->
+<!-- LINHAS EM FALTA (saúde) -->
 <section class="content-slide">
-  <span class="label-tag">As 11 armadilhas · 1/11 · grain</span>
-  <h2>"Quantos clientes temos?"</h2>
-  <div class="separator"></div>
-  <div class="stage">
-    <div class="qbar"><span class="ico">NL →</span> Quantos clientes temos?</div>
-    <div class="sql-grid">
-      <div class="sql-card wrong">
-        <span class="tag">⟶ o que o LLM gera</span>
-        <pre>SELECT COUNT(*)
-FROM encomendas;</pre>
-        <p class="res">→ <b>14 820</b> <span style="color:var(--cel-slate)">(encomendas)</span></p>
-      </div>
-      <div class="sql-card right">
-        <span class="tag">⟶ o que estava certo</span>
-        <pre>SELECT COUNT(DISTINCT cliente_id)
-FROM clientes;</pre>
-        <p class="res">→ <b>3 102</b> <span style="color:var(--cel-slate)">(clientes)</span></p>
-      </div>
-    </div>
-    <p class="why"><b>Pitfall: grain.</b> A tabela tem uma linha por encomenda. Um cliente com 5 compras conta 5×. O LLM não conhece o <em>grão</em> da tua tabela.</p>
-  </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">22</span></div>
-  <aside class="notes">"Grão" é o que uma linha representa. Aqui a pergunta é sobre clientes mas a tabela está ao grão da encomenda. 4,7× de erro. Quem não sabe ler SQL nunca apanha isto.</aside>
-</section>
-
-<!-- ARMADILHA 2 · LINHAS EM FALTA (saúde) -->
-<section class="content-slide">
-  <span class="label-tag">As 11 armadilhas · 2/11 · linhas em falta</span>
+  <span class="label-tag">O SQL que mente · linhas em falta</span>
   <h2>"Tempo médio até à primeira consulta"</h2>
   <div class="separator"></div>
   <div class="stage">
@@ -662,15 +636,15 @@ WHERE data_consulta IS NOT NULL;</pre>
         <p class="res">→ mediana de espera <b>142 dias</b></p>
       </div>
     </div>
-    <p class="why"><b>Pitfall: linhas em falta.</b> Quem ainda espera não tem <span class="mono">data_consulta</span> → cai fora do denominador. A média mede só quem já foi atendido. A minha armadilha preferida.</p>
+    <p class="why"><b>Pitfall: linhas em falta.</b> Quem ainda espera não tem <span class="mono">data_consulta</span> → cai fora do denominador. A média mede só quem já foi atendido — um viés de sobrevivência que torna o número irreconhecível.</p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">23</span></div>
-  <aside class="notes">A mesma armadilha veste-se de "tempo de resolução de tickets" no suporte. O viés de sobrevivência: medimos os que sobreviveram ao processo. Os que ainda esperam — os que mais importam — são invisíveis para a média. O número diz 18 dias; a realidade clínica são meses.</aside>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">22</span></div>
+  <aside class="notes">A mesma armadilha veste-se de "tempo de resolução de tickets" no suporte. O viés de sobrevivência: medimos os que sobreviveram ao processo. Os que ainda esperam — os que mais importam — são invisíveis para a média. O número diz 18 dias; a realidade são meses.</aside>
 </section>
 
-<!-- ARMADILHA 3 · NOT IN + NULL (logística) -->
+<!-- NOT IN + NULL (logística) -->
 <section class="content-slide">
-  <span class="label-tag">As 11 armadilhas · 3/11 · NOT IN + NULL</span>
+  <span class="label-tag">O SQL que mente · NOT IN + NULL</span>
   <h2>"Armazéns que nunca expediram nada"</h2>
   <div class="separator"></div>
   <div class="stage">
@@ -681,7 +655,7 @@ WHERE data_consulta IS NOT NULL;</pre>
         <pre>SELECT * FROM armazens
 WHERE id NOT IN (
   SELECT armazem_id FROM expedicoes);</pre>
-        <p class="res">→ <b>0 linhas</b> <span style="color:var(--cel-slate)">(sem erro!)</span></p>
+        <p class="res">→ <b>0 linhas</b> <span style="color:var(--cel-slate)">(sem erro)</span></p>
       </div>
       <div class="sql-card right">
         <span class="tag">⟶ o que estava certo</span>
@@ -692,15 +666,15 @@ WHERE NOT EXISTS (
         <p class="res">→ <b>3 armazéns</b></p>
       </div>
     </div>
-    <p class="why"><b>Pitfall: NOT IN + NULL.</b> Basta uma <span class="mono">expedicoes.armazem_id</span> a NULL para <strong>NOT IN</strong> devolver conjunto vazio. Lógica de três valores: <span class="mono">x NOT IN (…, NULL)</span> nunca é verdadeiro.</p>
+    <p class="why"><b>Pitfall: NOT IN + NULL.</b> Basta uma <span class="mono">expedicoes.armazem_id</span> a NULL para <strong>NOT IN</strong> devolver conjunto vazio. Lógica de três valores: <span class="mono">x NOT IN (…, NULL)</span> nunca é verdadeiro. <span class="mono">NOT EXISTS</span> é imune.</p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">24</span></div>
-  <aside class="notes">Footgun clássico de SQL. O NULL na subquery contamina toda a comparação NOT IN. NOT EXISTS é imune porque trabalha por correspondência, não por pertença. O LLM escolhe NOT IN porque é a forma mais "lida" no treino — não porque é segura.</aside>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">23</span></div>
+  <aside class="notes">Footgun clássico de SQL. O NULL na subquery contamina toda a comparação NOT IN. NOT EXISTS é imune porque trabalha por correspondência, não por pertença. O LLM escolhe NOT IN porque é a forma mais frequente no treino — não porque é segura.</aside>
 </section>
 
-<!-- ARMADILHA 4 · DEFINIÇÃO AMBÍGUA (vendas) -->
+<!-- DEFINIÇÃO AMBÍGUA (vendas) -->
 <section class="content-slide">
-  <span class="label-tag">As 11 armadilhas · 4/11 · definição ambígua</span>
+  <span class="label-tag">O SQL que mente · definição ambígua</span>
   <h2>"Qual o produto mais vendido?"</h2>
   <div class="separator"></div>
   <div class="stage">
@@ -723,15 +697,15 @@ ORDER BY n DESC LIMIT 1;</pre>
         <p class="res">→ <b>três produtos diferentes</b></p>
       </div>
     </div>
-    <p class="why"><b>Pitfall: definição ambígua.</b> "Mais vendido" pode ser nº de transações, unidades ou receita. O LLM resolve a ambiguidade por ti — e não te diz qual escolheu.</p>
+    <p class="why"><b>Pitfall: definição ambígua.</b> "Mais vendido" pode ser nº de transações, unidades ou receita. O LLM resolve a ambiguidade por si — e não diz qual critério escolheu.</p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">25</span></div>
-  <aside class="notes">Diferente da armadilha 5: aqui não falta contexto de negócio escondido numa coluna, falta desambiguar a própria pergunta. A caneta ganha em nº de linhas, o portátil em receita. Nenhuma resposta está "errada" — está errada a confiança com que o LLM serve uma só.</aside>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">24</span></div>
+  <aside class="notes">Aqui não falta contexto de negócio escondido numa coluna — falta desambiguar a própria pergunta. A caneta ganha em nº de linhas, o portátil em receita. Nenhuma resposta está "errada"; errada é a confiança com que o LLM serve uma só.</aside>
 </section>
 
-<!-- ARMADILHA 5 · DEFINIÇÃO DE NEGÓCIO "ativo" (SaaS) -->
+<!-- DEFINIÇÃO DE NEGÓCIO "ativo" (SaaS) -->
 <section class="content-slide">
-  <span class="label-tag">As 11 armadilhas · 5/11 · definição de negócio</span>
+  <span class="label-tag">O SQL que mente · definição de negócio</span>
   <h2>"Mostra-me os utilizadores ativos"</h2>
   <div class="separator"></div>
   <div class="stage">
@@ -754,75 +728,13 @@ WHERE inicio &gt; NOW() - INTERVAL '30 days';</pre>
     </div>
     <p class="why"><b>Pitfall: definição de negócio.</b> <span class="mono">estado='ativo'</span> significa "conta não suspensa", não "utilizador a usar". O LLM apanha a palavra, não o conceito. 2,9× de diferença.</p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">26</span></div>
-  <aside class="notes">A armadilha mais traiçoeira porque a coluna existe e o nome bate certo. "Ativo" é um termo de negócio com definição própria — utilizador ativo mensal — que vive na cabeça da equipa, não no schema. O LLM não tem acesso a essa convenção. Aqui é onde uma camada semântica / métricas definidas faz toda a diferença.</aside>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">25</span></div>
+  <aside class="notes">A armadilha mais traiçoeira: a coluna existe e o nome bate certo. "Ativo" é um termo de negócio com definição própria — utilizador ativo mensal — que vive na convenção da equipa, não no schema. É onde uma camada semântica faz toda a diferença.</aside>
 </section>
 
-<!-- ARMADILHA 6 · FAN-OUT DO JOIN (saúde) -->
+<!-- UNIDADES / LIMIAR (saúde) -->
 <section class="content-slide">
-  <span class="label-tag">As 11 armadilhas · 6/11 · fan-out do join</span>
-  <h2>"Valor faturado por médico"</h2>
-  <div class="separator"></div>
-  <div class="stage">
-    <div class="qbar"><span class="ico">NL →</span> Qual o valor total faturado por médico?</div>
-    <div class="sql-grid">
-      <div class="sql-card wrong">
-        <span class="tag">⟶ o que o LLM gera</span>
-        <pre>SELECT m.nome, SUM(c.valor)
-FROM consultas c
-JOIN atos a ON a.consulta_id = c.id
-JOIN medicos m ON m.id = c.medico_id
-GROUP BY m.nome;</pre>
-        <p class="res">→ valor <b>inflado</b> <span style="color:var(--cel-slate)">(+210%)</span></p>
-      </div>
-      <div class="sql-card right">
-        <span class="tag">⟶ o que estava certo</span>
-        <pre>-- somar c.valor UMA vez por consulta.
--- O join a `atos` repete a linha da
--- consulta por cada ato → c.valor
--- entra 3× numa consulta com 3 atos.</pre>
-        <p class="res">→ valor <b>real</b></p>
-      </div>
-    </div>
-    <p class="why"><b>Pitfall: fan-out do join.</b> Juntar uma tabela de grão mais fino multiplica as linhas do lado "1". O <span class="mono">SUM</span> conta o mesmo valor várias vezes. O join "parece" certo.</p>
-  </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">27</span></div>
-  <aside class="notes">Primo da armadilha do grão, mas agora introduzido pelo join, não pela tabela base. Regra de ouro: agregar ao grão certo ANTES de juntar, ou somar com SUM(DISTINCT) só quando faz sentido. A faturação por médico fica 3× maior — e o erro escala com o nº médio de atos por consulta, por isso varia por especialidade. Quase impossível de apanhar a olho no resultado.</aside>
-</section>
-
-<!-- ARMADILHA 7 · NULL NO GROUP BY (RH) -->
-<section class="content-slide">
-  <span class="label-tag">As 11 armadilhas · 7/11 · NULL no GROUP BY</span>
-  <h2>"Salário médio por departamento"</h2>
-  <div class="separator"></div>
-  <div class="stage">
-    <div class="qbar"><span class="ico">NL →</span> Qual o salário médio por departamento?</div>
-    <div class="sql-grid">
-      <div class="sql-card wrong">
-        <span class="tag">⟶ o que o LLM gera</span>
-        <pre>SELECT departamento, AVG(salario)
-FROM colaboradores
-GROUP BY departamento;</pre>
-        <p class="res">→ tabela <b>"completa"</b> <span style="color:var(--cel-slate)">(7 linhas)</span></p>
-      </div>
-      <div class="sql-card right">
-        <span class="tag">⟶ o que o número esconde</span>
-        <pre>-- 47 colaboradores com
--- departamento = NULL formam um
--- grupo "fantasma" fácil de saltar.
--- E part-time entra sem normalizar.</pre>
-        <p class="res">→ a média global <b>não bate</b></p>
-      </div>
-    </div>
-    <p class="why"><b>Pitfall: NULL no GROUP BY.</b> Linhas com a chave de agrupamento a NULL juntam-se num grupo só, discreto e fácil de ignorar. O total parcial não reconcilia com o total geral.</p>
-  </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">28</span></div>
-  <aside class="notes">Dois problemas num: o grupo NULL silencioso e a falta de normalização (part-time/estágios a entrar na média sem ajuste de FTE). O teste rápido: a soma das partes bate com o todo? Se não, há um grupo a fugir — quase sempre NULL. O LLM nunca pergunta "e quem não tem departamento?".</aside>
-</section>
-
-<!-- ARMADILHA 8 · UNIDADES / LIMIAR (saúde) -->
-<section class="content-slide">
-  <span class="label-tag">As 11 armadilhas · 8/11 · unidades e limiar</span>
+  <span class="label-tag">O SQL que mente · unidades e limiar</span>
   <h2>"Doentes com glicemia alta"</h2>
   <div class="separator"></div>
   <div class="stage">
@@ -846,13 +758,13 @@ WHERE glicemia &gt; 126;</pre>
     </div>
     <p class="why"><b>Pitfall: unidades e limiar.</b> O 126 é um número de manual aplicado sem saber a unidade nem a condição da colheita. Mistura mmol/L com mg/dL e ainda assume jejum. Plausível, preciso e errado.</p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">29</span></div>
-  <aside class="notes">O LLM sabe que 126 mg/dL é o limiar de diabetes em jejum — e despeja-o. Não sabe que esta coluna mistura unidades, nem que metade das colheitas é ocasional. Em saúde isto é perigoso; em qualquer domínio com unidades (€ vs cêntimos, kg vs g) é o mesmo erro. O limiar tem de vir do negócio, não do treino do modelo.</aside>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">26</span></div>
+  <aside class="notes">O LLM sabe que 126 mg/dL é o limiar de diabetes em jejum — e despeja-o. Não sabe que esta coluna mistura unidades, nem que metade das colheitas é ocasional. Em qualquer domínio com unidades (€ vs cêntimos, kg vs g) é o mesmo erro. O limiar tem de vir do negócio, não do treino do modelo.</aside>
 </section>
 
-<!-- ARMADILHA 9 · SOFT DELETE (vendas) -->
+<!-- SOFT DELETE (vendas) -->
 <section class="content-slide">
-  <span class="label-tag">As 11 armadilhas · 9/11 · soft delete</span>
+  <span class="label-tag">O SQL que mente · soft delete</span>
   <h2>"Quantas encomendas este mês?"</h2>
   <div class="separator"></div>
   <div class="stage">
@@ -876,43 +788,13 @@ WHERE data &gt;= date_trunc('month', now())
     </div>
     <p class="why"><b>Pitfall: soft delete.</b> As encomendas canceladas não são apagadas — ficam com uma flag. Sem o filtro <span class="mono">cancelada = false</span>, contam como reais. 17% a mais.</p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">30</span></div>
-  <aside class="notes">Soft delete é a regra em sistemas modernos: nada se apaga de verdade, marca-se. O LLM não sabe que existe uma coluna `cancelada` (ou `deleted_at`) a não ser que o schema lho diga — e mesmo com o schema, raramente a aplica sozinho. Toda a métrica deste tipo de tabela precisa do filtro. É a convenção mais esquecida.</aside>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">27</span></div>
+  <aside class="notes">Soft delete é a regra em sistemas modernos: nada se apaga, marca-se. O LLM não sabe que existe uma coluna `cancelada` (ou `deleted_at`) a não ser que o schema lho diga — e mesmo com o schema, raramente a aplica sozinho. Toda a métrica deste tipo de tabela precisa do filtro. É a convenção mais esquecida.</aside>
 </section>
 
-<!-- ARMADILHA 10 · SEMÂNTICA DE DATAS (logística) -->
+<!-- EMPATES NO TOP-N (RH) -->
 <section class="content-slide">
-  <span class="label-tag">As 11 armadilhas · 10/11 · semântica de datas</span>
-  <h2>"Entregas em 2025"</h2>
-  <div class="separator"></div>
-  <div class="stage">
-    <div class="qbar"><span class="ico">NL →</span> Quantas entregas houve em 2025?</div>
-    <div class="sql-grid">
-      <div class="sql-card wrong">
-        <span class="tag">⟶ o LLM escolhe uma data qualquer</span>
-        <pre>SELECT COUNT(*)
-FROM entregas
-WHERE YEAR(data_envio) = 2025;</pre>
-        <p class="res">→ <b>22 410</b> <span style="color:var(--cel-slate)">(por envio)</span></p>
-      </div>
-      <div class="sql-card right">
-        <span class="tag">⟶ qual data conta?</span>
-        <pre>-- "entrega em 2025" = entregue em 2025.
-WHERE YEAR(data_entrega) = 2025
--- uma expedida 30/dez/24, entregue
--- 02/jan/25 muda de ano consoante a coluna.</pre>
-        <p class="res">→ <b>21 730</b> <span style="color:var(--cel-slate)">(por entrega)</span></p>
-      </div>
-    </div>
-    <p class="why"><b>Pitfall: semântica de datas.</b> A mesma linha tem várias datas — envio, entrega, criação. O LLM agarra a primeira que parece encaixar. Fuso horário e cortes à meia-noite agravam.</p>
-  </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">31</span></div>
-  <aside class="notes">Qualquer evento tem múltiplos carimbos temporais e a pergunta raramente diz qual. "Vendas de dezembro" — por data de encomenda, de faturação, de pagamento? Some-se o fuso horário: um evento às 23h de Lisboa pode cair no dia seguinte em UTC. A diferença aqui é pequena no agregado, mas em relatórios de fecho de período é material.</aside>
-</section>
-
-<!-- ARMADILHA 11 · EMPATES NO TOP-N (RH) -->
-<section class="content-slide">
-  <span class="label-tag">As 11 armadilhas · 11/11 · empates no top-N</span>
+  <span class="label-tag">O SQL que mente · empates no top-N</span>
   <h2>"Os 3 melhores vendedores do trimestre"</h2>
   <div class="separator"></div>
   <div class="stage">
@@ -937,54 +819,54 @@ SELECT *, DENSE_RANK() OVER (
         <p class="res">→ <b>4 vendedores</b> (empate incluído)</p>
       </div>
     </div>
-    <p class="why"><b>Pitfall: empates no top-N.</b> <span class="mono">LIMIT</span> não tem critério de desempate — devolve uma ordem arbitrária entre iguais. Hoje exclui o João, amanhã a Rita. Não-determinístico e injusto.</p>
+    <p class="why"><b>Pitfall: empates no top-N.</b> <span class="mono">LIMIT</span> não tem critério de desempate — devolve uma ordem arbitrária entre iguais. Hoje exclui um, amanhã outro. Não-determinístico e injusto.</p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">32</span></div>
-  <aside class="notes">Em RH isto é um problema de equidade: dois vendedores com o mesmo número, um fica de fora do bónus por acaso da ordenação. RANK/DENSE_RANK tornam a regra explícita e estável. O LLM gera o LIMIT porque é o padrão — não pensa em empates porque os dados de exemplo raramente os têm. É preciso pensar nos casos-limite, e isso é trabalho humano.</aside>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">28</span></div>
+  <aside class="notes">Em RH é um problema de equidade: dois vendedores com o mesmo número, um fica de fora do bónus por acaso da ordenação. RANK/DENSE_RANK tornam a regra explícita e estável. O LLM gera o LIMIT porque é o padrão — não pensa em empates porque os dados de exemplo raramente os têm. Pensar nos casos-limite é trabalho humano.</aside>
 </section>
 
 <!-- SÍNTESE DAS ARMADILHAS -->
 <section class="content-slide">
-  <span class="label-tag">As 11 armadilhas · síntese</span>
-  <h2>Porque é que isto é pior do que um bug</h2>
+  <span class="label-tag">O SQL que mente · síntese</span>
+  <h2>Porque é que isto é pior do que um erro de execução</h2>
   <div class="separator"></div>
   <div class="stage">
     <div class="points">
-      <div class="point"><span class="m"></span><p>Todas as onze são <b>sintaticamente perfeitas</b> e <b>correm sem erro</b>.</p></div>
-      <div class="point"><span class="m"></span><p>O erro é <b>semântico e silencioso</b> — um número plausível, não um crash.</p></div>
+      <div class="point"><span class="m"></span><p>São todos <b>sintaticamente perfeitos</b> e <b>correm sem erro</b>.</p></div>
+      <div class="point"><span class="m"></span><p>O erro é <b>semântico e silencioso</b> — um número plausível, não uma falha visível.</p></div>
       <div class="point"><span class="m"></span><p>Propaga-se a jusante durante semanas: <b>corrupção silenciosa de dados</b>.</p></div>
     </div>
     <div class="panel-dark" style="margin-top:8px;">
-      <p class="big">O SQL corre. Ninguém vê. O número entra no relatório, no dashboard, na decisão.</p>
-      <p class="tags">o copiloto acelera quem sabe ler SQL · é armadilha para quem o usa para não aprender</p>
+      <p class="big">A consulta corre. Ninguém repara. O número entra no relatório, no dashboard, na decisão.</p>
+      <p class="tags">o copiloto acelera quem sabe ler SQL · não substitui essa competência</p>
     </div>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">33</span></div>
-  <aside class="notes">Um bug rebenta e alguém investiga. Isto não rebenta — instala-se. As onze armadilhas partilham a mesma assinatura: SQL bonito, resultado credível, erro invisível. A defesa não é deixar de usar o copiloto; é saber ler o que ele produz. Liga à Aula 1: escrever → orientar → validar. A validação é onde mora o valor agora.</aside>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">29</span></div>
+  <aside class="notes">Uma falha de execução rebenta e alguém investiga. Isto não rebenta — instala-se. Os exemplos partilham a mesma assinatura: SQL bonito, resultado credível, erro invisível. A defesa não é deixar de usar o copiloto; é saber ler o que ele produz.</aside>
 </section>
 
-<!-- BRIDGE · ONDE ACELERA MESMO -->
+<!-- BRIDGE · ONDE ACELERA MESMO (visual) -->
 <section class="content-slide">
-  <span class="label-tag">Porta A · o copiloto que vale a pena</span>
-  <h2>Onde a GenAI acelera mesmo o engenheiro de dados</h2>
+  <span class="label-tag">A GenAI ao serviço do engenheiro de dados</span>
+  <h2>Onde a GenAI acelera de facto</h2>
   <div class="separator"></div>
   <div class="stage">
-    <div class="points two">
-      <div class="point"><span class="m"></span><p><b>Schema linking</b><span class="sub">mapear a pergunta às tabelas certas — o passo crítico do NL2SQL</span></p></div>
-      <div class="point"><span class="m"></span><p><b>Geração de ETL / dbt</b><span class="sub">modelos, testes e descrições a partir de uma frase</span></p></div>
-      <div class="point"><span class="m"></span><p><b>Migração de dialetos</b><span class="sub">Oracle → BigQuery, legacy → moderno (tarefa bem definida)</span></p></div>
-      <div class="point"><span class="m"></span><p><b>Catalogação e metadados</b><span class="sub">auto-descrição de tabelas, colunas e PII</span></p></div>
-      <div class="point"><span class="m"></span><p><b>Qualidade de dados semântica</b><span class="sub">erros contextuais de uma linha, para além das regras</span></p></div>
-      <div class="point"><span class="m"></span><p><b>Lineage automático</b><span class="sub">lê SQL/dbt/DAGs e constrói o grafo de linhagem</span></p></div>
+    <div class="tiles-grid five">
+      <div class="tcard"><i class="fa-solid fa-diagram-project"></i><h4>Schema linking</h4><p>Ligar a pergunta às tabelas certas — o passo crítico do NL2SQL.</p></div>
+      <div class="tcard"><i class="fa-solid fa-cubes"></i><h4>Geração de transformações</h4><p>Modelos SQL, testes e descrições a partir de uma descrição.</p></div>
+      <div class="tcard"><i class="fa-solid fa-right-left"></i><h4>Migração de dialetos</h4><p>Oracle → BigQuery, legacy → moderno. Tarefa bem definida.</p></div>
+      <div class="tcard"><i class="fa-solid fa-table-list"></i><h4>Catalogação</h4><p>Descrição de tabelas, colunas e candidatos a PII.</p></div>
+      <div class="tcard"><i class="fa-solid fa-magnifying-glass-chart"></i><h4>Qualidade semântica</h4><p>Erros contextuais de uma linha, para além das regras.</p></div>
     </div>
+    <p class="lead" style="margin:22px auto 0; text-align:center; max-width:86%;">Cinco tarefas bem definidas, com entrada e saída claras, e com revisão humana no fim. É aqui que o copiloto rende.</p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">34</span></div>
-  <aside class="notes">Saímos do modo cético. Estas seis tarefas são onde o copiloto rende de verdade — porque são tarefas bem definidas, com entrada e saída claras, e onde o humano valida no fim. Vou abrir cada uma. O fio condutor: o LLM faz o primeiro rascunho; o engenheiro orienta e valida.</aside>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">30</span></div>
+  <aside class="notes">Saímos do modo cético. Estas cinco tarefas são onde o copiloto rende de verdade — bem definidas, entrada e saída claras, validação humana no fim. O fio condutor: o LLM faz o primeiro rascunho; o engenheiro orienta e valida. Abrimos cada uma.</aside>
 </section>
 
 <!-- SCHEMA LINKING (SVG) -->
 <section class="content-slide">
-  <span class="label-tag">Porta A · porque o NL2SQL falha</span>
+  <span class="label-tag">A GenAI ao serviço do engenheiro · porque o NL2SQL falha</span>
   <h2>O passo crítico: ligar a pergunta ao schema</h2>
   <div class="separator"></div>
   <div class="stage">
@@ -992,11 +874,9 @@ SELECT *, DENSE_RANK() OVER (
       <svg viewBox="0 0 1000 380" role="img" aria-label="Schema linking: a pergunta ligada às tabelas e colunas certas">
         <rect x="8" y="8" width="984" height="364" rx="10" fill="none" stroke="#B8B59D" stroke-opacity="0.5"/>
         <text x="28" y="40" class="svg-label muted">schema linking — onde o NL2SQL vive ou morre</text>
-        <!-- pergunta -->
         <rect x="40" y="150" width="300" height="86" rx="6" fill="#2F4E5E"/>
         <text x="190" y="190" text-anchor="middle" style="fill:#fff; font-family:var(--mono); font-size:21px;">« utilizadores</text>
         <text x="190" y="216" text-anchor="middle" style="fill:#fff; font-family:var(--mono); font-size:21px;">ativos »</text>
-        <!-- candidatos -->
         <rect x="650" y="56"  width="300" height="72" rx="6" fill="#fff" stroke="#74808D" stroke-width="2"/>
         <text x="670" y="86"  class="svg-mono">utilizadores.estado</text>
         <text x="670" y="112" class="svg-label muted">= 'ativo' → conta não suspensa</text>
@@ -1006,91 +886,85 @@ SELECT *, DENSE_RANK() OVER (
         <rect x="650" y="252" width="300" height="72" rx="6" fill="#fff" stroke="#B8B59D" stroke-width="2"/>
         <text x="670" y="282" class="svg-mono">subscricoes.estado</text>
         <text x="670" y="308" class="svg-label muted">paga e não cancelada</text>
-        <!-- setas -->
         <defs>
           <marker id="ah-sl-slate" markerWidth="11" markerHeight="11" refX="8" refY="3.5" orient="auto"><path d="M0,0 L8,3.5 L0,7 Z" fill="#74808D"/></marker>
           <marker id="ah-sl-olive" markerWidth="11" markerHeight="11" refX="8" refY="3.5" orient="auto"><path d="M0,0 L8,3.5 L0,7 Z" fill="#6D6D3E"/></marker>
         </defs>
         <line x1="340" y1="178" x2="648" y2="92"  stroke="#74808D" stroke-width="2" stroke-dasharray="3 6" marker-end="url(#ah-sl-slate)"/>
-        <text x="470" y="120" class="svg-label muted">escolha ingénua do LLM</text>
+        <text x="455" y="118" class="svg-label muted">escolha ingénua</text>
         <line x1="340" y1="193" x2="648" y2="190" stroke="#6D6D3E" stroke-width="3" marker-end="url(#ah-sl-olive)"/>
-        <text x="470" y="178" class="svg-label" style="fill:#6D6D3E;">definição real de negócio</text>
+        <text x="455" y="176" class="svg-label" style="fill:#6D6D3E;">definição de negócio</text>
         <line x1="340" y1="208" x2="648" y2="288" stroke="#B8B59D" stroke-width="2" stroke-dasharray="3 6"/>
       </svg>
     </div>
-    <p class="lead" style="margin:0 auto; text-align:center; max-width:86%;">O SQL é a parte fácil. O difícil é decidir <strong>que tabelas e colunas</strong> a pergunta quer dizer. É aqui que o NL2SQL erra — e onde tu, que conheces o modelo, és insubstituível.</p>
+    <p class="lead" style="margin:0 auto; text-align:center; max-width:86%;">O SQL é a parte fácil. O difícil é decidir <strong>que tabelas e colunas</strong> a pergunta quer dizer. É aqui que o NL2SQL erra — e onde quem conhece o modelo de dados é insubstituível.</p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">35</span></div>
-  <aside class="notes">A literatura (NL2SQL, VLDB 2025) é clara: a gramática SQL os modelos já dominam; o gargalo é o schema linking — ligar termos da pergunta às entidades certas do schema. Numa BD com 300 tabelas e nomes ambíguos, é onde tudo descarrila. Dar ao modelo um bom dicionário de dados, uma camada semântica e exemplos melhora muito mais do que trocar de modelo. O conhecimento do domínio é a tua vantagem.</aside>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">31</span></div>
+  <aside class="notes">A literatura (NL2SQL, VLDB 2025) é clara: a gramática SQL os modelos já dominam; o gargalo é o schema linking — ligar termos da pergunta às entidades certas. Numa BD com 300 tabelas e nomes ambíguos é onde tudo descarrila. Dar ao modelo um bom dicionário de dados, uma camada semântica e exemplos rende mais do que trocar de modelo. O conhecimento do domínio é a vantagem da equipa.</aside>
 </section>
 
-<!-- GERAÇÃO ETL / dbt (capacidade) -->
+<!-- GERAÇÃO DE TRANSFORMAÇÕES / dbt (PENDENTE DE DECISÃO) -->
 <section class="content-slide">
-  <span class="label-tag">Porta A · geração de ETL / dbt</span>
-  <h2>De uma frase a um modelo, com testes e docs</h2>
+  <span class="label-tag">A GenAI ao serviço do engenheiro · geração de transformações</span>
+  <h2>De uma descrição a um modelo, com testes e documentação</h2>
   <div class="separator"></div>
   <div class="stage">
     <div class="etl">
-      <div class="doc">"Modelo dbt de<br>receita diária por<br>região, com testes."</div>
+      <div class="doc">"Modelo de receita<br>diária por região,<br>com testes."</div>
       <span class="ar">→</span>
-      <div class="llm">LLM<span class="sch">+ schema do projeto dbt</span></div>
+      <div class="llm">LLM<span class="sch">+ schema do projeto</span></div>
       <span class="ar">→</span>
-      <div class="out">models/receita_diaria.sql<br>+ schema.yml <span class="ok">(testes)</span><br>+ descrição auto<br>+ DAG de dependências</div>
+      <div class="out">receita_diaria.sql<br>+ testes (unicidade, não-nulo)<br>+ descrição<br>+ dependências</div>
     </div>
     <div class="callout" style="max-width:84%; margin:0 auto;">
-      <span class="k">O que ganhas e o que falta</span>
-      <p>O esqueleto sai em segundos: SQL, <span class="mono">ref()</span>, testes, documentação. Mas o esqueleto não é o contrato — <strong>os testes que importam são os que o LLM não sabe que precisas</strong>.</p>
+      <span class="k">O que se ganha e o que falta</span>
+      <p>O esqueleto sai em segundos: SQL, testes genéricos, documentação. Mas o esqueleto não é o contrato — <strong>os testes que importam são os que o LLM não sabe que são precisos</strong>.</p>
     </div>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">36</span></div>
-  <aside class="notes">dbt + LLM é uma combinação muito produtiva: scaffolding de modelos, geração de testes genéricos (unique, not_null), descrições para a documentação. Poupa o trabalho aborrecido. Mas — e o próximo slide mostra-o — o modelo gerado costuma ter os testes errados ou a granularidade errada. A geração acelera; a revisão continua a ser tua.</aside>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">32</span></div>
+  <aside class="notes">[PENDENTE DE DECISÃO — depende de explicar dbt à turma.] Ferramentas como o dbt definem cada tabela analítica como um "modelo" SQL versionado, com testes e documentação. O LLM gera esse esqueleto a partir de uma descrição. Poupa o trabalho aborrecido, mas o modelo gerado costuma ter testes a menos ou granularidade errada — o slide seguinte mostra-o.</aside>
 </section>
 
-<!-- dbt ERRADO-vs-CERTO -->
+<!-- dbt ERRADO-vs-CERTO (PENDENTE DE DECISÃO) -->
 <section class="content-slide">
-  <span class="label-tag">Porta A · criticar um modelo dbt gerado</span>
+  <span class="label-tag">A GenAI ao serviço do engenheiro · rever o modelo gerado</span>
   <h2>O modelo "compila" — e está errado</h2>
   <div class="separator"></div>
   <div class="stage">
-    <div class="qbar"><span class="ico">dbt →</span> receita_diaria.sql, gerado pelo copiloto</div>
+    <div class="qbar"><span class="ico">gerado →</span> receita_diaria.sql, produzido pelo copiloto</div>
     <div class="sql-grid">
       <div class="sql-card wrong">
         <span class="tag">⟶ o que o LLM gera</span>
-        <pre>-- models/receita_diaria.sql
-SELECT
+        <pre>SELECT
   e.data::date AS dia,
   SUM(l.valor) AS receita
-FROM {{ ref('encomendas') }} e
-JOIN {{ ref('linhas') }} l
+FROM encomendas e
+JOIN linhas l
   ON l.enc_id = e.id
 GROUP BY 1
--- (sem schema.yml, sem testes)</pre>
+-- (sem testes)</pre>
         <p class="res">compila ✓ · receita <b>inflada</b></p>
       </div>
       <div class="sql-card right">
         <span class="tag">⟶ a revisão de engenharia</span>
-        <pre>{{ config(materialized='incremental') }}
--- agregar linhas ANTES do join
--- (senão fan-out duplica receita)
-
--- schema.yml:
-columns:
-  - name: dia
-    tests: [unique, not_null]
-  - name: receita
-    tests: [not_null]</pre>
+        <pre>-- agregar linhas ANTES do join
+-- (senão o fan-out duplica a receita)
+-- + testes:
+--   dia    → único, não-nulo
+--   receita → não-nulo
+-- + materialização incremental</pre>
         <p class="res">testado ✓ · grão <b>correto</b></p>
       </div>
     </div>
-    <p class="why"><b>O LLM gera o esqueleto, não o contrato.</b> Faltam testes, falta o <span class="mono">incremental</span>, e o join repete a armadilha do fan-out. "Compila" não é "está certo".</p>
+    <p class="why"><b>O LLM gera o esqueleto, não o contrato.</b> Faltam os testes, e o join repete a armadilha do fan-out. "Compila" não é "está certo".</p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">37</span></div>
-  <aside class="notes">Repare como a armadilha 6 (fan-out) reaparece dentro de um modelo dbt — o copiloto não aprendeu a lição entre slides. A revisão acrescenta as três coisas que fazem um modelo de produção: o teste de unicidade no grão (dia), o not_null, e a materialização incremental para não reprocessar tudo. Isto é exatamente o code review que vale mais, não menos.</aside>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">33</span></div>
+  <aside class="notes">[PENDENTE DE DECISÃO.] A armadilha do fan-out reaparece dentro de um modelo gerado — o copiloto não aprende a lição entre slides. A revisão acrescenta o que faz um modelo de produção: o teste de unicidade no grão, o não-nulo, e a materialização incremental. É exatamente o code review que vale mais, não menos.</aside>
 </section>
 
 <!-- MIGRAÇÃO / TRADUÇÃO DE DIALETOS -->
 <section class="content-slide">
-  <span class="label-tag">Porta A · migração de dialetos SQL</span>
+  <span class="label-tag">A GenAI ao serviço do engenheiro · migração de dialetos</span>
   <h2>Traduzir Oracle → BigQuery não é trocar funções</h2>
   <div class="separator"></div>
   <div class="stage">
@@ -1103,7 +977,7 @@ SELECT nome, IFNULL(bonus,0) AS b
 FROM emp
 QUALIFY ROW_NUMBER() OVER () &lt;= 10
 ORDER BY b DESC;</pre>
-        <p class="res">→ <b>10 nomes ao acaso</b> <span style="color:var(--cel-slate)">(corre!)</span></p>
+        <p class="res">→ <b>10 nomes ao acaso</b> <span style="color:var(--cel-slate)">(corre)</span></p>
       </div>
       <div class="sql-card right">
         <span class="tag">⟶ tradução fiel à semântica</span>
@@ -1115,15 +989,15 @@ LIMIT 10;</pre>
         <p class="res">→ <b>os 10 maiores bónus</b></p>
       </div>
     </div>
-    <p class="why"><b>Em Oracle, <span class="mono">ROWNUM</span> filtra ANTES do <span class="mono">ORDER BY</span>.</b> Daí o <span class="mono">SELECT … FROM (subquery ordenada)</span>. O LLM traduz <span class="mono">IFNULL</span> bem, mas mantém a ordem das operações errada. Dialeto é semântica, não vocabulário.</p>
+    <p class="why"><b>Em Oracle, <span class="mono">ROWNUM</span> filtra ANTES do <span class="mono">ORDER BY</span>.</b> O LLM traduz <span class="mono">IFNULL</span> bem, mas mantém a ordem das operações errada. Outras caudas: <span class="mono">NULL</span> em ordenações, datas e fusos, <span class="mono">NUMBER</span> vs <span class="mono">FLOAT</span>. Dialeto é semântica, não vocabulário.</p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">38</span></div>
-  <aside class="notes">A migração é uma das melhores aplicações do copiloto — tarefa fechada, alto volume, padrões repetitivos. Mas tem caudas longas: a ordem de avaliação de ROWNUM, o tratamento de NULL em ordenações, datas e fusos, NUMBER vs FLOAT, sintaxe de janelas. O LLM acerta o caso comum e falha o canto. Por isso a migração assistida precisa de testes de equivalência: correr ambas e comparar resultados, não confiar na tradução.</aside>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">34</span></div>
+  <aside class="notes">A migração é uma das melhores aplicações do copiloto — tarefa fechada, alto volume, padrões repetitivos. Mas tem caudas longas: a ordem de avaliação de ROWNUM, NULL em ordenações, datas e fusos, NUMBER vs FLOAT, sintaxe de janelas. O LLM acerta o caso comum e falha o canto. Por isso a migração assistida precisa de testes de equivalência: correr ambas e comparar resultados.</aside>
 </section>
 
 <!-- CATALOGAÇÃO E METADADOS -->
 <section class="content-slide">
-  <span class="label-tag">Porta A · catalogação e metadados</span>
+  <span class="label-tag">A GenAI ao serviço do engenheiro · catalogação</span>
   <h2>Documentar o data warehouse que ninguém documentou</h2>
   <div class="separator"></div>
   <div class="stage">
@@ -1132,120 +1006,88 @@ LIMIT 10;</pre>
       <span class="ar">→</span>
       <div class="llm">LLM<span class="sch">+ nomes vizinhos + dados</span></div>
       <span class="ar">→</span>
-      <div class="out">descrição da tabela<br>descrição por coluna<br><span class="ok">flag PII</span> (cli_id)<br>termos de glossário</div>
+      <div class="out">descrição da tabela<br>descrição por coluna<br><span class="ok">candidato a PII</span> (cli_id)<br>termos de glossário</div>
     </div>
     <div class="tiles-grid three" style="margin-top:6px;">
-      <div class="tcard"><i class="fa-solid fa-table-list"></i><h4>Descrições</h4><p>Tabela e colunas auto-descritas a partir do schema e de exemplos.</p></div>
+      <div class="tcard"><i class="fa-solid fa-table-list"></i><h4>Descrições</h4><p>Tabela e colunas descritas a partir do schema e de exemplos.</p></div>
       <div class="tcard"><i class="fa-solid fa-user-shield"></i><h4>Deteção de PII</h4><p>Sinaliza candidatos a dados pessoais para classificação.</p></div>
       <div class="tcard"><i class="fa-solid fa-book"></i><h4>Glossário</h4><p>Liga colunas a termos de negócio — primeiro rascunho do dicionário.</p></div>
     </div>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">39</span></div>
-  <aside class="notes">O catálogo de dados é o trabalho que toda a gente adia. O LLM lê os nomes das colunas, umas linhas de amostra e os nomes vizinhos, e produz um primeiro rascunho de documentação — incluindo candidatos a PII. Cuidado: as descrições são plausíveis mas o LLM pode inventar a semântica de negócio (o que `val` significa exatamente). Serve para arrancar, não para publicar sem revisão. E note a ligação à armadilha 5: o glossário é precisamente onde se fixa o que "ativo" quer dizer.</aside>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">35</span></div>
+  <aside class="notes">O catálogo de dados é o trabalho que toda a gente adia. O LLM lê os nomes das colunas, umas linhas de amostra e os nomes vizinhos, e produz um primeiro rascunho de documentação — incluindo candidatos a PII. As descrições são plausíveis, mas o LLM pode inventar a semântica de negócio (o que `val` significa exatamente): serve para arrancar, não para publicar sem revisão. É também onde se fixa o que "ativo" quer dizer.</aside>
 </section>
 
 <!-- QUALIDADE DE DADOS SEMÂNTICA -->
 <section class="content-slide">
-  <span class="label-tag">Porta A · qualidade de dados semântica</span>
+  <span class="label-tag">A GenAI ao serviço do engenheiro · qualidade semântica</span>
   <h2>O erro que passa em todas as regras</h2>
   <div class="separator"></div>
   <div class="stage">
-    <div class="attn" style="gap:14px;">
+    <div class="attn" style="gap:10px;">
       <div class="phrase">doente: <b>0 anos</b> · diagnóstico: <b>menopausa</b> · medicação: <b>terapêutica hormonal</b></div>
+      <div class="phrase">admissão: <b>2026-05-10</b> · alta: <b>2026-05-03</b> <span style="color:var(--cel-slate)">(alta antes da admissão)</span></div>
     </div>
     <div class="contrast">
       <div class="c">
         <h3>Validação por regras</h3>
-        <p><span class="mono">idade ≥ 0</span> ✓ &nbsp; <span class="mono">não-nulo</span> ✓ &nbsp; <span class="mono">domínio válido</span> ✓</p>
-        <p style="margin-top:14px; color:var(--cel-slate); font-size:18pt;">cada campo passa isolado. A linha é aceite.</p>
+        <p><span class="mono">idade ≥ 0</span> ✓ &nbsp; <span class="mono">não-nulo</span> ✓ &nbsp; <span class="mono">datas válidas</span> ✓</p>
+        <p style="margin-top:14px; color:var(--cel-slate); font-size:18pt;">cada campo passa isolado. As linhas são aceites.</p>
       </div>
       <div class="c weight">
         <h3>Deteção com LLM</h3>
-        <p style="margin-bottom:20px;">lê a linha como um todo e apanha a <em>incoerência clínica</em>:</p>
-        <div class="chips"><span>⚑ idade × diagnóstico</span><span>menopausa aos 0 anos</span><span>rever</span></div>
+        <p style="margin-bottom:20px;">lê a linha como um todo e apanha a <em>incoerência</em>:</p>
+        <div class="chips"><span>⚑ menopausa aos 0 anos</span><span>⚑ alta antes da admissão</span><span>rever</span></div>
       </div>
     </div>
     <p class="why"><b>O contexto é a anomalia.</b> Nenhuma regra de coluna apanha isto — só a relação entre campos. O LLM é bom a sinalizar o improvável; o humano confirma.</p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">40</span></div>
-  <aside class="notes">A qualidade de dados clássica é por regras: tipos, intervalos, não-nulos, expressões regulares. Apanha o malformado, não o implausível. Um bebé com menopausa passa em todos os testes de coluna — cada valor é válido por si. O LLM lê a linha como uma frase e estranha a combinação. Não substitui as regras: complementa-as, levantando candidatos a revisão. É deteção de anomalias semântica, com humano no fim — porque o LLM também inventa falsos positivos.</aside>
-</section>
-
-<!-- LINEAGE AUTOMÁTICO (SVG DAG) -->
-<section class="content-slide">
-  <span class="label-tag">Porta A · lineage automático</span>
-  <h2>Ler o código e desenhar o grafo de linhagem</h2>
-  <div class="separator"></div>
-  <div class="stage">
-    <div class="figure" style="max-width:1320px;">
-      <svg viewBox="0 0 1000 340" role="img" aria-label="Lineage: do SQL e dbt para um grafo de dependências">
-        <rect x="8" y="8" width="984" height="324" rx="10" fill="none" stroke="#B8B59D" stroke-opacity="0.5"/>
-        <text x="28" y="40" class="svg-label muted">SQL · dbt · DAGs do Airflow  →  grafo de dependências</text>
-        <defs>
-          <marker id="ah-lin" markerWidth="11" markerHeight="11" refX="8" refY="3.5" orient="auto"><path d="M0,0 L8,3.5 L0,7 Z" fill="#6D6D3E"/></marker>
-        </defs>
-        <!-- fontes -->
-        <rect x="40" y="96"  width="190" height="60" rx="6" fill="#e9e9e3"/><text x="135" y="132" text-anchor="middle" class="svg-mono">raw_encomendas</text>
-        <rect x="40" y="196" width="190" height="60" rx="6" fill="#e9e9e3"/><text x="135" y="232" text-anchor="middle" class="svg-mono">raw_clientes</text>
-        <!-- staging -->
-        <rect x="400" y="96"  width="190" height="60" rx="6" fill="#deded4"/><text x="495" y="132" text-anchor="middle" class="svg-mono">stg_encomendas</text>
-        <rect x="400" y="196" width="190" height="60" rx="6" fill="#deded4"/><text x="495" y="232" text-anchor="middle" class="svg-mono">stg_clientes</text>
-        <!-- marts -->
-        <rect x="760" y="146" width="200" height="62" rx="6" fill="#2F4E5E"/><text x="860" y="183" text-anchor="middle" style="fill:#fff;" class="svg-mono">fct_receita</text>
-        <!-- edges -->
-        <line x1="230" y1="126" x2="398" y2="126" stroke="#6D6D3E" stroke-width="2.5" marker-end="url(#ah-lin)"/>
-        <line x1="230" y1="226" x2="398" y2="226" stroke="#6D6D3E" stroke-width="2.5" marker-end="url(#ah-lin)"/>
-        <line x1="590" y1="126" x2="758" y2="166" stroke="#6D6D3E" stroke-width="2.5" marker-end="url(#ah-lin)"/>
-        <line x1="590" y1="226" x2="758" y2="190" stroke="#6D6D3E" stroke-width="2.5" marker-end="url(#ah-lin)"/>
-        <text x="135" y="86" text-anchor="middle" class="svg-label muted">fontes</text>
-        <text x="495" y="86" text-anchor="middle" class="svg-label muted">staging</text>
-        <text x="860" y="132" text-anchor="middle" class="svg-label muted">mart</text>
-      </svg>
-    </div>
-    <p class="lead" style="margin:0 auto; text-align:center; max-width:86%;">O LLM lê as queries e infere "quem alimenta quem". Responde a <strong>"se eu mudar esta coluna, o que parte a jusante?"</strong> — sem ninguém ter desenhado o mapa.</p>
-  </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">41</span></div>
-  <aside class="notes">Lineage — linhagem — é o grafo de dependências entre tabelas e modelos. Ferramentas como o dbt já o derivam de `ref()`; o valor do LLM é fazê-lo a partir de SQL solto, procedimentos legados e DAGs do Airflow onde não há `ref()`. Responde à pergunta de ouro de impact analysis: mudo esta coluna, o que rebenta? Aviso: o grafo inferido pode falhar SQL dinâmico ou construído por strings — é um rascunho a validar, não a fonte de verdade.</aside>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">36</span></div>
+  <aside class="notes">A qualidade clássica é por regras: tipos, intervalos, não-nulos. Apanha o malformado, não o implausível. Um bebé com menopausa, ou uma alta antes da admissão, passa em todos os testes de coluna — cada valor é válido por si. O LLM lê a linha como uma frase e estranha a combinação. Não substitui as regras: complementa-as, levantando candidatos a revisão (e inventa falsos positivos, por isso humano no fim).</aside>
 </section>
 
 <!-- COPILOTOS DE PLATAFORMA -->
 <section class="content-slide">
-  <span class="label-tag">Porta A · copilotos de plataforma</span>
-  <h2>Já estão dentro das ferramentas que usam</h2>
+  <span class="label-tag">A GenAI ao serviço do engenheiro · nas plataformas</span>
+  <h2>Estes copilotos já vêm nas plataformas de dados</h2>
   <div class="separator"></div>
   <div class="stage">
     <div class="tiles-grid">
       <div class="tcard"><i class="fa-solid fa-bolt"></i><h4>Databricks Genie</h4><p>NL → SQL e pipelines sobre o lakehouse.</p></div>
-      <div class="tcard"><i class="fa-regular fa-snowflake"></i><h4>Snowflake Cortex</h4><p>Cortex Analyst / Code: queries e workflows.</p></div>
+      <div class="tcard"><i class="fa-regular fa-snowflake"></i><h4>Snowflake Cortex</h4><p>Cortex Analyst / Code: consultas e workflows.</p></div>
       <div class="tcard"><i class="fa-brands fa-google"></i><h4>BigQuery + Gemini</h4><p>Assistente de dados e geração de SQL.</p></div>
       <div class="tcard"><i class="fa-solid fa-layer-group"></i><h4>MS Fabric Copilot</h4><p>Pipelines e notebooks assistidos.</p></div>
     </div>
     <div class="callout" style="max-width:86%; margin:0 auto;">
-      <span class="k">A crítica que vale para todos</span>
-      <p>"Nenhum conhece o modelo de dados completo — e pelo menos metade vai escrever, com confiança, SQL que faz <strong>join na coluna errada</strong>." Sem camada semântica, repetem as onze armadilhas dentro da plataforma.</p>
+      <span class="k">A limitação comum a todos</span>
+      <p>Têm acesso ao schema, mas não à camada de negócio: o que é "ativo", que datas contam, onde está o soft delete. Sem essa camada, repetem as mesmas armadilhas dentro da plataforma.</p>
     </div>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">42</span></div>
-  <aside class="notes">Não é preciso adotar nada novo — o copiloto já vem na plataforma que usam. Têm acesso ao schema, o que ajuda no schema linking, mas continuam sem a camada de negócio: o que é "ativo", que datas contam, onde está o soft delete. A citação é do Satyam Sahu (Medium, ver SOURCES). A defesa de fundo é a mesma das onze armadilhas: uma camada semántica / métricas definidas e um humano que sabe ler o resultado.</aside>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">37</span></div>
+  <aside class="notes">Não é preciso adotar nada novo — o copiloto já vem na plataforma que usam. Têm acesso ao schema, o que ajuda no schema linking, mas continuam sem a camada de negócio. A observação é frequente na comunidade de dados (ver SOURCES). A defesa de fundo é a mesma dos exemplos: uma camada semântica e um humano que sabe ler o resultado.</aside>
 </section>
 
-<!-- A LIÇÃO DA PORTA A -->
+<!-- A LIÇÃO DA PORTA A (reescrita) -->
 <section class="content-slide">
-  <span class="label-tag">Porta A · a lição</span>
-  <h2>Escrever → orientar → validar</h2>
+  <span class="label-tag">A GenAI ao serviço do engenheiro · em síntese</span>
+  <h2>O valor mudou de lugar</h2>
   <div class="separator"></div>
   <div class="stage">
-    <div class="chain center-x">
-      <div class="chain-col"><div class="chain-box fill">escrever</div><div class="cap">o que fazíamos</div></div>
-      <span class="arrow"></span>
-      <div class="chain-col"><div class="chain-box fill">orientar</div><div class="cap">o que fazemos hoje</div></div>
-      <span class="arrow"></span>
-      <div class="chain-col"><div class="chain-box fill">validar</div><div class="cap">onde está o valor</div></div>
+    <div class="contrast">
+      <div class="c">
+        <h3>Escrever SQL que corre</h3>
+        <p>Comoditizado: o copiloto fá-lo em segundos, em qualquer dialeto.</p>
+      </div>
+      <div class="c weight">
+        <h3>Ler SQL e apanhar o erro semântico</h3>
+        <p style="margin-bottom:18px;">o grão, o NULL, a definição de negócio — o que o modelo não vê.</p>
+        <div class="chips"><span>conhecimento do domínio</span><span>camada semântica</span><span>revisão</span></div>
+      </div>
     </div>
-    <p class="lead" style="text-align:center; margin:0 auto; max-width:84%;">Em 2026 o <strong>code review vale mais, não menos</strong>. Escrever SQL que corre deixou de impressionar. Ler SQL e apanhar a armadilha semântica — o grão, o NULL, a definição de negócio — é o que distingue.</p>
+    <p class="lead" style="max-width:90%;">O copiloto é real e útil — schema linking, geração, migração, catálogo, qualidade. Mas todas estas tarefas terminam na mesma palavra: <strong>rever</strong>. O code review passou a valer mais, não menos.</p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">43</span></div>
-  <aside class="notes">Fecho da Porta A, espelhando a Aula 1. O copiloto é real e útil — para schema linking, geração de dbt, migração, catálogo, qualidade, lineage. Mas todas estas tarefas terminam na mesma palavra: validar. O engenheiro deixou de ser quem escreve mais SQL e passou a ser quem o lê melhor. Quem usa o copiloto para não ter de aprender a ler SQL está a construir a sua própria armadilha. A seguir, a Porta B — onde o trabalho deixa de ser acelerado e passa a ser novo.</aside>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">38</span></div>
+  <aside class="notes">Fecho da primeira abordagem. O copiloto é útil em tarefas bem definidas, mas todas terminam em revisão. O engenheiro deixou de ser quem escreve mais SQL e passou a ser quem o lê melhor. A seguir, a segunda abordagem — onde o trabalho deixa de ser acelerado e passa a ser novo: a engenharia de dados ao serviço da própria GenAI.</aside>
 </section>
 
       <!-- ============ C1 · PORTA B / ETL ============ -->
@@ -1273,7 +1115,7 @@ LIMIT 10;</pre>
     </div>
     <p class="lead" style="text-align:center; margin:0 auto; max-width:84%;">No ETL clássico, o <strong>T</strong> são regras determinísticas: <span class="mono">regex</span>, <span class="mono">CAST</span>, <span class="mono">JOIN</span>, dicionários. Agora pode ser um modelo que lê <strong>texto livre</strong> e devolve um registo estruturado.</p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">44</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">39</span></div>
   <aside class="notes">O ETL tem três letras; a do meio é a que muda. Transformação era código que nós escrevíamos linha a linha. Aqui o input é prosa que nenhum parser apanha — a nota de triagem de um enfermeiro — e o output é um JSON com schema. Reparem em dois detalhes que já anunciam o resto da secção: "sem alergias conhecidas" tem de virar lista vazia, não a presença de alergias (negação); e "HTA" vira "hipertensão" (normalização de vocabulário). O modelo faz isto bem na maioria das vezes — e é o "maioria das vezes" que nos vai ocupar.</aside>
 </section>
 
@@ -1296,7 +1138,7 @@ LIMIT 10;</pre>
       <div class="tcard"><i class="fa-solid fa-house"></i><h4>Anúncio imobiliário</h4><p>mistura de tipos</p></div>
     </div>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">45</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">40</span></div>
   <aside class="notes">Este é o mapa. Escolhi dez domínios de propósito longe da saúde, porque vocês são informáticos — quero que vejam o padrão, não o tema. Cada um foi escolhido para disparar uma dificuldade diferente: a negação clínica, a inferência no suporte, os números numa cláusula, o OCR sujo, a síntese num CV. E um dos dez — a linha de log — está aqui exatamente para mostrar onde o LLM é a ferramenta errada. Vamos um a um.</aside>
 </section>
 
@@ -1315,7 +1157,7 @@ LIMIT 10;</pre>
     </div>
     <p class="lead" style="text-align:center; margin:0 auto; max-width:86%;">"Urgente" e "crasha" &rarr; severidade <strong>inferida</strong>. Reembolso nunca foi mencionado &rarr; <span class="mono">null</span>, não <span class="mono">false</span> inventado.</p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">46</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">41</span></div>
   <aside class="notes">Aqui há duas coisas a separar. A primeira é boa: o modelo infere severidade que não está escrita como campo — junta "urgente", "crasha", "desde a atualização" e classifica "alta". Isto é exatamente o que um regex nunca faria. A segunda é a armadilha: o cliente não diz nada sobre reembolso. A tentação do modelo é preencher `false`. Mas `false` é uma afirmação — "o cliente não quer reembolso" — e isso é falso; o cliente simplesmente não falou. A diferença entre `false` e `null` é a diferença entre uma resposta e uma alucinação. Voltamos a isto na falha das alucinações.</aside>
 </section>
 
@@ -1348,7 +1190,7 @@ LIMIT 10;</pre>
     </div>
     <p class="why"><b>Pitfall:</b> dois inteiros na mesma frase, ambos plausíveis em ambos os campos. O schema garante o <em>formato</em>, não a <em>semântica</em> — por isso é que validamos contra regras de negócio (pré-aviso &lt; período).</p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">47</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">42</span></div>
   <aside class="notes">Extração numérica a partir de prosa é onde os modelos escorregam de forma mais traiçoeira, porque o resultado parece válido. 60 meses de renovação e 12 dias de pré-aviso é um contrato perfeitamente concebível — só não é este. O schema-constraint não vos salva aqui: ambos são inteiros, ambos cabem nos dois campos. A defesa é validação de domínio: uma regra de negócio que diz "o pré-aviso é tipicamente menor que o período" levanta a flag para revisão humana. Isto é engenharia de dados clássica — constraints — aplicada à saída de um modelo.</aside>
 </section>
 
@@ -1383,7 +1225,7 @@ LIMIT 10;</pre>
     </div>
     <p class="why"><b>Pitfall:</b> a vírgula decimal PT (<span class="mono">23,90</span>) vira <span class="mono">2390</span> se o modelo assumir convenção anglo-saxónica. Localização não é detalhe — é correção.</p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">48</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">43</span></div>
   <aside class="notes">Dois problemas portugueses num só recibo. A vírgula decimal: 23,90 são vinte e três euros e noventa cêntimos, não dois mil trezentos e noventa. Um modelo treinado maioritariamente em inglês trata a vírgula como separador de milhares e multiplica a fatura por cem. E a data: "2026-06-12" já vem em ISO, mas o modelo pode "normalizar" para dd/mm e introduzir ambiguidade onde não havia. A lição: a localização — moeda, decimais, datas — é um requisito de correção, e deve estar explícita no prompt e validada à saída (`total` é um decimal positivo plausível para um recibo de mercearia).</aside>
 </section>
 
@@ -1402,7 +1244,7 @@ LIMIT 10;</pre>
     </div>
     <p class="lead" style="text-align:center; margin:0 auto; max-width:86%;">"Liderou equipa" &rarr; <span class="mono">gestao: true</span> — um campo que <strong>nenhuma palavra</strong> do texto contém. E siglas resolvidas: <span class="mono">EI</span>, <span class="mono">FEUP</span>.</p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">49</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">44</span></div>
   <aside class="notes">Este é o exemplo que mostra a força genuína do LLM. O campo `gestao: true` não corresponde a nenhuma palavra — não existe "gestão" no texto. O modelo lê "liderou equipa de 4" e sintetiza um booleano. Um regex não tem hipótese; precisaríamos de uma lista interminável de padrões ("liderou", "geriu", "coordenou", "foi responsável por..."). E as siglas: "EI" é Engenharia Informática, "FEUP" é a faculdade do Porto — conhecimento de mundo que o modelo traz. Mas atenção: esta mesma capacidade de sintetizar é a porta da alucinação. A fronteira entre "inferir gestão" e "inventar reembolso" é ténue, e é por isso que precisamos de schema e validação.</aside>
 </section>
 
@@ -1421,7 +1263,7 @@ LIMIT 10;</pre>
     </div>
     <p class="lead" style="text-align:center; margin:0 auto; max-width:86%;">Expande <span class="mono">R.</span> &rarr; <span class="mono">Rua</span>, separa andar do número, valida o formato do CP. O <span class="mono">andar</span> é <strong>opcional</strong> — numa morada sem ele, fica <span class="mono">null</span>.</p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">50</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">45</span></div>
   <aside class="notes">Moradas são o exemplo perfeito de campos opcionais. Esta tem andar; a próxima pode não ter. Um schema rígido que exigisse "andar" partia metade dos dados. Por isso o campo é `Optional` e a regra é "null se ausente", não "inventa um 1º andar". O modelo também faz trabalho útil de normalização: abrevia "R." para "Rua", reconhece o formato de código postal português 4000-001. Reparem que isto é parcialmente regex-able — o CP tem um padrão fixo — e por isso uma abordagem híbrida (regex para o CP, LLM para o resto) é muitas vezes a melhor. Liga ao "quando não usar LLM".</aside>
 </section>
 
@@ -1440,7 +1282,7 @@ LIMIT 10;</pre>
     </div>
     <p class="lead" style="text-align:center; margin:0 auto; max-width:84%;">Um rótulo único ("3 estrelas?") deita fora a informação. <strong>Por aspeto</strong>, o produto é elogiado e a logística é o problema — duas equipas diferentes.</p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">51</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">46</span></div>
   <aside class="notes">A análise de sentimento ingénua devolve um número — "negativo", ou três estrelas. Mas esta review não é simplesmente negativa: o cliente adorou o produto e detestou a entrega. Colapsar isso num escalar perde exatamente a informação acionável. A extração por aspeto separa material (positivo), acabamento (negativo) e entrega (negativo) — e de repente a tabela diz à empresa que o problema é a logística, não o produto. Reparem que o modelo até inferiu um aspeto "acabamento" a partir de "risco na lateral", que não está nomeado. Esta estrutura — lista de objetos com aspeto e polaridade — é onde o schema-constraint brilha: força a forma, e o modelo preenche.</aside>
 </section>
 
@@ -1464,7 +1306,7 @@ LIMIT 10;</pre>
     </div>
     <p class="why"><b>Regra:</b> texto <em>semi-estruturado e estável</em> &rarr; código determinístico. O LLM aqui é um martelo a matar uma mosca — e a mosca foge de cada vez de forma diferente.</p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">52</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">47</span></div>
   <aside class="notes">Pus este exemplo no meio dos dez de propósito, para vos tirar do encantamento. Uma linha de log tem formato fixo: timestamp ISO, nível, componente, mensagem, host. Isto é um caso de escola para um regex — uma expressão captura todos os grupos, corre em microssegundos, é determinística e auditável, e custa zero. Meter um LLM aqui é absurdo em três eixos: custo (chamada de API por linha, a milhões de linhas), latência (300ms vs microssegundos) e, o pior, não-determinismo — a mesma linha pode dar saídas ligeiramente diferentes, o que num pipeline de observabilidade é veneno. Guardem esta intuição: o LLM paga-se quando o texto é genuinamente livre. Quando há estrutura, há ferramenta melhor.</aside>
 </section>
 
@@ -1486,7 +1328,7 @@ LIMIT 10;</pre>
       <p><strong>Cabe no contexto?</strong> três páginas cabem; um processo de 200 cabe mas dilui a atenção. E <strong>consistência:</strong> a medicação citada na história tem de bater certo com a da alta — o modelo pode contradizer-se ao longo do documento.</p>
     </div>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">53</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">48</span></div>
   <aside class="notes">Documentos longos trazem problemas que os exemplos curtos não têm. Primeiro, o contexto: estas três páginas cabem, mas um processo clínico de 200 páginas, mesmo cabendo na janela, faz a atenção do modelo diluir — o que está a meio tende a ser pior recuperado (o efeito "lost in the middle"). Segundo, a consistência interna: a medicação mencionada na história clínica tem de coincidir com a lista de medicação à alta, e o modelo pode extrair versões diferentes de secções diferentes. Estratégias de engenharia: dividir o documento por secções e extrair de cada uma, depois reconciliar; ou pedir citações (de que parte do texto veio cada campo) para auditar. Isto liga diretamente ao chunking que vimos nos embeddings.</aside>
 </section>
 
@@ -1505,7 +1347,7 @@ LIMIT 10;</pre>
     </div>
     <p class="lead" style="text-align:center; margin:0 auto; max-width:86%;">Numa frase: enum (<span class="mono">T2</span>), inteiros (<span class="mono">78</span>, <span class="mono">2</span>), booleano (<span class="mono">elevador</span>), preço sem separador (<span class="mono">320000</span>), texto livre (zona).</p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">54</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">49</span></div>
   <aside class="notes">O anúncio imobiliário é o oposto da carta de alta: tudo numa frase, mas com cinco tipos de dados diferentes encavalitados. "T2" é um enum (tipologia portuguesa), "78m²" precisa de descartar a unidade e ficar com o inteiro, "2º andar" extrai o número e separa-o da tipologia, "com elevador" vira um booleano, "320.000€" tem de perder o ponto de milhares e o símbolo, "Cedofeita" é texto livre. Um regex daria imenso trabalho para um formato que varia de anúncio para anúncio. Aqui o LLM justifica-se: variabilidade alta, frase curta, custo controlado. É o contraponto exato do log.</aside>
 </section>
 
@@ -1534,7 +1376,7 @@ LIMIT 10;</pre>
     </div>
     <p class="why"><b>Porquê importa:</b> em saúde, "sem alergias" registado como "tem alergias" é um erro clínico. A negação é semântica, não lexical — e é onde a extração ingénua mais tropeça.</p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">55</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">50</span></div>
   <aside class="notes">A negação é a falha número um porque é silenciosa e perigosa. Uma extração que apanha a palavra "alergias" e ignora o "sem" inverte o significado clínico — regista que o doente tem alergias quando não tem. Modelos modernos lidam bem com negações simples, mas complicam-se com negações de âmbito longo ("nega febre, tosse ou dispneia nas últimas 48h" — quantos campos isso negar?) e com dupla negação. A defesa não é só confiar: é testar explicitamente casos de negação no golden set e, em domínios críticos, validar. Reparem que uso azeitona para o erro, nunca vermelho — é a regra da identidade CeL.</aside>
 </section>
 
@@ -1560,7 +1402,7 @@ LIMIT 10;</pre>
       <p>Qual é a forma canónica? "hipertensão"? O código <span class="mono">ICD-10 I10</span>? O conceito <span class="mono">SNOMED</span>? Esse vocabulário é uma <strong>decisão de governança de dados</strong> — tua, não do modelo.</p>
     </div>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">56</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">51</span></div>
   <aside class="notes">"HTA", "tensão alta", "hipertensão arterial" e "hipertensão" são a mesma coisa para um humano, e o modelo até as colapsa razoavelmente. Mas a pergunta difícil não é se o modelo normaliza — é normalizar para quê. Qual é a forma canónica? Se diferentes pipelines escolherem formas diferentes ("hipertensão" aqui, código I10 ali), os teus dados não se juntam. A normalização de vocabulário é um problema de governança de dados tão antigo quanto os data warehouses — terminologias controladas, ICD, SNOMED, master data. O LLM é uma ferramenta poderosa para mapear texto livre para o teu vocabulário, mas o vocabulário tens de o definir tu. O modelo executa a política; não a decide.</aside>
 </section>
 
@@ -1589,7 +1431,7 @@ LIMIT 10;</pre>
     </div>
     <p class="why"><b>Mitigação:</b> instrução explícita &mdash; <span class="mono">"devolve null se o campo não estiver presente no texto"</span> &mdash; e tipos <span class="mono">Optional</span> no schema. O modelo tende a preencher; tem de ser travado.</p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">57</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">52</span></div>
   <aside class="notes">A alucinação de campos é a sombra da capacidade de inferir. O mesmo modelo que corretamente deduz "gestao: true" do CV vai, se o deixarmos, deduzir "pedido_reembolso: false" de um e-mail que nunca falou em reembolso. A diferença é que no CV há evidência ("liderou equipa") e aqui não há nenhuma. `false` é uma afirmação positiva de ausência de pedido; `null` é honestidade sobre o que o texto não cobre. Para downstream isto é enorme: um relatório que conta "clientes que não querem reembolso" baseado em `false` alucinados é lixo. A mitigação tem duas pernas: a instrução explícita "null se ausente" no prompt, e tipos `Optional` no schema que permitem o null em vez de forçar um default.</aside>
 </section>
 
@@ -1620,7 +1462,7 @@ LIMIT 10;</pre>
       <p>A engenharia de dados exige que correr o pipeline 2× dê o <strong>mesmo</strong> resultado. Um LLM no <span class="mono">T</span> parte essa garantia. Mitigar: <span class="mono">temperature=0</span>, fixar versão do modelo, e <strong>cache por hash do input</strong> — re-extrair só se o texto mudar.</p>
     </div>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">58</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">53</span></div>
   <aside class="notes">Esta é a falha que mais incomoda um engenheiro de dados, porque ataca um princípio, não um valor. Idempotência: correr o mesmo pipeline sobre os mesmos dados tem de dar o mesmo output, senão não há reprodutibilidade, não há testes fiáveis, não há reconciliação. Um LLM é não-determinístico por natureza — até com temperatura zero há variação, e uma atualização silenciosa do modelo muda tudo. As mitigações: `temperature=0` reduz mas não elimina; fixar a versão exata do modelo nos metadados; e a mais importante para um pipeline — cache por hash do input, ou seja, guardas a extração e só voltas a chamar o modelo se o texto de origem mudar. Assim o pipeline volta a ser idempotente na prática, mesmo que o modelo não seja. Isto liga diretamente ao slide da idempotência no início da aula.</aside>
 </section>
 
@@ -1644,7 +1486,7 @@ LIMIT 10;</pre>
     </div>
     <p class="why"><b>Regra de ouro:</b> se um regex resolve, não metas um LLM. Ele é caro, lento e não-determinístico &mdash; paga-se só quando o texto é <em>genuinamente livre</em>. E o híbrido (regex + LLM no que sobra) ganha muitas vezes.</p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">59</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">54</span></div>
   <aside class="notes">Recolhemos a intuição dos dez exemplos numa decisão. A coluna da esquerda — regra determinística — vence sempre que o formato é fixo e estável, sempre que a auditabilidade é legalmente exigida, sempre que o volume é massivo ou a latência crítica, e sempre que precisas de custo previsível. O log é o caso de escola. A coluna da direita — LLM — só se justifica quando o texto é genuinamente livre: variabilidade linguística alta, necessidade de inferir ou sintetizar, uma cauda longa de formatos que nenhum regex cobre. E reparem na nota de rodapé: a resposta certa muitas vezes não é "ou/ou" mas híbrido — regex apanha o código postal e o LLM trata do resto da morada. Engenharia é escolher a ferramenta mais barata que resolve, não a mais impressionante.</aside>
 </section>
 
@@ -1671,7 +1513,7 @@ resp = client.extract(texto, schema=NotaClinica)</pre>
       <p class="res">JSON válido <b>por construção</b> &mdash; não por sorte</p>
     </div>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">60</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">55</span></div>
   <aside class="notes">Vocês são informáticos, por isso mostro o código. O schema-constraint — structured output, function calling, ou Pydantic com uma biblioteca como o Instructor — transforma "por favor devolve JSON" numa garantia. O modelo é forçado, ao nível da geração de tokens, a produzir algo que encaixa neste tipo. `idade` é um inteiro entre 0 e 120, não a string "cinquenta e quatro". `alergias` é uma lista, com default lista vazia, o que reforça a regra da negação. E acrescentei um campo `confianca`: peço ao próprio modelo uma estimativa de quão seguro está, que uso a seguir para flag de revisão. Sem schema-constraint, o JSON parte — chaves a mais, vírgulas a faltar, prosa à volta — e o teu parser estoira em produção. Com ele, o JSON é válido por construção.</aside>
 </section>
 
@@ -1692,7 +1534,7 @@ resp = client.extract(texto, schema=NotaClinica)</pre>
       <p class="tags">schema &middot; validação &middot; idempotência via cache &middot; linhagem do modelo</p>
     </div>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">61</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">56</span></div>
   <aside class="notes">Fechamos o ETL com as quatro defesas que tornam isto produção, não demo. Schema-constraint para o formato nunca partir. Validação de domínio à saída — tipos, intervalos, e regras de negócio como a do contrato — para apanhar a semântica que o schema não apanha. "Null se ausente", instrução e Optional, contra a alucinação de campos. E flag de baixa confiança, usando aquele campo `confianca`, para mandar o duvidoso para um humano em vez de o deixar entrar silenciosamente nos dados. A mensagem do painel é a tese da Porta B inteira: a GenAI no pipeline não dispensa a disciplina de engenharia de dados — schema, validação, idempotência, linhagem — ela exige-a com mais força, porque acrescenta uma fonte de erro nova e não-determinística. Quem trata o LLM como uma caixa fechada constrói dívida; quem o trata como mais um passo de transformação com contrato constrói sistemas.</aside>
 </section>
 
@@ -1727,7 +1569,7 @@ resp = client.extract(texto, schema=NotaClinica)</pre>
       </div>
       <p class="chain-hint">Cinco passos. Cada clique acende uma caixa — fecha-se aberta na síntese.</p>
     </div>
-    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">62</span></div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">57</span></div>
   </section>
 
   <!-- tokenização -->
@@ -1752,7 +1594,7 @@ resp = client.extract(texto, schema=NotaClinica)</pre>
       </div>
       <p class="lead" style="margin:0 auto; text-align:center; max-width:86%;">Antes de haver significado, o texto é cortado em <strong>sub-palavras</strong>. Os pedaços reutilizam-se — <span class="mono">hiper</span> volta em <em>antihipertensor</em>, e palavras nunca vistas recompõem-se dos mesmos tiles.</p>
     </div>
-    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">63</span></div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">58</span></div>
   </section>
 
   <!-- matriz / estático -->
@@ -1776,7 +1618,7 @@ resp = client.extract(texto, schema=NotaClinica)</pre>
         </div>
       </div>
     </div>
-    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">64</span></div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">59</span></div>
   </section>
 
   <!-- banco contextual -->
@@ -1798,7 +1640,7 @@ resp = client.extract(texto, schema=NotaClinica)</pre>
         <div class="cos">cosseno(banco¹, banco²) = <b>0.21</b> &nbsp;·&nbsp; baixo</div>
       </div>
     </div>
-    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">65</span></div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">60</span></div>
   </section>
 
   <!-- média dilui -->
@@ -1824,7 +1666,7 @@ resp = client.extract(texto, schema=NotaClinica)</pre>
       </div>
       <p class="lead" style="margin:0 auto; text-align:center; max-width:84%;">Misturar muitos assuntos num só chunk → um vetor "morno", no centro de massa, perto de nada. <strong>Como partes o texto decide se a busca funciona.</strong></p>
     </div>
-    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">66</span></div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">61</span></div>
   </section>
 
   <!-- treino contrastivo -->
@@ -1860,7 +1702,7 @@ resp = client.extract(texto, schema=NotaClinica)</pre>
         <p class="tags">não emergente &nbsp;·&nbsp; não acidental &nbsp;·&nbsp; desenhado</p>
       </div>
     </div>
-    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">67</span></div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">62</span></div>
   </section>
 
   <!-- consequências DE -->
@@ -1877,7 +1719,7 @@ resp = client.extract(texto, schema=NotaClinica)</pre>
         <div class="point"><span class="m sq2"></span><p><b>Idioma e domínio</b><span class="sub">trata bem o teu PT? o teu jargão?</span></p></div>
       </div>
     </div>
-    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">68</span></div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">63</span></div>
   </section>
 
   <!-- fecho embeddings -->
@@ -1896,7 +1738,7 @@ resp = client.extract(texto, schema=NotaClinica)</pre>
       </div>
       <p class="lead" style="max-width:88%;">A intuição é o bilhete de entrada. O que paga o ordenado é a card da direita — e é a mentalidade que aplicamos a seguir: <strong>um RAG inteiro é um pipeline de dados</strong>.</p>
     </div>
-    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">69</span></div>
+    <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">64</span></div>
   </section>
 
   
@@ -1924,7 +1766,7 @@ resp = client.extract(texto, schema=NotaClinica)</pre>
     </div>
     <p class="lead" style="max-width:90%;">O que pões num vector store é quase sempre da terceira camada: um <strong>sentence-transformer</strong>, BERT afinado com pooling para que a semelhança cosseno entre <em>frases</em> signifique algo.</p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">70</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">65</span></div>
   <aside class="notes">Três gerações. Word2vec e GloVe, de 2013, são estáticos: cada palavra tem um vetor fixo, "banco" é sempre o mesmo independentemente da frase — vimos isto no core. BERT, 2018, trouxe o contextual: o vetor do token depende da frase à volta. Mas BERT cru dá um vetor por token e não é ótimo para comparar frases inteiras. Os sentence-transformers, de 2019 em diante, pegam num BERT e afinam-no especificamente para que o vetor da frase, depois do pooling, viva num espaço onde cosseno alto significa "querem dizer o mesmo". Esta terceira camada é o que usas em RAG. Quando alguém diz "modelo de embedding" hoje, quase sempre quer dizer um sentence-transformer. A distinção seguinte — bi-encoder vs cross-encoder — é dentro desta família.</aside>
 </section>
 
@@ -1948,7 +1790,7 @@ resp = client.extract(texto, schema=NotaClinica)</pre>
     </div>
     <p class="why"><b>Padrão real:</b> bi-encoder recupera os top-50 (barato), cross-encoder reordena esses 50 (caro mas só 50). O melhor dos dois.</p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">71</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">66</span></div>
   <aside class="notes">Esta distinção é decisiva para quem constrói RAG. O bi-encoder codifica a pergunta e cada documento separadamente — duas passagens independentes pelo modelo, um vetor cada. A grande vantagem: os vetores dos documentos pré-calculam-se e indexam-se, então no momento da query só codificas a pergunta e fazes busca vetorial. Escala a milhões. A desvantagem: como nunca viu a pergunta e o documento ao mesmo tempo, perde interações finas. O cross-encoder faz o oposto: mete os dois juntos no modelo e produz uma pontuação de relevância do par. Muito mais preciso, mas não dá um vetor reutilizável — terias de correr o modelo para cada par query-documento, impossível a milhões. Por isso o padrão de produção é em duas fases: o bi-encoder recupera um top-50 barato, o cross-encoder reordena só esses 50. Recall barato, precisão onde importa.</aside>
 </section>
 
@@ -1965,7 +1807,7 @@ resp = client.extract(texto, schema=NotaClinica)</pre>
     </div>
     <p class="lead" style="max-width:90%;">A dimensão multiplica <strong>tudo</strong>: storage do vector store, memória do índice, custo de cada comparação. A milhões de vetores, escolher 1536 quando 384 chegava é dinheiro a arder &mdash; <strong>decisão de arquitetura</strong>.</p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">72</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">67</span></div>
   <aside class="notes">As dimensões típicas: 384, 768, 1024, 1536, e os grandes vão a 3072. Mais dimensões dão ao modelo mais eixos para codificar nuance, e em geral mais qualidade de retrieval. Mas a dimensão multiplica todos os custos: o storage do vector store é linear na dimensão, a memória do índice HNSW também, e cada cálculo de semelhança percorre o vetor inteiro. A milhões de vetores, a diferença entre 384 e 1536 é quatro vezes o storage e o custo de índice — pode ser a diferença entre caber na RAM ou não. Por isso isto é uma decisão de arquitetura, não um default. A pergunta certa é: a tua tarefa precisa mesmo da nuance extra, ou um modelo de 384 dimensões recupera igualmente bem no teu corpus? E isto liga ao próximo conceito, que parte este trade-off pela raiz: e se pudesses escolher a dimensão depois de treinar?</aside>
 </section>
 
@@ -1991,7 +1833,7 @@ resp = client.extract(texto, schema=NotaClinica)</pre>
     </div>
     <p class="lead" style="max-width:92%;">Treinado para que os <strong>primeiros</strong> valores carreguem o essencial. Cortas o vetor em 256 e ainda funciona — uma só geração, várias dimensões. Indexas curto para triagem, guardas longo para rerank.</p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">73</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">68</span></div>
   <aside class="notes">Matryoshka Representation Learning, MRL, resolve o trade-off da dimensão de forma elegante — daí o nome das bonecas russas. O modelo é treinado com uma perda que obriga os primeiros 256 valores do vetor a já serem, sozinhos, um bom embedding; os primeiros 768 a serem melhores; e o vetor completo o melhor de todos. A consequência prática é poderosa: geras o vetor uma vez, em dimensão máxima, mas podes truncá-lo — literalmente cortar e renormalizar — para a dimensão que quiseres, sem re-embeber. Isto permite um padrão muito eficiente: indexas a versão curta de 256 para fazer triagem rápida e barata sobre milhões, e guardas a versão longa para reordenar com precisão só o top que sobrou. Os modelos de embedding mais recentes da OpenAI e vários open-source suportam isto. É a resposta de engenharia ao slide anterior: já não tens de escolher a dimensão antes de saber se precisas dela.</aside>
 </section>
 
@@ -2025,7 +1867,7 @@ cos("Java", "JVM, garbage
     </div>
     <p class="why"><b>Lembra do core:</b> "parecido" é definido pelos pares de treino. Se o teu domínio (clínico, jurídico, código) tem semântica própria, ou usas um modelo de domínio, ou afinas com os teus pares.</p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">74</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">69</span></div>
   <aside class="notes">No core vimos o corolário honesto do treino contrastivo: "parecido" é exatamente o que os pares de treino disserem que é parecido. Um modelo geral foi treinado em texto da internet, onde "Java" tanto é ilha como linguagem como café, e ele coloca-os todos a uma distância morna. Para um motor de busca de documentação técnica, isso é mau — quero que "Java" puxe "JVM" e empurre "ilha tropical". A solução é modelo de domínio: ou existe um pré-treinado para a tua área (há modelos clínicos, jurídicos, de código), ou afinas um modelo geral com pares teus — exemplos de "isto é parecido com aquilo no meu domínio". O fine-tuning de embeddings é dos mais acessíveis: alguns milhares de pares positivos do teu corpus chegam para mover o espaço. A decisão é de qualidade de dados: o modelo geral é fraco no teu jargão? Mede primeiro, antes de assumir que precisas de afinar.</aside>
 </section>
 
@@ -2046,7 +1888,7 @@ cos("Java", "JVM, garbage
       <p>O leaderboard é quase todo em inglês. <strong>Testa no teu PT, com o teu domínio</strong> — não extrapoles da pontuação em inglês.</p>
     </div>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">75</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">70</span></div>
   <aside class="notes">O português tem armadilhas próprias. Do lado bom: um modelo multilingual decente alinha as línguas no mesmo espaço, então "hipertensão" e "hypertension" ficam perto, e podes pesquisar em português sobre um corpus em inglês — útil. Do lado mau: muitos modelos foram treinados esmagadoramente em inglês e são medíocres em português; e quando há português no treino, costuma ser PT-BR, que diverge do PT-PT em vocabulário ("rato" vs "mouse", termos clínicos, jurídicos). Há também um custo escondido: o português gasta mais tokens que o inglês — acentos, contrações, morfologia rica — então o mesmo texto enche mais a janela e cabe menos por chunk, o que muda as tuas contas de chunking. E o jargão local — terminologia clínica ou jurídica portuguesa — raramente está bem representado. A conclusão prática: as tabelas de classificação de embeddings são quase todas em inglês; não extrapoles. Mede no teu português, com o teu domínio. O que nos leva à última peça: como medir.</aside>
 </section>
 
@@ -2070,7 +1912,7 @@ cos("Java", "JVM, garbage
     </div>
     <p class="why"><b>Decisão:</b> usa o MTEB para chegar a 3&ndash;4 candidatos; escolhe entre eles com o <em>teu</em> golden set. A pontuação que conta é a do teu caso.</p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">76</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">71</span></div>
   <aside class="notes">A tentação é abrir o leaderboard do MTEB — Massive Text Embedding Benchmark — pegar no número um e acabar. Não faças isso. O MTEB é útil como triagem: dezenas de tarefas, dá para excluir os modelos claramente fracos e ficar com uma mão-cheia de candidatos. Mas é maioritariamente inglês e nenhuma das suas tarefas é o teu problema. A decisão real faz-se com um golden set teu: 50 a 100 perguntas reais que os teus utilizadores fariam, cada uma anotada com o documento que deveria ser recuperado, no teu idioma e domínio. É pouco trabalho — uma tarde — e é o ativo mais valioso que tens, porque te deixa medir qualquer modelo, qualquer estratégia de chunking, qualquer dimensão, no que realmente importa. Versiona-o como versionas código. O leaderboard escolhe os finalistas; o teu golden set escolhe o vencedor.</aside>
 </section>
 
@@ -2091,7 +1933,7 @@ cos("Java", "JVM, garbage
       <p>Sobe o <span class="mono">k</span> até o recall ser alto o suficiente; depois usa rerank (cross-encoder) para a precisão. Recuperar mal é falhar antes de o LLM abrir a boca.</p>
     </div>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">77</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">72</span></div>
   <aside class="notes">Quatro métricas, mas uma manda. Recall@k: dos documentos relevantes, quantos apanhaste no top-k? Para RAG é a métrica-rei, porque o que não é recuperado simplesmente não chega ao LLM — ele não pode responder com o que não vê. MRR, mean reciprocal rank: olha para a posição do primeiro acerto, recompensa pô-lo em primeiro e penaliza pô-lo em nono. nDCG: o mais sofisticado, pondera por relevância graduada e pela posição, para quando "relevante" não é binário. Precision@k: a fração do top-k que é mesmo relevante — importa quando enches o contexto do LLM com ruído. A estratégia prática para RAG: foca-te primeiro no recall@k, sobe o k até recuperares quase sempre o documento certo, e só depois trazes um cross-encoder para reordenar e melhorar a precisão no topo. A ordem importa: recuperar mal é falhar antes de o gerador sequer começar.</aside>
 </section>
 
@@ -2125,7 +1967,7 @@ cos("Java", "JVM, garbage
       <p>Quando um RAG falha em produção, quase nunca é o modelo nem o prompt. É <strong>o pipeline que o alimenta</strong> — e esse pipeline é teu.</p>
     </div>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">78</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">73</span></div>
   <aside class="notes">Abrir a Porta B do RAG com humildade: a parte "IA" é a mais pequena e a mais resolvida. O trabalho difícil — e o que distingue um RAG que funciona de um que mente — é tudo o que está antes do LLM. Tom: isto é território do engenheiro de dados, não do investigador de ML. A frase é sentimento da comunidade (ver SOURCES), usá-la como tal, sem aspas atribuídas.</aside>
 </section>
 
@@ -2150,7 +1992,7 @@ cos("Java", "JVM, garbage
       </div>
     </div>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">79</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">74</span></div>
   <aside class="notes">RAG = Retrieval-Augmented Generation. A intuição: em vez de fine-tunear o modelo com o teu conhecimento (caro, congela na hora do treino, difícil de atualizar), buscas em tempo de pergunta os pedaços relevantes e dá-los ao modelo como contexto. Vantagem de engenharia: o conhecimento vive numa base de dados que atualizas como qualquer outra — não num modelo que terias de re-treinar. Por isso RAG é, no fundo, um problema de manter uma base de dados fresca e bem indexada.</aside>
 </section>
 
@@ -2175,7 +2017,7 @@ cos("Java", "JVM, garbage
     </div>
     <p class="chain-hint">Cinco caixas de engenharia de dados, uma de IA. A qualidade do RAG decide-se nas cinco primeiras.</p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">80</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">75</span></div>
   <aside class="notes">Percorrer a cadeia da esquerda para a direita e prometer que vamos abrir cada caixa. Insistir: ingestão, chunking, embeddings, indexação e retrieval são ETL puro — extrair, transformar, carregar, consultar. A geração é a parte que a comunidade já resolveu. Quem mete um RAG em produção e só mexe no prompt está a otimizar a caixa errada.</aside>
 </section>
 
@@ -2200,7 +2042,7 @@ cos("Java", "JVM, garbage
       </div>
     </div>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">81</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">76</span></div>
   <aside class="notes">Distinção que organiza tudo o resto. A pipeline offline é um job de dados clássico: idempotente, reprocessável, monitorizável — e é onde o engenheiro de dados manda. A online é um serviço de baixa latência. Confundir os dois ritmos é erro comum: re-embeber tudo a cada pergunta (caro, lento) ou nunca re-indexar (stale). Mesmos vetores, dois SLAs opostos.</aside>
 </section>
 
@@ -2221,7 +2063,7 @@ cos("Java", "JVM, garbage
       <p>É conectar, autenticar, deduplicar, detetar deltas e <strong>normalizar</strong> dezenas de formatos para um texto limpo. Há plataformas inteiras só para isto (Unstructured.io, 60+ conectores).</p>
     </div>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">82</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">77</span></div>
   <aside class="notes">Para um público informático: isto é integração de dados clássica, só que a saída alvo é "texto pronto para embeber" em vez de uma tabela. O ponto subtil: a unidade não é o ficheiro, é o conteúdo — e o mesmo conteúdo chega em mil embalagens. Mencionar conectores prontos (Unstructured.io, LlamaIndex readers) mas avisar que conectar é o fácil; o difícil vem a seguir, no parsing.</aside>
 </section>
 
@@ -2242,7 +2084,7 @@ cos("Java", "JVM, garbage
       <p class="tags">o parsing é a primeira transformação · e a mais subestimada</p>
     </div>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">83</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">78</span></div>
   <aside class="notes">Aqui mora metade dos problemas de RAG na vida real. Extrair texto de um PDF complexo é tudo menos trivial: ordem de leitura, tabelas, multi-coluna, figuras com legenda, OCR de scans. Existem parsers layout-aware (e até LLMs multimodais a fazer document understanding), mas nenhum é perfeito. A mensagem: se o parser estraga o texto, nada a jusante recupera. É a regra do garbage-in elevada ao quadrado, porque o erro é silencioso.</aside>
 </section>
 
@@ -2263,7 +2105,7 @@ cos("Java", "JVM, garbage
       </div>
     </div>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">84</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">79</span></div>
   <aside class="notes">Fixar a ideia antes das estratégias: o chunk é simultaneamente a unidade de embedding, de retrieval e de contexto. Um chunk demasiado grande dilui o vetor (já vimos na pooling — "a média dilui") e enche o prompt de ruído. Demasiado pequeno parte factos e perde contexto. O chunking é onde o engenheiro de dados tem mais controlo e menos código — e é por isso que é tantas vezes feito à toa (split a cada 1000 caracteres e segue).</aside>
 </section>
 
@@ -2299,7 +2141,7 @@ cos("Java", "JVM, garbage
     </div>
     <p class="lead" style="margin:0 auto; text-align:center; max-width:84%;">Corta a cada N caracteres ou tokens, ignorando o sentido. <strong>Barato e determinístico</strong> — e parte palavras, frases e factos a meio.</p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">85</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">80</span></div>
   <aside class="notes">A baseline. Vantagem real: simples, previsível, idempotente — partes sempre igual. Defeito fatal: não sabe nada sobre a estrutura do texto, por isso o corte cai onde calha. É o ponto de partida de qualquer biblioteca (LangChain CharacterTextSplitter) e o culpado nº1 de respostas truncadas. Guardar o exemplo do facto partido para daqui a uns slides — aqui basta plantar a semente do problema.</aside>
 </section>
 
@@ -2332,7 +2174,7 @@ cos("Java", "JVM, garbage
     </div>
     <p class="lead" style="margin:0 auto; text-align:center; max-width:84%;">Cada chunk reaproveita o fim do anterior (ex.: 200/50). O custo: <strong>mais chunks, mais vetores, índice maior</strong>. O ganho: factos de fronteira sobrevivem.</p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">86</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">81</span></div>
   <aside class="notes">O patch mais comum ao corte fixo: sobrepor as janelas para que o que cai na fronteira de uma apareça inteiro na seguinte. Trade-off explícito de engenharia de dados: overlap de 25% significa ~25% mais vetores para armazenar e indexar, mais custo de embedding e índice maior. É a primeira vez na aula que se vê o custo de storage a depender de uma decisão de chunking — ligar de volta às "consequências de engenharia" dos embeddings.</aside>
 </section>
 
@@ -2361,7 +2203,7 @@ cos("Java", "JVM, garbage
     </div>
     <p class="lead" style="margin:0 auto; text-align:center; max-width:84%;">Parágrafo, secção, título (Markdown <span class="mono">##</span>, HTML, JSON). Os chunks ficam <strong>coerentes por construção</strong> — exige documentos com estrutura limpa.</p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">87</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">82</span></div>
   <aside class="notes">Em vez de impor um tamanho, segue a estrutura que o autor já deu: parágrafos, headings, células. Funciona muito bem em FAQs, documentação técnica e Markdown — onde os limites lógicos já estão marcados. Cai mal em texto corrido sem estrutura (e aí o overlap volta a ser melhor). Mensagem: a melhor estratégia depende do corpus, não há default universal — adiantar o slide de trade-offs.</aside>
 </section>
 
@@ -2391,7 +2233,7 @@ cos("Java", "JVM, garbage
     </div>
     <p class="lead" style="margin:0 auto; text-align:center; max-width:84%;">Embebe frase a frase e corta onde a similaridade <strong>cai</strong>. Chunks tematicamente puros — ao preço de <strong>embeber para depois chunkar</strong>.</p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">88</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">83</span></div>
   <aside class="notes">O passo seguinte: deixar o conteúdo decidir o corte. Embebe-se cada frase, mede-se a similaridade entre vizinhas e corta-se nos vales — onde o assunto muda. Produz os chunks mais coerentes mas é o mais caro a construir (embeddings extra só para decidir os cortes) e não-determinístico se o modelo de embedding mudar. Bom exemplo de "mais inteligência no offline custa mais compute" — uma decisão de custo, não de IA.</aside>
 </section>
 
@@ -2427,7 +2269,7 @@ cos("Java", "JVM, garbage
     </div>
     <p class="lead" style="margin:0 auto; text-align:center; max-width:84%;">Lê o layout real — tabelas inteiras, listas inteiras, cada título colado à sua secção. Essencial em PDFs, relatórios e documentos clínicos.</p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">89</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">84</span></div>
   <aside class="notes">A estratégia mais sofisticada e a que mais depende de um bom parser. A ideia: uma tabela partida ao meio é inútil para retrieval (metade das colunas num chunk, metade noutro), por isso trata-se a tabela, a lista, o bloco de código como unidades atómicas e cola-se cada heading à secção que introduz. É aqui que document-understanding com modelos multimodais entra. Ligar ao slide de parsing: layout-aware chunking só é tão bom quanto o parser que lê o layout.</aside>
 </section>
 
@@ -2458,7 +2300,7 @@ antes do bloqueio da conta…"</pre>
     </div>
     <p class="why"><b>Não mudou a IA — mudaram os dados.</b> O modelo de embedding, o LLM e o prompt são idênticos. Só mudou <em>como partiste o texto</em>. RAG é engenharia de dados.</p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">90</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">85</span></div>
   <aside class="notes">Este é o slide-âncora da secção de chunking e o coração do EX-4. Demonstração em sala: a mesma pergunta, mesmo modelo, mesmo prompt — com corte fixo nenhum chunk contém "por predefinição são 5 tentativas" inteiro, e o retrieval traz contexto truncado ou o chunk errado; com overlap ou corte por parágrafo, o facto fica inteiro e acerta. Reutiliza o componente errado-vs-certo (azeitona, nunca vermelho). Martelar: a variável independente foi a engenharia de dados.</aside>
 </section>
 
@@ -2481,7 +2323,7 @@ antes do bloqueio da conta…"</pre>
     </div>
     <p class="lead" style="max-width:88%;">Não há valor universal. Depende do corpus e da pergunta — e <strong>avalia-se empiricamente</strong>, como qualquer parâmetro de pipeline. É trabalho de dados, não adivinhação.</p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">91</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">86</span></div>
   <aside class="notes">Fechar o chunking sem dar uma receita única — porque não há. O dilema é real: pequeno = preciso mas frágil; grande = robusto mas diluído (ligar à "média dilui" da pooling). A resposta de engenheiro não é "escolhe X", é "mede": define um conjunto de perguntas de avaliação e compara estratégias por recall. Plantar a noção de avaliação que vem já a seguir. Tamanho, overlap e estratégia são hiperparâmetros do pipeline.</aside>
 </section>
 
@@ -2502,7 +2344,7 @@ antes do bloqueio da conta…"</pre>
       <p>Não é alucinação do modelo. É <strong>dados rançosos</strong>: o documento foi atualizado, o índice não. Corrupção silenciosa, versão vetorial.</p>
     </div>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">92</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">87</span></div>
   <aside class="notes">Retomar a ideia do fecho dos embeddings: o vetor é dado derivado. Em produção, a fonte é viva — políticas mudam, preços mudam, documentos são editados. Se o índice não acompanha, o RAG responde com o passado e ninguém vê o erro porque não há crash. Esta é a parte "que apodrece" do contrast dos embeddings, agora aplicada ao RAG. Prepara o CDC no slide seguinte como a resposta de engenharia.</aside>
 </section>
 
@@ -2544,7 +2386,7 @@ antes do bloqueio da conta…"</pre>
     </div>
     <p class="lead" style="margin:0 auto; text-align:center; max-width:86%;">Change Data Capture: reprocessar <strong>só o que mudou</strong>. Rebuild total re-embebe os quatro; CDC re-embebe um. Mesmo padrão das materializações incrementais.</p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">93</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">88</span></div>
   <aside class="notes">Coração do EX-5. CDC é vocabulário que um engenheiro de dados já conhece de pipelines incrementais — aqui aplicado a embeddings. A história: a fonte muda (política de 5→3 tentativas), o CDC deteta que só c3 mudou e re-embebe apenas esse vetor; v1,v2,v4 ficam intactos. Trade-off incremental vs rebuild: custo, latência e consistência. E a linhagem — versão do modelo + versão da fonte por vetor — fecha a ideia de embedding como dado de primeira classe.</aside>
 </section>
 
@@ -2565,7 +2407,7 @@ antes do bloqueio da conta…"</pre>
       </div>
     </div>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">94</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">89</span></div>
   <aside class="notes">Motivar o índice antes de o desenhar. Busca exata = O(N) por query: calcular cosseno contra cada vetor. Aceitável para milhares, inviável para milhões com latência de serviço. A solução é Approximate Nearest Neighbour: aceitar uma resposta quase-exata (recall < 100%) em troca de velocidade brutal. É um trade-off de engenharia clássico — exatidão vs latência — e explica porque existem bases de dados vetoriais dedicadas em vez de um simples SELECT.</aside>
 </section>
 
@@ -2610,7 +2452,7 @@ antes do bloqueio da conta…"</pre>
     </div>
     <p class="lead" style="margin:0 auto; text-align:center; max-width:86%;">Entra na camada esparsa (saltos longos), desce greedy para a densa. <strong>Logarítmico em vez de linear</strong> — o índice por omissão em quase todas as bases vetoriais.</p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">95</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">90</span></div>
   <aside class="notes">HNSW = Hierarchical Navigable Small World. Intuição sem matemática: várias camadas de grafo empilhadas. No topo, poucos nós com ligações longas — saltas grandes distâncias depressa. Cada camada abaixo é mais densa. A busca entra no topo, anda greedy para o vizinho mais próximo da pergunta, e quando não melhora desce uma camada e refina. Resultado: tempo ~logarítmico em vez de linear. Parâmetros que o engenheiro afina: M (ligações por nó) e ef (largura da busca) — mais recall custa mais memória/latência. Não precisam de implementar; precisam de saber que existe e o que se afina.</aside>
 </section>
 
@@ -2647,7 +2489,7 @@ antes do bloqueio da conta…"</pre>
     </div>
     <p class="lead" style="margin:0 auto; text-align:center; max-width:86%;">Agrupa os vetores em clusters (centróides). A pergunta só compara com os <strong>poucos bairros mais próximos</strong> — <span class="mono">nprobe</span> regula quantos.</p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">96</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">91</span></div>
   <aside class="notes">IVF = Inverted File Index. Alternativa ao HNSW: em vez de um grafo, parte-se o espaço em k clusters (k-means → centróides). Indexar = atribuir cada vetor ao seu cluster. Buscar = encontrar os centróides mais próximos da pergunta e só varrer esses clusters (nprobe). Trade-off: nprobe baixo = rápido mas pode falhar o vizinho se ele estiver num cluster vizinho; nprobe alto = mais recall, mais lento. HNSW costuma ganhar em recall/latência; IVF é mais leve em memória e bom para datasets enormes (e combina-se com quantização — IVF-PQ). O ponto pedagógico: dois modos de aproximar, ambos trocam exatidão por velocidade, ambos têm um botão de recall vs custo.</aside>
 </section>
 
@@ -2668,7 +2510,7 @@ antes do bloqueio da conta…"</pre>
       <p>Já tens Postgres e &lt;1M vetores? <strong>pgvector</strong> chega. Escala, filtros, multi-tenant, latência rígida? Aí compensa um motor dedicado.</p>
     </div>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">97</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">92</span></div>
   <aside class="notes">Mapa rápido sem virar comparativo de fornecedores. Mensagem central: a base vetorial é mais uma peça de infraestrutura de dados e escolhe-se como qualquer outra — pelo volume, pelos requisitos de filtro/latência e pelo que já tens. pgvector é o default sensato para quem já vive em Postgres (vetores ao lado das tabelas, transacional, um só sistema para operar). Pinecone vende-se o "zero ops". Qdrant/Weaviate dão híbrido e filtros ricos. FAISS/Milvus para escala extrema. Resistir ao reflexo de adotar o nome da moda — é decisão de arquitetura.</aside>
 </section>
 
@@ -2703,7 +2545,7 @@ antes do bloqueio da conta…"</pre>
     </div>
     <p class="lead" style="margin:0 auto; text-align:center; max-width:86%;">A pergunta vira vetor pelo <strong>mesmo modelo</strong> dos chunks. Devolve os k de maior cosseno. Escolher k é trade-off: poucos = perdes contexto, muitos = enches de ruído.</p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">98</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">93</span></div>
   <aside class="notes">O passo online mais simples e o mais fácil de fazer mal. Detalhe crítico de engenharia: a pergunta tem de ser embebida com EXATAMENTE o mesmo modelo (e versão) dos chunks — espaços diferentes não se comparam. O cosseno mede o ângulo, não a magnitude. k é um botão: k pequeno arrisca não trazer a passagem certa; k grande enche o contexto de quase-relevantes que distraem o LLM e custam tokens. Ligar ao chunking: top-k bom precisa de chunks bons por baixo.</aside>
 </section>
 
@@ -2737,7 +2579,7 @@ antes do bloqueio da conta…"</pre>
     </div>
     <p class="lead" style="margin:0 auto; text-align:center; max-width:86%;">Dois recalls que falham em sítios opostos. O vetor perde o código <span class="mono">SKU-4471</span>; o BM25 perde "enfarte" quando pediste "ataque cardíaco". <strong>Juntos cobrem-se.</strong></p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">99</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">94</span></div>
   <aside class="notes">Por que híbrida: a busca densa (vetor) é ótima para sentido e sinónimos mas falha em correspondências literais — números de série, siglas, nomes próprios, códigos raros que o embedding "suaviza". A busca esparsa (BM25, keyword clássica, o motor de um Elasticsearch) é o oposto: literal e cega à semântica. Correm-se as duas em paralelo e fundem-se os rankings, tipicamente com Reciprocal Rank Fusion (RRF) — soma de 1/(k+rank), sem precisar de calibrar escalas. Em produção, híbrido bate quase sempre qualquer dos dois sozinho. É infraestrutura de recuperação, não modelação.</aside>
 </section>
 
@@ -2772,7 +2614,7 @@ antes do bloqueio da conta…"</pre>
     </div>
     <p class="lead" style="margin:0 auto; text-align:center; max-width:86%;">Recupera-se barato ~50 candidatos com o bi-encoder; reordenam-se com o cross-encoder, que <strong>lê o par em conjunto</strong>. Caro demais para todos — perfeito para os finalistas.</p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">100</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">95</span></div>
   <aside class="notes">Reranking fecha o funil de retrieval. Distinção-chave: o bi-encoder (o que gera embeddings) codifica pergunta e documento separadamente, em vetores que se comparam por cosseno — barato porque os vetores dos chunks são pré-calculados, mas perde interação fina entre pergunta e texto. O cross-encoder mete pergunta e documento juntos na entrada do modelo e devolve um score de relevância — muito mais preciso porque vê a interação, mas caro porque corre um forward por par e nada se pré-calcula. Por isso a arquitetura em dois estágios: bi-encoder traz 50 candidatos rápido, cross-encoder reordena para o top-5 que vai ao LLM. Ganho de qualidade grande por pouco custo, porque só corre nos finalistas.</aside>
 </section>
 
@@ -2792,7 +2634,7 @@ antes do bloqueio da conta…"</pre>
       <p>Recall mau → problema de <strong>dados</strong> (chunking, embeddings, índice). Faithfulness má com bom contexto → problema de <strong>geração</strong> (prompt, modelo). Diagnósticos diferentes.</p>
     </div>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">101</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">96</span></div>
   <aside class="notes">Sem avaliação, otimizar RAG é adivinhar. Três famílias: (1) métricas de retrieval — recall@k (a passagem certa está no top-k?) e context precision (proporção de recuperados que são relevantes); (2) métricas de geração — faithfulness/groundedness (a resposta é suportada pelo contexto, sem inventar) e answer relevance. O valor pedagógico maior: estas métricas localizam a falha. Se o recall é baixo, mexer no prompt não adianta — o problema é dados. Se o contexto está bom mas a resposta diverge, é geração. Ferramentas: RAGAS, etc. Isto transforma "o RAG está mau" numa hipótese testável.</aside>
 </section>
 
@@ -2813,7 +2655,7 @@ antes do bloqueio da conta…"</pre>
       <p class="tags">observabilidade · contratos de dados · linhagem · testes — aplicam-se na íntegra</p>
     </div>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">102</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">97</span></div>
   <aside class="notes">Fecho da secção RAG e prova final da tese-zeitgeist. Em produção, os RAGs raramente falham por o LLM ser fraco; falham porque a plataforma de dados por baixo não tem disciplina: índices stale (já vimos, CDC resolve), schema drift que partiu a ingestão sem ninguém ver, backfills que misturaram vetores de modelos diferentes no mesmo índice (espaços incompatíveis — ligar a "trocar de modelo = re-embeber tudo"), e a falta de contratos de dados a montante. A boa notícia para um engenheiro de dados: o ferramental que já domina — observabilidade, data contracts, testes, lineage — é exatamente o que falta a estes sistemas. Esta é a oportunidade da Porta B.</aside>
 </section>
 
@@ -2844,7 +2686,7 @@ antes do bloqueio da conta…"</pre>
       </div>
     </div>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">103</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">98</span></div>
   <aside class="notes">A colisão de fundo da aula toda, agora explícita. A engenharia de dados foi construída sobre reprodutibilidade: reprocessar um job tem de dar o mesmo. O LLM é probabilístico por construção — mesmo a temperatura 0 não é garantia (hardware, batching, versões do modelo introduzem variação). Implicação prática: onde meteres um LLM no pipeline, perdes a garantia de que o reprocessamento é idêntico. As mitigações — schema-constrain, cache de saídas, validação, congelar versão do modelo — são justamente o que vimos no LLM-como-ETL. Não se elimina o estocástico; cerca-se.</aside>
 </section>
 
@@ -2863,7 +2705,7 @@ antes do bloqueio da conta…"</pre>
       <p>Um bug rebenta e tu vês. Isto corre verde. O SQL que mente, o chunk truncado, o vetor rançoso — todos <strong>falham em silêncio</strong>. A defesa é validação e testes, não esperança.</p>
     </div>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">104</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">99</span></div>
   <aside class="notes">Costurar os fios da aula: o SQL sintaticamente perfeito que dá o número errado (Porta A), o chunk cortado a meio, o índice stale (RAG). Têm todos a mesma assinatura: não há exceção, não há vermelho, o pipeline reporta sucesso. O custo é diferido e composto — a decisão errada já foi tomada a montante quando o erro aparece. A única defesa é tratar as saídas de LLM como dados não-confiáveis: validar, testar contra expected, monitorizar distribuições, flag de baixa confiança. Repetir a regra da casa: avisar a azeitona, nunca o vermelho — mas o conteúdo é mesmo este alarme.</aside>
 </section>
 
@@ -2888,7 +2730,7 @@ antes do bloqueio da conta…"</pre>
     </div>
     <p class="lead" style="margin:0 auto; text-align:center; max-width:86%;">Um LLM por linha em 10M linhas é <strong>horas e uma fatura absurda</strong>. A engenharia está em <strong>não o chamar quando não é preciso</strong> — pré-filtrar, cachear, processar só o delta.</p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">105</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">100</span></div>
   <aside class="notes">Ordem de grandeza concreta: uma chamada de LLM é dezenas a centenas de milissegundos e custa tokens; multiplica por 10 milhões e tens horas de wall-clock e uma fatura de quatro a cinco dígitos. Uma transformação SQL/regex sobre as mesmas linhas é segundos e custa praticamente nada. A maturidade de engenharia não é "LLM em tudo", é arquitetar para minimizar chamadas: pré-filtrar com regras o que é trivial, processar só o que mudou (CDC), cachear saídas determinísticas, agrupar em batch, e reservar o LLM para o subconjunto que mesmo precisa de compreensão. O LLM é um recurso caro de latência alta — trata-se como tal.</aside>
 </section>
 
@@ -2911,7 +2753,7 @@ antes do bloqueio da conta…"</pre>
     </div>
     <p class="lead" style="max-width:88%;">A pergunta certa não é "consigo usar um LLM aqui?" — é <strong>"uma regra resolve isto mais barato e sem o risco?"</strong> Se sim, usa a regra.</p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">106</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">101</span></div>
   <aside class="notes">O contrapeso honesto a uma aula que passou muito tempo a entusiasmar com a Porta B. O reflexo do hype é meter LLM em tudo; o reflexo de engenheiro é perguntar se uma regra determinística resolve — porque a regra é mais barata, mais rápida, reprodutível e auditável. Voltar ao caso dos logs do slide 14: ali o regex bate o LLM em todas as dimensões. O LLM justifica-se exatamente onde as regras explodem em complexidade: negação, normalização de sinónimos, ambiguidade, intenção, variação linguística sem fim. Critério de decisão, não ideologia. Isto é o "olho crítico" do arco da aula.</aside>
 </section>
 
@@ -2940,7 +2782,7 @@ antes do bloqueio da conta…"</pre>
       <div class="point"><span class="m"></span><p>A Porta B é uma <b>categoria de trabalho nova</b> que pede exatamente a disciplina que já tens.</p></div>
     </div>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">107</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">102</span></div>
   <aside class="notes">Recolher o arco. A linha escrever → orientar → validar da Porta A reaparece aqui em escala maior: escrever pipelines individuais → desenhar o ecossistema (fontes, contratos, índices, atualização) → validar que o todo está correto. O ponto tranquilizador para a sala: nada disto pede que se tornem investigadores de ML. Pede que apliquem rigor de dados — observabilidade, contratos, testes, linhagem — a um tipo de dado novo (o vetor) e a um componente novo (o LLM). A Porta B não substitui o engenheiro de dados; precisa dele mais do que nunca.</aside>
 </section>
 
@@ -2962,7 +2804,7 @@ antes do bloqueio da conta…"</pre>
       </div>
     </div>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">108</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">103</span></div>
   <aside class="notes">Duas mensagens de carreira. Primeira: o code review sobe de importância. Quando gerar SQL/ETL passa a ser barato, o gargalo e o valor mudam-se para validar — correção semântica, performance, intenção de negócio (fonte Monte Carlo: "code review vale mais, não menos"). Segunda: clareza > esperteza. Tanto humanos como LLMs trabalham melhor sobre código legível, com restrições explícitas e intenção clara; o código "esperto" e denso é agora um anti-padrão, porque é mais caro de validar e a máquina também o lê mal. A disciplina que isto premeia é a mesma que já era boa prática — só que agora paga mais.</aside>
 </section>
 
@@ -2978,7 +2820,7 @@ antes do bloqueio da conta…"</pre>
     </div>
     <p class="lead" style="margin:0 auto; text-align:center; max-width:84%;">Tudo o que vimos — contratos, validação, linhagem, olho crítico — é a <strong>fundação</strong> sobre a qual os agentes vão correr. Sem ela, automatizar é amplificar o erro.</p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">109</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">104</span></div>
   <aside class="notes">Teaser honesto, sem aprofundar — agentes são tema de outra aula (e está PARKED nas fontes). A ponte: o passo seguinte à GenAI-como-ferramenta é a GenAI-como-ator — agentes que propõem e executam mudanças no pipeline. Mas o gancho crítico fecha o arco da aula: um agente só é seguro sobre uma base de dados disciplinada — contratos, validação, políticas, linhagem. Automatizar sobre dados sem governança é amplificar a corrupção silenciosa. Por isso a aula de hoje (os alicerces) vem antes da dos agentes. Não vender futuro; ancorar no que construímos.</aside>
 </section>
 
