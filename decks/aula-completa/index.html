@@ -1651,7 +1651,7 @@ resp = client.extract(texto, schema=NotaClinica)</pre>
         <div class="point"><span class="m sq2"></span><p><b>Modelo = decisão de schema</b><span class="sub">trocar de modelo = re-embeber TUDO; espaços não se misturam</span></p></div>
         <div class="point"><span class="m sq2"></span><p><b>Dimensão = custo</b><span class="sub">storage + índice escalam com d × nº de vetores</span></p></div>
         <div class="point"><span class="m sq2"></span><p><b>Versão = linhagem</b><span class="sub">com que modelo foi feito cada vetor?</span></p></div>
-        <div class="point"><span class="m sq2"></span><p><b>Ficam rançosos</b><span class="sub">dado derivado → CDC, re-embeber só o delta</span></p></div>
+        <div class="point"><span class="m sq2"></span><p><b>Ficam desatualizados</b><span class="sub">quando a fonte muda, o vetor antigo fica errado</span></p></div>
         <div class="point"><span class="m sq2"></span><p><b>Idioma e domínio</b><span class="sub">trata bem o seu PT? o seu jargão?</span></p></div>
       </div>
     </div>
@@ -1678,201 +1678,6 @@ resp = client.extract(texto, schema=NotaClinica)</pre>
   </section>
 
   
-      <!-- ============ C2 · EMBEDDINGS SUPLEMENTAR ============ -->
-<!-- ===== PARTE 2: EMBEDDINGS SUPLEMENTAR ===== -->
-<!-- (inserir DEPOIS do core existente: "A cadeia" → "O que distingue os dois") -->
-
-<!-- DIVIDER · EMBEDDINGS NA PRÁTICA -->
-<section class="section-divider" data-transition="fade" data-background-transition="fade">
-  <p class="label">Construir para a GenAI · embeddings · escolher e avaliar</p>
-  <h2>Já sabe como se produzem. Agora, qual escolher?</h2>
-  <aside class="notes">Abrimos a caixa dos embeddings: tokenização, matriz, atenção, pooling, treino contrastivo, e as consequências de engenharia. Tudo isso era o "como funciona". Esta segunda parte é o "como escolher e avaliar" — as decisões práticas que toma quando monta um sistema real: que família de modelo, que dimensão, modelo geral ou de domínio, e o português, e como medir se está a funcionar. Menos teoria, mais decisão de arquitetura.</aside>
-</section>
-
-<!-- TIPOS / FAMÍLIA DE MODELO -->
-<section class="content-slide">
-  <span class="label-tag">Tipos de modelo · 1</span>
-  <h2>De uma palavra-um-vetor a uma frase-um-vetor</h2>
-  <div class="separator"></div>
-  <div class="stage">
-    <div class="layers">
-      <div class="layer l1">word2vec / GloVe <span class="tag">2013 · estático · 1 vetor por palavra, sem contexto</span></div>
-      <div class="layer l2">BERT e descendentes <span class="tag">2018 · contextual · o vetor depende da frase</span></div>
-      <div class="layer l3">sentence-transformers <span class="tag">2019+ · frase &rarr; 1 vetor, pooling treinado para semelhança</span></div>
-    </div>
-    <p class="lead" style="max-width:90%;">O que põe num vector store é quase sempre da terceira camada: um <strong>sentence-transformer</strong>, BERT afinado com pooling para que a semelhança cosseno entre <em>frases</em> signifique algo.</p>
-  </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">64</span></div>
-  <aside class="notes">Três gerações. Word2vec e GloVe, de 2013, são estáticos: cada palavra tem um vetor fixo, "banco" é sempre o mesmo independentemente da frase — vimos isto no core. BERT, 2018, trouxe o contextual: o vetor do token depende da frase à volta. Mas BERT cru dá um vetor por token e não é ótimo para comparar frases inteiras. Os sentence-transformers, de 2019 em diante, pegam num BERT e afinam-no especificamente para que o vetor da frase, depois do pooling, viva num espaço onde cosseno alto significa "querem dizer o mesmo". Esta terceira camada é o que usa em RAG. Quando alguém diz "modelo de embedding" hoje, quase sempre quer dizer um sentence-transformer. A distinção seguinte — bi-encoder vs cross-encoder — é dentro desta família.</aside>
-</section>
-
-<!-- BI-ENCODER VS CROSS-ENCODER -->
-<section class="content-slide">
-  <span class="label-tag">Tipos de modelo · 2</span>
-  <h2>Bi-encoder para procurar, cross-encoder para reordenar</h2>
-  <div class="separator"></div>
-  <div class="stage">
-    <div class="contrast">
-      <div class="c">
-        <h3>Bi-encoder</h3>
-        <p>codifica a query e o documento <strong>em separado</strong> — um vetor cada. Pré-calcula os vetores dos docs e indexa. Rápido, escala a milhões.</p>
-        <p style="font-size:17pt;color:var(--cel-slate);margin-top:14px;">é o que vai para o vector store · retrieval</p>
-      </div>
-      <div class="c weight">
-        <h3>Cross-encoder</h3>
-        <p>mete query <strong>e</strong> documento <strong>juntos</strong> no modelo e devolve uma pontuação de par. Muito mais preciso — e não indexável.</p>
-        <div class="chips"><span>preciso</span><span>lento</span><span>rerank do top-k</span></div>
-      </div>
-    </div>
-    <p class="why"><b>Padrão real:</b> bi-encoder recupera os top-50 (barato), cross-encoder reordena esses 50 (caro mas só 50). O melhor dos dois.</p>
-  </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">65</span></div>
-  <aside class="notes">Esta distinção é decisiva para quem constrói RAG. O bi-encoder codifica a pergunta e cada documento separadamente — duas passagens independentes pelo modelo, um vetor cada. A grande vantagem: os vetores dos documentos pré-calculam-se e indexam-se, então no momento da query só codifica a pergunta e faz busca vetorial. Escala a milhões. A desvantagem: como nunca viu a pergunta e o documento ao mesmo tempo, perde interações finas. O cross-encoder faz o oposto: mete os dois juntos no modelo e produz uma pontuação de relevância do par. Muito mais preciso, mas não dá um vetor reutilizável — teria de correr o modelo para cada par query-documento, impossível a milhões. Por isso o padrão de produção é em duas fases: o bi-encoder recupera um top-50 barato, o cross-encoder reordena só esses 50. Recall barato, precisão onde importa.</aside>
-</section>
-
-<!-- DIMENSIONALIDADE -->
-<section class="content-slide">
-  <span class="label-tag">Dimensionalidade</span>
-  <h2>Mais dimensões: mais nuance, mais custo</h2>
-  <div class="separator"></div>
-  <div class="stage">
-    <div class="layers">
-      <div class="layer l1">384 <span class="tag">leve · índice barato · menos nuance</span></div>
-      <div class="layer l2">768 <span class="tag">o equilíbrio mais comum</span></div>
-      <div class="layer l3">1536 / 3072 <span class="tag">mais nuance · storage e índice HNSW caros</span></div>
-    </div>
-    <p class="lead" style="max-width:90%;">A dimensão multiplica <strong>tudo</strong>: storage do vector store, memória do índice, custo de cada comparação. A milhões de vetores, escolher 1536 quando 384 chegava é dinheiro a arder &mdash; <strong>decisão de arquitetura</strong>.</p>
-  </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">66</span></div>
-  <aside class="notes">As dimensões típicas: 384, 768, 1024, 1536, e os grandes vão a 3072. Mais dimensões dão ao modelo mais eixos para codificar nuance, e em geral mais qualidade de retrieval. Mas a dimensão multiplica todos os custos: o storage do vector store é linear na dimensão, a memória do índice HNSW também, e cada cálculo de semelhança percorre o vetor inteiro. A milhões de vetores, a diferença entre 384 e 1536 é quatro vezes o storage e o custo de índice — pode ser a diferença entre caber na RAM ou não. Por isso isto é uma decisão de arquitetura, não um default. A pergunta certa é: a sua tarefa precisa mesmo da nuance extra, ou um modelo de 384 dimensões recupera igualmente bem no seu corpus? E isto liga ao próximo conceito, que parte este trade-off pela raiz: e se pudesse escolher a dimensão depois de treinar?</aside>
-</section>
-
-<!-- MATRYOSHKA / MRL -->
-<section class="content-slide">
-  <span class="label-tag">Matryoshka (MRL)</span>
-  <h2>Um vetor que se pode encurtar</h2>
-  <div class="separator"></div>
-  <div class="stage">
-    <div class="figure" style="max-width:1040px;">
-      <svg viewBox="0 0 1000 230" role="img" aria-label="Vetor Matryoshka cortado em 256, 768 e 1536">
-        <rect x="40" y="80" width="900" height="64" fill="#2F4E5E"/>
-        <rect x="40" y="80" width="150" height="64" fill="#6D6D3E"/>
-        <rect x="190" y="80" width="300" height="64" fill="#8a8a5a"/>
-        <line x1="190" y1="64" x2="190" y2="160" stroke="#3A3838" stroke-width="2" stroke-dasharray="4 4"/>
-        <line x1="490" y1="64" x2="490" y2="160" stroke="#3A3838" stroke-width="2" stroke-dasharray="4 4"/>
-        <text x="115" y="200" class="svg-label" text-anchor="middle">256</text>
-        <text x="340" y="200" class="svg-label" text-anchor="middle">768</text>
-        <text x="715" y="200" class="svg-label" text-anchor="middle">1536 (completo)</text>
-        <text x="115" y="64" class="svg-label muted" text-anchor="middle">barato</text>
-        <text x="715" y="64" class="svg-label muted" text-anchor="middle">máxima nuance</text>
-      </svg>
-    </div>
-    <p class="lead" style="max-width:92%;">Treinado para que os <strong>primeiros</strong> valores carreguem o essencial. Corta o vetor em 256 e ainda funciona — uma só geração, várias dimensões. Indexa curto para triagem, guarda longo para rerank.</p>
-  </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">67</span></div>
-  <aside class="notes">Matryoshka Representation Learning, MRL, resolve o trade-off da dimensão de forma elegante — daí o nome das bonecas russas. O modelo é treinado com uma perda que obriga os primeiros 256 valores do vetor a já serem, sozinhos, um bom embedding; os primeiros 768 a serem melhores; e o vetor completo o melhor de todos. A consequência prática é poderosa: gera o vetor uma vez, em dimensão máxima, mas pode truncá-lo — literalmente cortar e renormalizar — para a dimensão que quiser, sem re-embeber. Isto permite um padrão muito eficiente: indexa a versão curta de 256 para fazer triagem rápida e barata sobre milhões, e guarda a versão longa para reordenar com precisão só o top que sobrou. Os modelos de embedding mais recentes da OpenAI e vários open-source suportam isto. É a resposta de engenharia ao slide anterior: já não tem de escolher a dimensão antes de saber se precisa dela.</aside>
-</section>
-
-<!-- DOMÍNIO E FINE-TUNING -->
-<section class="content-slide">
-  <span class="label-tag">Domínio e fine-tuning</span>
-  <h2>Quando o modelo geral não fala a sua língua</h2>
-  <div class="separator"></div>
-  <div class="stage">
-    <div class="sql-grid">
-      <div class="sql-card wrong">
-        <span class="tag">modelo geral</span>
-        <pre>cos("Java", "ilha tropical")
-  = 0.71
-
-cos("Java", "JVM, garbage
-            collector")
-  = 0.69</pre>
-        <p class="res">não separa <b>linguagem</b> de <b>ilha</b></p>
-      </div>
-      <div class="sql-card right">
-        <span class="tag">modelo de domínio / afinado</span>
-        <pre>cos("Java", "ilha tropical")
-  = 0.18
-
-cos("Java", "JVM, garbage
-            collector")
-  = 0.88</pre>
-        <p class="res">o jargão certo fica <b>perto</b></p>
-      </div>
-    </div>
-    <p class="why"><b>Lembre do core:</b> "parecido" é definido pelos pares de treino. Se o seu domínio (clínico, jurídico, código) tem semântica própria, ou usa um modelo de domínio, ou afina com os seus pares.</p>
-  </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">68</span></div>
-  <aside class="notes">No core vimos o corolário honesto do treino contrastivo: "parecido" é exatamente o que os pares de treino disserem que é parecido. Um modelo geral foi treinado em texto da internet, onde "Java" tanto é ilha como linguagem como café, e ele coloca-os todos a uma distância morna. Para um motor de busca de documentação técnica, isso é mau — quero que "Java" puxe "JVM" e empurre "ilha tropical". A solução é modelo de domínio: ou existe um pré-treinado para a sua área (há modelos clínicos, jurídicos, de código), ou afina um modelo geral com pares seus — exemplos de "isto é parecido com aquilo no meu domínio". O fine-tuning de embeddings é dos mais acessíveis: alguns milhares de pares positivos do seu corpus chegam para mover o espaço. A decisão é de qualidade de dados: o modelo geral é fraco no seu jargão? Meça primeiro, antes de assumir que precisa de afinar.</aside>
-</section>
-
-<!-- MULTILINGUAL E O PORTUGUÊS -->
-<section class="content-slide">
-  <span class="label-tag">Multilingual · o português</span>
-  <h2>Cuidado com o seu português</h2>
-  <div class="separator"></div>
-  <div class="stage">
-    <div class="points two">
-      <div class="point"><span class="m"></span><p><b>Alinhamento cross-lingual</b><span class="sub">um bom modelo põe "hipertensão" e "hypertension" perto — busca numa língua, documentos noutra</span></p></div>
-      <div class="point"><span class="m"></span><p><b>Viés para o inglês</b><span class="sub">muitos modelos são fracos em PT; e PT-PT &ne; PT-BR no vocabulário</span></p></div>
-      <div class="point"><span class="m"></span><p><b>Tokenização infla</b><span class="sub">acentos e morfologia PT gastam mais tokens &rarr; cabe menos por chunk</span></p></div>
-      <div class="point"><span class="m"></span><p><b>Jargão clínico/jurídico PT</b><span class="sub">terminologia local raramente está bem no treino</span></p></div>
-    </div>
-    <div class="callout" style="max-width:88%; margin:0 auto;">
-      <span class="k">A regra</span>
-      <p>O leaderboard é quase todo em inglês. <strong>Teste no seu PT, com o seu domínio</strong> — não extrapole da pontuação em inglês.</p>
-    </div>
-  </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">69</span></div>
-  <aside class="notes">O português tem armadilhas próprias. Do lado bom: um modelo multilingual decente alinha as línguas no mesmo espaço, então "hipertensão" e "hypertension" ficam perto, e pode pesquisar em português sobre um corpus em inglês — útil. Do lado mau: muitos modelos foram treinados esmagadoramente em inglês e são medíocres em português; e quando há português no treino, costuma ser PT-BR, que diverge do PT-PT em vocabulário ("rato" vs "mouse", termos clínicos, jurídicos). Há também um custo escondido: o português gasta mais tokens que o inglês — acentos, contrações, morfologia rica — então o mesmo texto enche mais a janela e cabe menos por chunk, o que muda as suas contas de chunking. E o jargão local — terminologia clínica ou jurídica portuguesa — raramente está bem representado. A conclusão prática: as tabelas de classificação de embeddings são quase todas em inglês; não extrapole. Meça no seu português, com o seu domínio. O que nos leva à última peça: como medir.</aside>
-</section>
-
-<!-- AVALIAR · MTEB E GOLDEN SET -->
-<section class="content-slide">
-  <span class="label-tag">Avaliar · 1</span>
-  <h2>Não acredite no leaderboard. Meça no seu corpus.</h2>
-  <div class="separator"></div>
-  <div class="stage">
-    <div class="contrast">
-      <div class="c">
-        <h3>MTEB</h3>
-        <p>benchmark público de embeddings, dezenas de tarefas. Bom para <strong>triagem</strong> — descartar os fracos.</p>
-        <p style="font-size:17pt;color:var(--cel-slate);margin-top:14px;">mas é em inglês, e não é o seu caso</p>
-      </div>
-      <div class="c weight">
-        <h3>O seu golden set</h3>
-        <p>50&ndash;100 queries reais, cada uma com o documento que <strong>devia</strong> ser recuperado. No seu idioma, no seu domínio.</p>
-        <div class="chips"><span>pequeno</span><span>real</span><span>versionado</span></div>
-      </div>
-    </div>
-    <p class="why"><b>Decisão:</b> use o MTEB para chegar a 3&ndash;4 candidatos; escolha entre eles com o <em>seu</em> golden set. A pontuação que conta é a do seu caso.</p>
-  </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">70</span></div>
-  <aside class="notes">A tentação é abrir o leaderboard do MTEB — Massive Text Embedding Benchmark — pegar no número um e acabar. Não faça isso. O MTEB é útil como triagem: dezenas de tarefas, dá para excluir os modelos claramente fracos e ficar com uma mão-cheia de candidatos. Mas é maioritariamente inglês e nenhuma das suas tarefas é o seu problema. A decisão real faz-se com um golden set seu: 50 a 100 perguntas reais que os seus utilizadores fariam, cada uma anotada com o documento que deveria ser recuperado, no seu idioma e domínio. É pouco trabalho — uma tarde — e é o ativo mais valioso que tem, porque o deixa medir qualquer modelo, qualquer estratégia de chunking, qualquer dimensão, no que realmente importa. Versione-o como versiona código. O leaderboard escolhe os finalistas; o seu golden set escolhe o vencedor.</aside>
-</section>
-
-<!-- AVALIAR · MÉTRICAS -->
-<section class="content-slide">
-  <span class="label-tag">Avaliar · 2</span>
-  <h2>As métricas que dizem se o retrieval presta</h2>
-  <div class="separator"></div>
-  <div class="stage">
-    <div class="points two">
-      <div class="point"><span class="m sq2"></span><p><b>Recall@k</b><span class="sub">o documento certo está no top-k? A métrica-rei do RAG — se não recupera, o LLM não tem com que responder</span></p></div>
-      <div class="point"><span class="m sq2"></span><p><b>MRR</b><span class="sub">quão acima está o primeiro acerto (1/posição). Penaliza pôr o certo em 9º</span></p></div>
-      <div class="point"><span class="m sq2"></span><p><b>nDCG@k</b><span class="sub">ordenação ponderada por relevância graduada, não só sim/não</span></p></div>
-      <div class="point"><span class="m sq2"></span><p><b>Precision@k</b><span class="sub">quanto do top-k é lixo? Trade-off com o recall</span></p></div>
-    </div>
-    <div class="callout" style="max-width:88%; margin:0 auto;">
-      <span class="k">Para RAG, comece pelo recall@k</span>
-      <p>Suba o <span class="mono">k</span> até o recall ser alto o suficiente; depois use rerank (cross-encoder) para a precisão. Recuperar mal é falhar antes de o LLM abrir a boca.</p>
-    </div>
-  </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">71</span></div>
-  <aside class="notes">Quatro métricas, mas uma manda. Recall@k: dos documentos relevantes, quantos apanhou no top-k? Para RAG é a métrica-rei, porque o que não é recuperado simplesmente não chega ao LLM — ele não pode responder com o que não vê. MRR, mean reciprocal rank: olha para a posição do primeiro acerto, recompensa pô-lo em primeiro e penaliza pô-lo em nono. nDCG: o mais sofisticado, pondera por relevância graduada e pela posição, para quando "relevante" não é binário. Precision@k: a fração do top-k que é mesmo relevante — importa quando enche o contexto do LLM com ruído. A estratégia prática para RAG: foque-se primeiro no recall@k, suba o k até recuperar quase sempre o documento certo, e só depois traz um cross-encoder para reordenar e melhorar a precisão no topo. A ordem importa: recuperar mal é falhar antes de o gerador sequer começar.</aside>
-</section>
-
       <!-- ============ D · RAG + CRÍTICO + SÍNTESE ============ -->
 <!-- =====================================================================
      SECÇÃO D · RAG completo + Fio crítico + Síntese
@@ -1903,7 +1708,7 @@ cos("Java", "JVM, garbage
       <p>Quando um RAG falha em produção, quase nunca é o modelo nem o prompt. É <strong>o pipeline que o alimenta</strong> — e esse pipeline é seu.</p>
     </div>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">72</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">64</span></div>
   <aside class="notes">Abrir o RAG com humildade: a parte "IA" é a mais pequena e a mais resolvida. O trabalho difícil — e o que distingue um RAG que funciona de um que mente — é tudo o que está antes do LLM. Tom: isto é território do engenheiro de dados, não do investigador de ML. A frase é sentimento da comunidade (ver SOURCES), usá-la como tal, sem aspas atribuídas.</aside>
 </section>
 
@@ -1928,7 +1733,7 @@ cos("Java", "JVM, garbage
       </div>
     </div>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">73</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">65</span></div>
   <aside class="notes">RAG = Retrieval-Augmented Generation. A intuição: em vez de fine-tunear o modelo com o seu conhecimento (caro, congela na hora do treino, difícil de atualizar), busca em tempo de pergunta os pedaços relevantes e dá-los ao modelo como contexto. Vantagem de engenharia: o conhecimento vive numa base de dados que atualiza como qualquer outra — não num modelo que teria de re-treinar. Por isso RAG é, no fundo, um problema de manter uma base de dados fresca e bem indexada.</aside>
 </section>
 
@@ -1953,7 +1758,7 @@ cos("Java", "JVM, garbage
     </div>
     <p class="chain-hint">Cinco caixas de engenharia de dados, uma de IA. A qualidade do RAG decide-se nas cinco primeiras.</p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">74</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">66</span></div>
   <aside class="notes">Percorrer a cadeia da esquerda para a direita e prometer que vamos abrir cada caixa. Insistir: ingestão, chunking, embeddings, indexação e retrieval são ETL puro — extrair, transformar, carregar, consultar. A geração é a parte que a comunidade já resolveu. Quem mete um RAG em produção e só mexe no prompt está a otimizar a caixa errada.</aside>
 </section>
 
@@ -1978,7 +1783,7 @@ cos("Java", "JVM, garbage
       </div>
     </div>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">75</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">67</span></div>
   <aside class="notes">Distinção que organiza tudo o resto. A pipeline offline é um job de dados clássico: idempotente, reprocessável, monitorizável — e é onde o engenheiro de dados manda. A online é um serviço de baixa latência. Confundir os dois ritmos é erro comum: re-embeber tudo a cada pergunta (caro, lento) ou nunca re-indexar (stale). Mesmos vetores, dois SLAs opostos.</aside>
 </section>
 
@@ -1999,7 +1804,7 @@ cos("Java", "JVM, garbage
       <p>É conectar, autenticar, deduplicar, detetar deltas e <strong>normalizar</strong> dezenas de formatos para um texto limpo. Há plataformas inteiras só para isto (Unstructured.io, 60+ conectores).</p>
     </div>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">76</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">68</span></div>
   <aside class="notes">Para um público informático: isto é integração de dados clássica, só que a saída alvo é "texto pronto para embeber" em vez de uma tabela. O ponto subtil: a unidade não é o ficheiro, é o conteúdo — e o mesmo conteúdo chega em mil embalagens. Mencionar conectores prontos (Unstructured.io, LlamaIndex readers) mas avisar que conectar é o fácil; o difícil vem a seguir, no parsing.</aside>
 </section>
 
@@ -2020,7 +1825,7 @@ cos("Java", "JVM, garbage
       <p class="tags">o parsing é a primeira transformação · e a mais subestimada</p>
     </div>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">77</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">69</span></div>
   <aside class="notes">Aqui mora metade dos problemas de RAG na vida real. Extrair texto de um PDF complexo é tudo menos trivial: ordem de leitura, tabelas, multi-coluna, figuras com legenda, OCR de scans. Existem parsers layout-aware (e até LLMs multimodais a fazer document understanding), mas nenhum é perfeito. A mensagem: se o parser estraga o texto, nada a jusante recupera. É a regra do garbage-in elevada ao quadrado, porque o erro é silencioso.</aside>
 </section>
 
@@ -2041,7 +1846,7 @@ cos("Java", "JVM, garbage
       </div>
     </div>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">78</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">70</span></div>
   <aside class="notes">Fixar a ideia antes das estratégias: o chunk é simultaneamente a unidade de embedding, de retrieval e de contexto. Um chunk demasiado grande dilui o vetor (já vimos na pooling — "a média dilui") e enche o prompt de ruído. Demasiado pequeno parte factos e perde contexto. O chunking é onde o engenheiro de dados tem mais controlo e menos código — e é por isso que é tantas vezes feito à toa (split a cada 1000 caracteres e segue).</aside>
 </section>
 
@@ -2077,7 +1882,7 @@ cos("Java", "JVM, garbage
     </div>
     <p class="lead" style="margin:0 auto; text-align:center; max-width:84%;">Corta a cada N caracteres ou tokens, ignorando o sentido. <strong>Barato e determinístico</strong> — e parte palavras, frases e factos a meio.</p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">79</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">71</span></div>
   <aside class="notes">A baseline. Vantagem real: simples, previsível, idempotente — parte sempre igual. Defeito fatal: não sabe nada sobre a estrutura do texto, por isso o corte cai onde calha. É o ponto de partida de qualquer biblioteca (LangChain CharacterTextSplitter) e o culpado nº1 de respostas truncadas. Guardar o exemplo do facto partido para daqui a uns slides — aqui basta plantar a semente do problema.</aside>
 </section>
 
@@ -2110,7 +1915,7 @@ cos("Java", "JVM, garbage
     </div>
     <p class="lead" style="margin:0 auto; text-align:center; max-width:84%;">Cada chunk reaproveita o fim do anterior (ex.: 200/50). O custo: <strong>mais chunks, mais vetores, índice maior</strong>. O ganho: factos de fronteira sobrevivem.</p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">80</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">72</span></div>
   <aside class="notes">O patch mais comum ao corte fixo: sobrepor as janelas para que o que cai na fronteira de uma apareça inteiro na seguinte. Trade-off explícito de engenharia de dados: overlap de 25% significa ~25% mais vetores para armazenar e indexar, mais custo de embedding e índice maior. É a primeira vez na aula que se vê o custo de storage a depender de uma decisão de chunking — ligar de volta às "consequências de engenharia" dos embeddings.</aside>
 </section>
 
@@ -2139,7 +1944,7 @@ cos("Java", "JVM, garbage
     </div>
     <p class="lead" style="margin:0 auto; text-align:center; max-width:84%;">Parágrafo, secção, título (Markdown <span class="mono">##</span>, HTML, JSON). Os chunks ficam <strong>coerentes por construção</strong> — exige documentos com estrutura limpa.</p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">81</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">73</span></div>
   <aside class="notes">Em vez de impor um tamanho, segue a estrutura que o autor já deu: parágrafos, headings, células. Funciona muito bem em FAQs, documentação técnica e Markdown — onde os limites lógicos já estão marcados. Cai mal em texto corrido sem estrutura (e aí o overlap volta a ser melhor). Mensagem: a melhor estratégia depende do corpus, não há default universal — adiantar o slide de trade-offs.</aside>
 </section>
 
@@ -2169,7 +1974,7 @@ cos("Java", "JVM, garbage
     </div>
     <p class="lead" style="margin:0 auto; text-align:center; max-width:84%;">Embebe frase a frase e corta onde a similaridade <strong>cai</strong>. Chunks tematicamente puros — ao preço de <strong>embeber para depois chunkar</strong>.</p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">82</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">74</span></div>
   <aside class="notes">O passo seguinte: deixar o conteúdo decidir o corte. Embebe-se cada frase, mede-se a similaridade entre vizinhas e corta-se nos vales — onde o assunto muda. Produz os chunks mais coerentes mas é o mais caro a construir (embeddings extra só para decidir os cortes) e não-determinístico se o modelo de embedding mudar. Bom exemplo de "mais inteligência no offline custa mais compute" — uma decisão de custo, não de IA.</aside>
 </section>
 
@@ -2205,7 +2010,7 @@ cos("Java", "JVM, garbage
     </div>
     <p class="lead" style="margin:0 auto; text-align:center; max-width:84%;">Lê o layout real — tabelas inteiras, listas inteiras, cada título colado à sua secção. Essencial em PDFs, relatórios e documentos clínicos.</p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">83</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">75</span></div>
   <aside class="notes">A estratégia mais sofisticada e a que mais depende de um bom parser. A ideia: uma tabela partida ao meio é inútil para retrieval (metade das colunas num chunk, metade noutro), por isso trata-se a tabela, a lista, o bloco de código como unidades atómicas e cola-se cada heading à secção que introduz. É aqui que document-understanding com modelos multimodais entra. Ligar ao slide de parsing: layout-aware chunking só é tão bom quanto o parser que lê o layout.</aside>
 </section>
 
@@ -2236,14 +2041,14 @@ antes do bloqueio da conta…"</pre>
     </div>
     <p class="why"><b>Não mudou a IA — mudaram os dados.</b> O modelo de embedding, o LLM e o prompt são idênticos. Só mudou <em>como partiu o texto</em>. RAG é engenharia de dados.</p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">84</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">76</span></div>
   <aside class="notes">Este é o slide-âncora da secção de chunking e o coração do EX-4. Demonstração em sala: a mesma pergunta, mesmo modelo, mesmo prompt — com corte fixo nenhum chunk contém "por predefinição são 5 tentativas" inteiro, e o retrieval traz contexto truncado ou o chunk errado; com overlap ou corte por parágrafo, o facto fica inteiro e acerta. Reutiliza o componente errado-vs-certo (azeitona, nunca vermelho). Martelar: a variável independente foi a engenharia de dados.</aside>
 </section>
 
 <!-- CHUNKING · TRADE-OFFS -->
 <section class="content-slide">
-  <span class="label-tag">Chunking · não há bala de prata</span>
-  <h2>Pequeno vs grande: escolhe o erro</h2>
+  <span class="label-tag">Chunking · o compromisso</span>
+  <h2>Pequeno ou grande: um compromisso, não uma receita</h2>
   <div class="separator"></div>
   <div class="stage">
     <div class="contrast">
@@ -2259,329 +2064,18 @@ antes do bloqueio da conta…"</pre>
     </div>
     <p class="lead" style="max-width:88%;">Não há valor universal. Depende do corpus e da pergunta — e <strong>avalia-se empiricamente</strong>, como qualquer parâmetro de pipeline. É trabalho de dados, não adivinhação.</p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">85</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">77</span></div>
   <aside class="notes">Fechar o chunking sem dar uma receita única — porque não há. O dilema é real: pequeno = preciso mas frágil; grande = robusto mas diluído (ligar à "média dilui" da pooling). A resposta de engenheiro não é "escolha X", é "meça": defina um conjunto de perguntas de avaliação e compare estratégias por recall. Plantar a noção de avaliação que vem já a seguir. Tamanho, overlap e estratégia são hiperparâmetros do pipeline.</aside>
-</section>
-
-<!-- EMBEDDINGS NA RAG · DADOS DERIVADOS QUE APODRECEM -->
-<section class="content-slide">
-  <span class="label-tag">RAG · embeddings como dados</span>
-  <h2>O vetor é uma coluna derivada — e apodrece</h2>
-  <div class="separator"></div>
-  <div class="stage">
-    <div class="points two">
-      <div class="point"><span class="m sq2"></span><p><b>Derivado da fonte</b><span class="sub">o vetor é função do texto + do modelo, como uma view materializada</span></p></div>
-      <div class="point"><span class="m sq2"></span><p><b>Fica stale</b><span class="sub">a fonte muda, o vetor não → o índice responde a versão antiga</span></p></div>
-      <div class="point"><span class="m sq2"></span><p><b>Sem erro visível</b><span class="sub">devolve a resposta de ontem com toda a confiança</span></p></div>
-      <div class="point"><span class="m sq2"></span><p><b>Tem linhagem</b><span class="sub">que modelo? que versão da fonte? faz parte do registo</span></p></div>
-    </div>
-    <div class="callout" style="max-width:86%; margin:0 auto;">
-      <span class="k">O failure mode nº1 de RAG em produção</span>
-      <p>Não é alucinação do modelo. É <strong>dados rançosos</strong>: o documento foi atualizado, o índice não. Corrupção silenciosa, versão vetorial.</p>
-    </div>
-  </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">86</span></div>
-  <aside class="notes">Retomar a ideia do fecho dos embeddings: o vetor é dado derivado. Em produção, a fonte é viva — políticas mudam, preços mudam, documentos são editados. Se o índice não acompanha, o RAG responde com o passado e ninguém vê o erro porque não há crash. Esta é a parte "que apodrece" do contrast dos embeddings, agora aplicada ao RAG. Prepara o CDC no slide seguinte como a resposta de engenharia.</aside>
-</section>
-
-<!-- EMBEDDINGS NA RAG · CDC (EX-5) -->
-<section class="content-slide">
-  <span class="label-tag">RAG · manter o índice fresco</span>
-  <h2>CDC — re-embeber só o delta</h2>
-  <div class="separator"></div>
-  <div class="stage">
-    <div class="figure" style="max-width:1180px;">
-      <svg viewBox="0 0 1000 320" role="img" aria-label="CDC: a fonte muda num chunk, só esse é re-embebido">
-        <defs>
-          <marker id="d-ah-olive" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#6D6D3E"/></marker>
-          <marker id="d-ah-slate" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#74808D"/></marker>
-        </defs>
-        <!-- fonte: 4 chunks -->
-        <text x="40" y="44" class="svg-label muted">fonte (chunks)</text>
-        <g>
-          <rect x="40" y="58" width="180" height="64" rx="6" fill="#FFFFFF" stroke="#B8B59D"/><text x="130" y="96" class="svg-mono" text-anchor="middle">c1</text>
-          <rect x="250" y="58" width="180" height="64" rx="6" fill="#FFFFFF" stroke="#B8B59D"/><text x="340" y="96" class="svg-mono" text-anchor="middle">c2</text>
-          <rect x="460" y="58" width="180" height="64" rx="6" fill="#FFFFFF" stroke="#6D6D3E" stroke-width="3"/><text x="550" y="90" class="svg-mono" text-anchor="middle" style="fill:#6D6D3E;">c3 · mudou</text><text x="550" y="110" class="svg-label muted" text-anchor="middle" style="font-size:12px;">"5 → 3 tentativas"</text>
-          <rect x="670" y="58" width="180" height="64" rx="6" fill="#FFFFFF" stroke="#B8B59D"/><text x="760" y="96" class="svg-mono" text-anchor="middle">c4</text>
-        </g>
-        <!-- setas: só c3 desce -->
-        <line x1="550" y1="124" x2="550" y2="188" stroke="#6D6D3E" stroke-width="2.5" marker-end="url(#d-ah-olive)"/>
-        <text x="566" y="162" class="svg-label" style="fill:#6D6D3E; font-size:14px;">CDC deteta o delta</text>
-        <g stroke="#74808D" stroke-width="2" stroke-dasharray="3 6">
-          <line x1="130" y1="124" x2="130" y2="206"/><line x1="340" y1="124" x2="340" y2="206"/><line x1="760" y1="124" x2="760" y2="206"/>
-        </g>
-        <!-- índice: vetores -->
-        <text x="40" y="234" class="svg-label muted">índice (vetores)</text>
-        <g>
-          <rect x="40" y="246" width="180" height="56" rx="6" fill="#e9e9e3" stroke="#B8B59D"/><text x="130" y="280" class="svg-mono" text-anchor="middle" style="fill:#74808D;">v1 · intacto</text>
-          <rect x="250" y="246" width="180" height="56" rx="6" fill="#e9e9e3" stroke="#B8B59D"/><text x="340" y="280" class="svg-mono" text-anchor="middle" style="fill:#74808D;">v2 · intacto</text>
-          <rect x="460" y="246" width="180" height="56" rx="6" fill="#2F4E5E"/><text x="550" y="280" class="svg-mono" text-anchor="middle" style="fill:#fff;">v3′ · re-embebido</text>
-          <rect x="670" y="246" width="180" height="56" rx="6" fill="#e9e9e3" stroke="#B8B59D"/><text x="760" y="280" class="svg-mono" text-anchor="middle" style="fill:#74808D;">v4 · intacto</text>
-        </g>
-      </svg>
-    </div>
-    <p class="lead" style="margin:0 auto; text-align:center; max-width:86%;">Change Data Capture: reprocessar <strong>só o que mudou</strong>. Rebuild total re-embebe os quatro; CDC re-embebe um. Mesmo padrão das materializações incrementais.</p>
-  </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">87</span></div>
-  <aside class="notes">Coração do EX-5. CDC é vocabulário que um engenheiro de dados já conhece de pipelines incrementais — aqui aplicado a embeddings. A história: a fonte muda (política de 5→3 tentativas), o CDC deteta que só c3 mudou e re-embebe apenas esse vetor; v1,v2,v4 ficam intactos. Trade-off incremental vs rebuild: custo, latência e consistência. E a linhagem — versão do modelo + versão da fonte por vetor — fecha a ideia de embedding como dado de primeira classe.</aside>
-</section>
-
-<!-- VECTOR DB · O PROBLEMA DO ÍNDICE -->
-<section class="content-slide">
-  <span class="label-tag">RAG · bases de dados vetoriais</span>
-  <h2>Comparar com tudo não escala</h2>
-  <div class="separator"></div>
-  <div class="stage">
-    <div class="cols2 l-wide">
-      <div>
-        <p>Recuperar = encontrar os vetores mais próximos da pergunta. A forma exata é <strong>força bruta</strong>: cosseno contra todos.</p>
-        <p>Com <span class="mono">10M</span> vetores, por pergunta, em milissegundos? <strong>Impossível.</strong> Daí a base vetorial: troca exatidão por velocidade.</p>
-      </div>
-      <div class="callout">
-        <span class="k">ANN — Approximate Nearest Neighbour</span>
-        <p>Não devolve os k <em>exatos</em>, devolve os k <strong>quase certos</strong>, ordens de magnitude mais depressa. Um índice especializado para isto.</p>
-      </div>
-    </div>
-  </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">88</span></div>
-  <aside class="notes">Motivar o índice antes de o desenhar. Busca exata = O(N) por query: calcular cosseno contra cada vetor. Aceitável para milhares, inviável para milhões com latência de serviço. A solução é Approximate Nearest Neighbour: aceitar uma resposta quase-exata (recall < 100%) em troca de velocidade brutal. É um trade-off de engenharia clássico — exatidão vs latência — e explica porque existem bases de dados vetoriais dedicadas em vez de um simples SELECT.</aside>
-</section>
-
-<!-- VECTOR DB · HNSW (SVG) -->
-<section class="content-slide">
-  <span class="label-tag">Índices · HNSW</span>
-  <h2>HNSW — um mapa com atalhos</h2>
-  <div class="separator"></div>
-  <div class="stage">
-    <div class="figure" style="max-width:1180px;">
-      <svg viewBox="0 0 1000 440" role="img" aria-label="HNSW: grafo hierárquico, a busca desce de uma camada esparsa para uma densa">
-        <defs>
-          <marker id="h-ah" markerWidth="11" markerHeight="11" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#6D6D3E"/></marker>
-        </defs>
-        <!-- bandas -->
-        <rect x="20" y="30" width="960" height="110" rx="10" fill="#B8B59D" fill-opacity="0.14"/>
-        <rect x="20" y="160" width="960" height="110" rx="10" fill="#B8B59D" fill-opacity="0.20"/>
-        <rect x="20" y="290" width="960" height="120" rx="10" fill="#B8B59D" fill-opacity="0.28"/>
-        <text x="40" y="54" class="svg-label muted">camada 2 · poucos nós, saltos longos</text>
-        <text x="40" y="184" class="svg-label muted">camada 1</text>
-        <text x="40" y="314" class="svg-label muted">camada 0 · todos os nós</text>
-        <!-- camada 2: 3 nós -->
-        <g stroke="#B8B59D" stroke-width="1.5"><line x1="200" y1="95" x2="520" y2="95"/><line x1="520" y1="95" x2="820" y2="95"/></g>
-        <g fill="#74808D"><circle cx="200" cy="95" r="9"/><circle cx="820" cy="95" r="9"/></g>
-        <!-- entrada na camada 2 -->
-        <circle cx="520" cy="95" r="12" fill="#2F4E5E"/><text x="520" y="76" class="svg-label" text-anchor="middle" style="fill:#2F4E5E;">entrada</text>
-        <!-- camada 1: 6 nós -->
-        <g stroke="#B8B59D" stroke-width="1.5"><line x1="150" y1="225" x2="320" y2="225"/><line x1="320" y1="225" x2="500" y2="225"/><line x1="500" y1="225" x2="640" y2="225"/><line x1="640" y1="225" x2="800" y2="225"/><line x1="800" y1="225" x2="900" y2="225"/></g>
-        <g fill="#74808D"><circle cx="150" cy="225" r="8"/><circle cx="320" cy="225" r="8"/><circle cx="500" cy="225" r="8"/><circle cx="800" cy="225" r="8"/><circle cx="900" cy="225" r="8"/></g>
-        <circle cx="640" cy="225" r="9" fill="#74808D"/>
-        <!-- camada 0: 12 nós densos -->
-        <g stroke="#B8B59D" stroke-width="1.2">
-          <line x1="90" y1="360" x2="170" y2="360"/><line x1="170" y1="360" x2="250" y2="360"/><line x1="250" y1="360" x2="330" y2="360"/><line x1="330" y1="360" x2="410" y2="360"/><line x1="410" y1="360" x2="490" y2="360"/><line x1="490" y1="360" x2="570" y2="360"/><line x1="570" y1="360" x2="650" y2="360"/><line x1="650" y1="360" x2="730" y2="360"/><line x1="730" y1="360" x2="810" y2="360"/><line x1="810" y1="360" x2="890" y2="360"/><line x1="890" y1="360" x2="960" y2="360"/>
-        </g>
-        <g fill="#74808D"><circle cx="90" cy="360" r="7"/><circle cx="170" cy="360" r="7"/><circle cx="250" cy="360" r="7"/><circle cx="330" cy="360" r="7"/><circle cx="410" cy="360" r="7"/><circle cx="490" cy="360" r="7"/><circle cx="570" cy="360" r="7"/><circle cx="730" cy="360" r="7"/><circle cx="810" cy="360" r="7"/><circle cx="890" cy="360" r="7"/><circle cx="960" cy="360" r="7"/></g>
-        <!-- alvo -->
-        <circle cx="650" cy="360" r="10" fill="#6D6D3E"/><text x="650" y="392" class="svg-label" text-anchor="middle" style="fill:#6D6D3E;">vizinho mais próximo</text>
-        <!-- caminho de busca (descida) -->
-        <line x1="520" y1="107" x2="640" y2="213" stroke="#6D6D3E" stroke-width="3" marker-end="url(#h-ah)"/>
-        <line x1="640" y1="237" x2="650" y2="346" stroke="#6D6D3E" stroke-width="3" marker-end="url(#h-ah)"/>
-      </svg>
-    </div>
-    <p class="lead" style="margin:0 auto; text-align:center; max-width:86%;">Entra na camada esparsa (saltos longos), desce greedy para a densa. <strong>Logarítmico em vez de linear</strong> — o índice por omissão em quase todas as bases vetoriais.</p>
-  </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">89</span></div>
-  <aside class="notes">HNSW = Hierarchical Navigable Small World. Intuição sem matemática: várias camadas de grafo empilhadas. No topo, poucos nós com ligações longas — saltas grandes distâncias depressa. Cada camada abaixo é mais densa. A busca entra no topo, anda greedy para o vizinho mais próximo da pergunta, e quando não melhora desce uma camada e refina. Resultado: tempo ~logarítmico em vez de linear. Parâmetros que o engenheiro afina: M (ligações por nó) e ef (largura da busca) — mais recall custa mais memória/latência. Não precisam de implementar; precisam de saber que existe e o que se afina.</aside>
-</section>
-
-<!-- VECTOR DB · IVF (SVG) -->
-<section class="content-slide">
-  <span class="label-tag">Índices · IVF</span>
-  <h2>IVF — partir o espaço em bairros</h2>
-  <div class="separator"></div>
-  <div class="stage">
-    <div class="figure" style="max-width:1040px;">
-      <svg viewBox="0 0 1000 360" role="img" aria-label="IVF: espaço dividido em clusters, a busca só varre os mais próximos">
-        <rect x="8" y="8" width="984" height="344" rx="10" fill="none" stroke="#B8B59D" stroke-opacity="0.5"/>
-        <!-- células (bairros) desenhadas como linhas divisórias -->
-        <g stroke="#B8B59D" stroke-width="1.5" stroke-dasharray="4 6">
-          <line x1="340" y1="20" x2="300" y2="340"/><line x1="660" y1="20" x2="700" y2="340"/>
-          <line x1="20" y1="180" x2="980" y2="160"/>
-        </g>
-        <!-- pontos por cluster -->
-        <g fill="#B8B59D"><circle cx="120" cy="80" r="6"/><circle cx="200" cy="120" r="6"/><circle cx="160" cy="60" r="6"/><circle cx="240" cy="90" r="6"/>
-          <circle cx="780" cy="70" r="6"/><circle cx="850" cy="110" r="6"/><circle cx="820" cy="60" r="6"/>
-          <circle cx="150" cy="280" r="6"/><circle cx="220" cy="240" r="6"/><circle cx="120" cy="320" r="6"/>
-          <circle cx="800" cy="270" r="6"/><circle cx="860" cy="300" r="6"/><circle cx="760" cy="240" r="6"/></g>
-        <!-- cluster da pergunta (probe) realçado -->
-        <g fill="#6D6D3E"><circle cx="470" cy="120" r="6"/><circle cx="540" cy="100" r="6"/><circle cx="500" cy="160" r="6"/><circle cx="560" cy="150" r="6"/><circle cx="440" cy="160" r="6"/></g>
-        <!-- centróides -->
-        <g fill="#74808D"><rect x="172" y="82" width="12" height="12"/><rect x="806" y="78" width="12" height="12"/><rect x="166" y="272" width="12" height="12"/><rect x="804" y="262" width="12" height="12"/></g>
-        <rect x="494" y="124" width="14" height="14" fill="#2F4E5E"/>
-        <text x="501" y="200" class="svg-label" text-anchor="middle" style="fill:#6D6D3E;">só varre os clusters mais próximos</text>
-        <!-- pergunta -->
-        <circle cx="430" cy="90" r="11" fill="#2F4E5E"/><text x="430" y="74" class="svg-label" text-anchor="middle" style="fill:#2F4E5E;">pergunta</text>
-        <text x="180" y="160" class="svg-label muted" text-anchor="middle">bairro ignorado</text>
-        <text x="820" y="160" class="svg-label muted" text-anchor="middle">bairro ignorado</text>
-      </svg>
-    </div>
-    <p class="lead" style="margin:0 auto; text-align:center; max-width:86%;">Agrupa os vetores em clusters (centróides). A pergunta só compara com os <strong>poucos bairros mais próximos</strong> — <span class="mono">nprobe</span> regula quantos.</p>
-  </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">90</span></div>
-  <aside class="notes">IVF = Inverted File Index. Alternativa ao HNSW: em vez de um grafo, parte-se o espaço em k clusters (k-means → centróides). Indexar = atribuir cada vetor ao seu cluster. Buscar = encontrar os centróides mais próximos da pergunta e só varrer esses clusters (nprobe). Trade-off: nprobe baixo = rápido mas pode falhar o vizinho se ele estiver num cluster vizinho; nprobe alto = mais recall, mais lento. HNSW costuma ganhar em recall/latência; IVF é mais leve em memória e bom para datasets enormes (e combina-se com quantização — IVF-PQ). O ponto pedagógico: dois modos de aproximar, ambos trocam exatidão por velocidade, ambos têm um botão de recall vs custo.</aside>
-</section>
-
-<!-- VECTOR DB · OPÇÕES -->
-<section class="content-slide">
-  <span class="label-tag">Bases vetoriais · o mercado</span>
-  <h2>Onde guardar os vetores</h2>
-  <div class="separator"></div>
-  <div class="stage">
-    <div class="tiles-grid">
-      <div class="tcard"><i class="fa-solid fa-vector-square"></i><h4>pgvector</h4><p>Extensão do Postgres. Vetores ao lado dos seus dados. <span class="mono-tag">o seu SQL já lá está</span></p></div>
-      <div class="tcard"><i class="fa-solid fa-cloud"></i><h4>Pinecone</h4><p>Serviço gerido, serverless. <span class="mono-tag">sem ops, paga-se o conforto</span></p></div>
-      <div class="tcard"><i class="fa-solid fa-cube"></i><h4>Qdrant / Weaviate</h4><p>Open-source, self-host ou cloud. <span class="mono-tag">filtros + híbrido nativos</span></p></div>
-      <div class="tcard"><i class="fa-solid fa-feather"></i><h4>FAISS / Milvus</h4><p>Biblioteca e motor para escala. <span class="mono-tag">controlo total do índice</span></p></div>
-    </div>
-    <div class="callout" style="max-width:86%; margin:0 auto;">
-      <span class="k">A escolha é de engenharia, não de hype</span>
-      <p>Já tem Postgres e &lt;1M vetores? <strong>pgvector</strong> chega. Escala, filtros, multi-tenant, latência rígida? Aí compensa um motor dedicado.</p>
-    </div>
-  </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">91</span></div>
-  <aside class="notes">Mapa rápido sem virar comparativo de fornecedores. Mensagem central: a base vetorial é mais uma peça de infraestrutura de dados e escolhe-se como qualquer outra — pelo volume, pelos requisitos de filtro/latência e pelo que já tem. pgvector é o default sensato para quem já vive em Postgres (vetores ao lado das tabelas, transacional, um só sistema para operar). Pinecone vende-se o "zero ops". Qdrant/Weaviate dão híbrido e filtros ricos. FAISS/Milvus para escala extrema. Resistir ao reflexo de adotar o nome da moda — é decisão de arquitetura.</aside>
-</section>
-
-<!-- RETRIEVAL · TOP-K POR COSSENO (SVG) -->
-<section class="content-slide">
-  <span class="label-tag">RAG · retrieval</span>
-  <h2>Top-k — os k vizinhos mais próximos</h2>
-  <div class="separator"></div>
-  <div class="stage">
-    <div class="figure" style="max-width:1180px;">
-      <svg viewBox="0 0 1000 380" role="img" aria-label="Retrieval top-k: a pergunta vira vetor e devolve os k chunks de maior cosseno">
-        <rect x="8" y="8" width="640" height="364" rx="10" fill="none" stroke="#B8B59D" stroke-opacity="0.5"/>
-        <text x="28" y="36" class="svg-label muted">espaço semântico</text>
-        <!-- chunks dispersos -->
-        <g fill="#B8B59D"><circle cx="120" cy="300" r="7"/><circle cx="500" cy="90" r="7"/><circle cx="560" cy="320" r="7"/><circle cx="200" cy="120" r="7"/><circle cx="600" cy="180" r="7"/><circle cx="120" cy="180" r="7"/></g>
-        <!-- pergunta -->
-        <circle cx="300" cy="220" r="14" fill="#2F4E5E"/><text x="300" y="258" class="svg-label" text-anchor="middle" style="fill:#2F4E5E;">pergunta</text>
-        <!-- top-3 realçados -->
-        <g fill="#6D6D3E"><circle cx="370" cy="160" r="10"/><circle cx="240" cy="290" r="10"/><circle cx="400" cy="250" r="10"/></g>
-        <!-- raio top-k -->
-        <circle cx="300" cy="220" r="118" fill="none" stroke="#6D6D3E" stroke-width="2" stroke-dasharray="4 7"/>
-        <text x="300" y="118" class="svg-label" text-anchor="middle" style="fill:#6D6D3E;">k = 3</text>
-        <!-- lista ordenada -->
-        <text x="700" y="60" class="svg-label muted">ordenado por cosseno</text>
-        <g>
-          <rect x="700" y="80" width="270" height="48" rx="6" fill="#2F4E5E"/><text x="716" y="110" class="svg-mono" style="fill:#fff;">1 · chunk 17</text><text x="940" y="110" class="svg-mono" text-anchor="end" style="fill:#B8B59D;">0.88</text>
-          <rect x="700" y="138" width="270" height="48" rx="6" fill="#FFFFFF" stroke="#B8B59D"/><text x="716" y="168" class="svg-mono">2 · chunk 04</text><text x="940" y="168" class="svg-mono" text-anchor="end" style="fill:#74808D;">0.81</text>
-          <rect x="700" y="196" width="270" height="48" rx="6" fill="#FFFFFF" stroke="#B8B59D"/><text x="716" y="226" class="svg-mono">3 · chunk 22</text><text x="940" y="226" class="svg-mono" text-anchor="end" style="fill:#74808D;">0.74</text>
-          <rect x="700" y="262" width="270" height="40" rx="6" fill="none" stroke="#B8B59D" stroke-dasharray="3 5"/><text x="835" y="287" class="svg-label muted" text-anchor="middle" style="font-size:14px;">4 · 0.52 — corta</text>
-        </g>
-      </svg>
-    </div>
-    <p class="lead" style="margin:0 auto; text-align:center; max-width:86%;">A pergunta vira vetor pelo <strong>mesmo modelo</strong> dos chunks. Devolve os k de maior cosseno. Escolher k é trade-off: poucos = perde contexto, muitos = enche de ruído.</p>
-  </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">92</span></div>
-  <aside class="notes">O passo online mais simples e o mais fácil de fazer mal. Detalhe crítico de engenharia: a pergunta tem de ser embebida com EXATAMENTE o mesmo modelo (e versão) dos chunks — espaços diferentes não se comparam. O cosseno mede o ângulo, não a magnitude. k é um botão: k pequeno arrisca não trazer a passagem certa; k grande enche o contexto de quase-relevantes que distraem o LLM e custam tokens. Ligar ao chunking: top-k bom precisa de chunks bons por baixo.</aside>
-</section>
-
-<!-- RETRIEVAL · BUSCA HÍBRIDA (SVG) -->
-<section class="content-slide">
-  <span class="label-tag">RAG · busca híbrida</span>
-  <h2>Vetor encontra sentido; BM25 encontra a palavra exata</h2>
-  <div class="separator"></div>
-  <div class="stage">
-    <div class="figure" style="max-width:1180px;">
-      <svg viewBox="0 0 1000 360" role="img" aria-label="Busca híbrida: branch vetorial e branch BM25 fundem-se com RRF">
-        <defs>
-          <marker id="hy-ah" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#6D6D3E"/></marker>
-        </defs>
-        <!-- pergunta -->
-        <rect x="24" y="148" width="150" height="64" rx="8" fill="#2F4E5E"/><text x="99" y="186" class="svg-label" text-anchor="middle" style="fill:#fff;">pergunta</text>
-        <!-- branch vetorial -->
-        <line x1="174" y1="170" x2="300" y2="92" stroke="#6D6D3E" stroke-width="2.5" marker-end="url(#hy-ah)"/>
-        <rect x="300" y="58" width="240" height="64" rx="8" fill="#FFFFFF" stroke="#B8B59D"/><text x="420" y="84" class="svg-label" text-anchor="middle" style="fill:#2F4E5E;">vetorial · cosseno</text><text x="420" y="108" class="svg-label muted" text-anchor="middle" style="font-size:13px;">semântica · sinónimos</text>
-        <!-- branch BM25 -->
-        <line x1="174" y1="190" x2="300" y2="268" stroke="#6D6D3E" stroke-width="2.5" marker-end="url(#hy-ah)"/>
-        <rect x="300" y="238" width="240" height="64" rx="8" fill="#FFFFFF" stroke="#B8B59D"/><text x="420" y="264" class="svg-label" text-anchor="middle" style="fill:#2F4E5E;">BM25 · termos</text><text x="420" y="288" class="svg-label muted" text-anchor="middle" style="font-size:13px;">palavra exata · códigos, siglas</text>
-        <!-- fusão -->
-        <line x1="540" y1="90" x2="660" y2="160" stroke="#6D6D3E" stroke-width="2.5" marker-end="url(#hy-ah)"/>
-        <line x1="540" y1="270" x2="660" y2="200" stroke="#6D6D3E" stroke-width="2.5" marker-end="url(#hy-ah)"/>
-        <rect x="660" y="148" width="150" height="64" rx="8" fill="#2F4E5E"/><text x="735" y="180" class="svg-label" text-anchor="middle" style="fill:#fff;">fusão</text><text x="735" y="202" class="svg-label" text-anchor="middle" style="fill:#B8B59D; font-size:13px;">RRF</text>
-        <!-- final -->
-        <line x1="810" y1="180" x2="892" y2="180" stroke="#6D6D3E" stroke-width="2.5" marker-end="url(#hy-ah)"/>
-        <rect x="892" y="148" width="96" height="64" rx="8" fill="none" stroke="#6D6D3E" stroke-width="2.5"/><text x="940" y="180" class="svg-label" text-anchor="middle" style="fill:#6D6D3E;">top-k</text><text x="940" y="200" class="svg-label muted" text-anchor="middle" style="font-size:12px;">final</text>
-      </svg>
-    </div>
-    <p class="lead" style="margin:0 auto; text-align:center; max-width:86%;">Dois recalls que falham em sítios opostos. O vetor perde o código <span class="mono">SKU-4471</span>; o BM25 perde "enfarte" quando pediu "ataque cardíaco". <strong>Juntos cobrem-se.</strong></p>
-  </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">93</span></div>
-  <aside class="notes">Por que híbrida: a busca densa (vetor) é ótima para sentido e sinónimos mas falha em correspondências literais — números de série, siglas, nomes próprios, códigos raros que o embedding "suaviza". A busca esparsa (BM25, keyword clássica, o motor de um Elasticsearch) é o oposto: literal e cega à semântica. Correm-se as duas em paralelo e fundem-se os rankings, tipicamente com Reciprocal Rank Fusion (RRF) — soma de 1/(k+rank), sem precisar de calibrar escalas. Em produção, híbrido bate quase sempre qualquer dos dois sozinho. É infraestrutura de recuperação, não modelação.</aside>
-</section>
-
-<!-- RETRIEVAL · RERANKING (SVG bi vs cross) -->
-<section class="content-slide">
-  <span class="label-tag">RAG · reranking</span>
-  <h2>Cross-encoder — ler a pergunta e o documento juntos</h2>
-  <div class="separator"></div>
-  <div class="stage">
-    <div class="figure" style="max-width:1180px;">
-      <svg viewBox="0 0 1000 320" role="img" aria-label="Bi-encoder vs cross-encoder: separado e barato para recuperar, junto e caro para reordenar">
-        <!-- divisória -->
-        <line x1="500" y1="20" x2="500" y2="300" stroke="#B8B59D" stroke-dasharray="4 6"/>
-        <!-- BI-ENCODER -->
-        <text x="250" y="44" class="svg-label" text-anchor="middle" style="fill:#2F4E5E;">bi-encoder · retrieval</text>
-        <rect x="70" y="70" width="120" height="44" rx="6" fill="#FFFFFF" stroke="#B8B59D"/><text x="130" y="98" class="svg-mono" text-anchor="middle" style="font-size:14px;">pergunta</text>
-        <rect x="310" y="70" width="120" height="44" rx="6" fill="#FFFFFF" stroke="#B8B59D"/><text x="370" y="98" class="svg-mono" text-anchor="middle" style="font-size:14px;">documento</text>
-        <line x1="130" y1="114" x2="130" y2="150" stroke="#74808D" stroke-width="2"/><line x1="370" y1="114" x2="370" y2="150" stroke="#74808D" stroke-width="2"/>
-        <rect x="96" y="150" width="68" height="34" rx="999" fill="#2F4E5E"/><text x="130" y="172" class="svg-mono" text-anchor="middle" style="fill:#fff; font-size:12px;">vec</text>
-        <rect x="336" y="150" width="68" height="34" rx="999" fill="#74808D"/><text x="370" y="172" class="svg-mono" text-anchor="middle" style="fill:#fff; font-size:12px;">vec</text>
-        <text x="250" y="234" class="svg-label muted" text-anchor="middle">cosseno entre dois vetores</text>
-        <text x="250" y="262" class="svg-label" text-anchor="middle" style="fill:#6D6D3E; font-size:15px;">barato · vetores pré-calculados</text>
-        <!-- CROSS-ENCODER -->
-        <text x="750" y="44" class="svg-label" text-anchor="middle" style="fill:#2F4E5E;">cross-encoder · rerank</text>
-        <rect x="620" y="70" width="260" height="44" rx="6" fill="#FFFFFF" stroke="#6D6D3E" stroke-width="2"/><text x="750" y="98" class="svg-mono" text-anchor="middle" style="font-size:14px;">[ pergunta + documento ]</text>
-        <line x1="750" y1="114" x2="750" y2="150" stroke="#6D6D3E" stroke-width="2.5"/>
-        <rect x="680" y="150" width="140" height="44" rx="6" fill="#2F4E5E"/><text x="750" y="178" class="svg-label" text-anchor="middle" style="fill:#fff;">modelo</text>
-        <line x1="750" y1="194" x2="750" y2="222" stroke="#6D6D3E" stroke-width="2.5"/>
-        <rect x="694" y="222" width="112" height="40" rx="6" fill="#6D6D3E"/><text x="750" y="248" class="svg-mono" text-anchor="middle" style="fill:#fff;">score 0–1</text>
-        <text x="750" y="294" class="svg-label" text-anchor="middle" style="fill:#6D6D3E; font-size:15px;">caro · um pass por par (q, doc)</text>
-      </svg>
-    </div>
-    <p class="lead" style="margin:0 auto; text-align:center; max-width:86%;">Recupera-se barato ~50 candidatos com o bi-encoder; reordenam-se com o cross-encoder, que <strong>lê o par em conjunto</strong>. Caro demais para todos — perfeito para os finalistas.</p>
-  </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">94</span></div>
-  <aside class="notes">Reranking fecha o funil de retrieval. Distinção-chave: o bi-encoder (o que gera embeddings) codifica pergunta e documento separadamente, em vetores que se comparam por cosseno — barato porque os vetores dos chunks são pré-calculados, mas perde interação fina entre pergunta e texto. O cross-encoder mete pergunta e documento juntos na entrada do modelo e devolve um score de relevância — muito mais preciso porque vê a interação, mas caro porque corre um forward por par e nada se pré-calcula. Por isso a arquitetura em dois estágios: bi-encoder traz 50 candidatos rápido, cross-encoder reordena para o top-5 que vai ao LLM. Ganho de qualidade grande por pouco custo, porque só corre nos finalistas.</aside>
-</section>
-
-<!-- AVALIAÇÃO DE RAG -->
-<section class="content-slide">
-  <span class="label-tag">RAG · avaliação</span>
-  <h2>Medir, não achar</h2>
-  <div class="separator"></div>
-  <div class="stage">
-    <div class="tiles-grid three">
-      <div class="tcard"><i class="fa-solid fa-magnifying-glass"></i><h4>Recall@k</h4><p>O chunk certo veio no top-k? Mede o <strong>retrieval</strong> — falha aqui e o resto não salva.</p></div>
-      <div class="tcard"><i class="fa-solid fa-filter"></i><h4>Context precision</h4><p>Dos k recuperados, quantos eram mesmo relevantes? Ruído distrai o LLM e gasta tokens.</p></div>
-      <div class="tcard"><i class="fa-solid fa-anchor"></i><h4>Faithfulness</h4><p>A resposta <strong>assenta no contexto</strong> recuperado, ou o modelo inventou? Groundedness.</p></div>
-    </div>
-    <div class="callout" style="max-width:86%; margin:0 auto;">
-      <span class="k">Separar onde falha</span>
-      <p>Recall mau → problema de <strong>dados</strong> (chunking, embeddings, índice). Faithfulness má com bom contexto → problema de <strong>geração</strong> (prompt, modelo). Diagnósticos diferentes.</p>
-    </div>
-  </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">95</span></div>
-  <aside class="notes">Sem avaliação, otimizar RAG é adivinhar. Três famílias: (1) métricas de retrieval — recall@k (a passagem certa está no top-k?) e context precision (proporção de recuperados que são relevantes); (2) métricas de geração — faithfulness/groundedness (a resposta é suportada pelo contexto, sem inventar) e answer relevance. O valor pedagógico maior: estas métricas localizam a falha. Se o recall é baixo, mexer no prompt não adianta — o problema é dados. Se o contexto está bom mas a resposta diverge, é geração. Ferramentas: RAGAS, etc. Isto transforma "o RAG está mau" numa hipótese testável.</aside>
 </section>
 
 <!-- FAILURE MODES DE DADOS EM PRODUÇÃO -->
 <section class="content-slide">
   <span class="label-tag">RAG · produção</span>
-  <h2>O que parte um RAG são failure modes de dados</h2>
+  <h2>O que parte um RAG são problemas de dados</h2>
   <div class="separator"></div>
   <div class="stage">
     <div class="points two">
-      <div class="point"><span class="m"></span><p><b>Dados rançosos</b><span class="sub">a fonte mudou, o índice não — responde com o passado</span></p></div>
+      <div class="point"><span class="m"></span><p><b>Índice desatualizado</b><span class="sub">a fonte mudou, o índice não — responde com o passado</span></p></div>
       <div class="point"><span class="m"></span><p><b>Schema drift</b><span class="sub">um campo muda de nome/formato e o pipeline de ingestão cala-se</span></p></div>
       <div class="point"><span class="m"></span><p><b>Backfills inconsistentes</b><span class="sub">re-processar metade do corpus com outro modelo → espaços misturados</span></p></div>
       <div class="point"><span class="m"></span><p><b>Ausência de contratos</b><span class="sub">ninguém garante o que entra → garbage propaga-se silenciosamente</span></p></div>
@@ -2591,19 +2085,19 @@ antes do bloqueio da conta…"</pre>
       <p class="tags">observabilidade · contratos de dados · linhagem · testes — aplicam-se na íntegra</p>
     </div>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">96</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">78</span></div>
   <aside class="notes">Fecho da secção RAG e prova final da tese-zeitgeist. Em produção, os RAGs raramente falham por o LLM ser fraco; falham porque a plataforma de dados por baixo não tem disciplina: índices stale (já vimos, CDC resolve), schema drift que partiu a ingestão sem ninguém ver, backfills que misturaram vetores de modelos diferentes no mesmo índice (espaços incompatíveis — ligar a "trocar de modelo = re-embeber tudo"), e a falta de contratos de dados a montante. A boa notícia para um engenheiro de dados: o ferramental que já domina — observabilidade, data contracts, testes, lineage — é exatamente o que falta a estes sistemas. Esta é a oportunidade do «construir para a GenAI».</aside>
 </section>
 
 <!-- ===================== SEPARADOR · FIO CRÍTICO ===================== -->
 <section class="section-divider" data-transition="fade" data-background-transition="fade">
   <p class="label">Transversal</p>
-  <h2>O fio crítico</h2>
+  <h2>Limites e cuidados</h2>
 </section>
 
 <!-- ESTOCÁSTICO VS DETERMINÍSTICO -->
 <section class="content-slide">
-  <span class="label-tag">Fio crítico · 1</span>
+  <span class="label-tag">Limites e cuidados · 1</span>
   <h2>Estocástico vs determinístico</h2>
   <div class="separator"></div>
   <div class="stage">
@@ -2622,13 +2116,13 @@ antes do bloqueio da conta…"</pre>
       </div>
     </div>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">97</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">79</span></div>
   <aside class="notes">A colisão de fundo da aula toda, agora explícita. A engenharia de dados foi construída sobre reprodutibilidade: reprocessar um job tem de dar o mesmo. O LLM é probabilístico por construção — mesmo a temperatura 0 não é garantia (hardware, batching, versões do modelo introduzem variação). Implicação prática: onde meter um LLM no pipeline, perde a garantia de que o reprocessamento é idêntico. As mitigações — schema-constrain, cache de saídas, validação, congelar versão do modelo — são justamente o que vimos no LLM-como-ETL. Não se elimina o estocástico; cerca-se.</aside>
 </section>
 
 <!-- CORRUPÇÃO SILENCIOSA -->
 <section class="content-slide">
-  <span class="label-tag">Fio crítico · 2</span>
+  <span class="label-tag">Limites e cuidados · 2</span>
   <h2>Corrupção silenciosa</h2>
   <div class="separator"></div>
   <div class="stage">
@@ -2638,16 +2132,16 @@ antes do bloqueio da conta…"</pre>
     </div>
     <div class="callout" style="max-width:86%; margin:0 auto;">
       <span class="k">Porque é pior do que um bug</span>
-      <p>Um bug rebenta e você vê. Isto corre verde. O SQL que mente, o chunk truncado, o vetor rançoso — todos <strong>falham em silêncio</strong>. A defesa é validação e testes, não esperança.</p>
+      <p>Um bug rebenta e você vê. Isto corre verde. O SQL que mente, o chunk truncado, o vetor desatualizado — todos <strong>falham em silêncio</strong>. A defesa é validação e testes, não esperança.</p>
     </div>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">98</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">80</span></div>
   <aside class="notes">Costurar os fios da aula: o SQL sintaticamente perfeito que dá o número errado (construir com a GenAI), o chunk cortado a meio, o índice stale (RAG). Têm todos a mesma assinatura: não há exceção, não há vermelho, o pipeline reporta sucesso. O custo é diferido e composto — a decisão errada já foi tomada a montante quando o erro aparece. A única defesa é tratar as saídas de LLM como dados não-confiáveis: validar, testar contra expected, monitorizar distribuições, flag de baixa confiança. Repetir a regra da casa: avisar a azeitona, nunca o vermelho — mas o conteúdo é mesmo este alarme.</aside>
 </section>
 
 <!-- CUSTO E LATÊNCIA -->
 <section class="content-slide">
-  <span class="label-tag">Fio crítico · 3</span>
+  <span class="label-tag">Limites e cuidados · 3</span>
   <h2>Custo e latência: um LLM sobre milhões de linhas</h2>
   <div class="separator"></div>
   <div class="stage">
@@ -2657,7 +2151,7 @@ antes do bloqueio da conta…"</pre>
         <line x1="120" y1="250" x2="960" y2="250" stroke="#74808D" stroke-width="1.5"/>
         <text x="120" y="280" class="svg-label muted" text-anchor="middle" style="font-size:14px;">sobre 10M linhas →</text>
         <!-- barra regra -->
-        <rect x="200" y="234" width="120" height="16" fill="#74808D"/><text x="260" y="224" class="svg-label muted" text-anchor="middle">regra / SQL</text><text x="260" y="216" class="svg-mono" text-anchor="middle" style="font-size:13px;">€·s ≈ 0</text>
+        <rect x="200" y="234" width="120" height="16" fill="#74808D"/><text x="260" y="226" class="svg-label muted" text-anchor="middle">regra / SQL</text><text x="332" y="247" class="svg-mono" text-anchor="start" style="font-size:13px;">€·s ≈ 0</text>
         <!-- barra LLM seletivo -->
         <rect x="430" y="150" width="120" height="100" fill="#6D6D3E"/><text x="490" y="138" class="svg-label" text-anchor="middle" style="fill:#6D6D3E;">LLM só no que precisa</text>
         <!-- barra LLM por linha -->
@@ -2666,13 +2160,13 @@ antes do bloqueio da conta…"</pre>
     </div>
     <p class="lead" style="margin:0 auto; text-align:center; max-width:86%;">Um LLM por linha em 10M linhas é <strong>horas e uma fatura absurda</strong>. A engenharia está em <strong>não o chamar quando não é preciso</strong> — pré-filtrar, cachear, processar só o delta.</p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">99</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">81</span></div>
   <aside class="notes">Ordem de grandeza concreta: uma chamada de LLM é dezenas a centenas de milissegundos e custa tokens; multiplique por 10 milhões e tem horas de wall-clock e uma fatura de quatro a cinco dígitos. Uma transformação SQL/regex sobre as mesmas linhas é segundos e custa praticamente nada. A maturidade de engenharia não é "LLM em tudo", é arquitetar para minimizar chamadas: pré-filtrar com regras o que é trivial, processar só o que mudou (CDC), cachear saídas determinísticas, agrupar em batch, e reservar o LLM para o subconjunto que mesmo precisa de compreensão. O LLM é um recurso caro de latência alta — trata-se como tal.</aside>
 </section>
 
 <!-- QUANDO NÃO USAR UM LLM -->
 <section class="content-slide">
-  <span class="label-tag">Fio crítico · 4</span>
+  <span class="label-tag">Limites e cuidados · 4</span>
   <h2>Quando NÃO usar um LLM</h2>
   <div class="separator"></div>
   <div class="stage">
@@ -2689,7 +2183,7 @@ antes do bloqueio da conta…"</pre>
     </div>
     <p class="lead" style="max-width:88%;">A pergunta certa não é "consigo usar um LLM aqui?" — é <strong>"uma regra resolve isto mais barato e sem o risco?"</strong> Se sim, use a regra.</p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">100</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">82</span></div>
   <aside class="notes">O contrapeso honesto a uma aula que passou muito tempo a entusiasmar com o «construir para a GenAI». O reflexo do hype é meter LLM em tudo; o reflexo de engenheiro é perguntar se uma regra determinística resolve — porque a regra é mais barata, mais rápida, reprodutível e auditável. Voltar ao caso dos logs do slide 14: ali o regex bate o LLM em todas as dimensões. O LLM justifica-se exatamente onde as regras explodem em complexidade: negação, normalização de sinónimos, ambiguidade, intenção, variação linguística sem fim. Critério de decisão, não ideologia. Isto é o "olho crítico" do arco da aula.</aside>
 </section>
 
@@ -2714,33 +2208,33 @@ antes do bloqueio da conta…"</pre>
     </div>
     <div class="points">
       <div class="point"><span class="m"></span><p>O valor desloca-se de <b>produzir código</b> para <b>desenhar sistemas</b> e garantir que estão certos.</p></div>
-      <div class="point"><span class="m"></span><p>Embeddings, vector stores, chunking, contratos e linhagem entram no <b>dia-a-dia de dados</b> — não são exóticos.</p></div>
+      <div class="point"><span class="m"></span><p>Embeddings, vector stores, chunking, contratos e linhagem entram no <b>dia-a-dia de dados</b>.</p></div>
       <div class="point"><span class="m"></span><p>Construir para a GenAI é uma <b>categoria de trabalho nova</b> que pede exatamente a disciplina que já tem.</p></div>
     </div>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">101</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">83</span></div>
   <aside class="notes">Recolher o arco. A linha escrever → orientar → validar do «construir com a GenAI» reaparece aqui em escala maior: escrever pipelines individuais → desenhar o ecossistema (fontes, contratos, índices, atualização) → validar que o todo está correto. O ponto tranquilizador para a sala: nada disto pede que se tornem investigadores de ML. Pede que apliquem rigor de dados — observabilidade, contratos, testes, linhagem — a um tipo de dado novo (o vetor) e a um componente novo (o LLM). Construir para a GenAI não substitui o engenheiro de dados; precisa dele mais do que nunca.</aside>
 </section>
 
 <!-- CODE REVIEW · CLAREZA > ESPERTEZA -->
 <section class="content-slide">
   <span class="label-tag">Síntese · o que passa a distinguir</span>
-  <h2>Clareza vale mais que esperteza</h2>
+  <h2>Ler e validar passou a valer mais</h2>
   <div class="separator"></div>
   <div class="stage">
     <div class="contrast">
       <div class="c">
         <h3>Code review</h3>
-        <p>Escrever SQL que corre deixou de impressionar. <strong>Ler e apanhar o erro semântico</strong> — grain, NULLs, fan-out — é o que distingue. Vale mais, não menos.</p>
+        <p>Escrever SQL que corre deixou de impressionar. <strong>Ler e apanhar o erro semântico</strong> — grão, NULLs, fan-out — é o que distingue. Vale mais, não menos.</p>
       </div>
       <div class="c weight">
-        <h3>Clareza &gt; esperteza</h3>
-        <p style="margin-bottom:22px;">Num mundo em que a máquina também lê o seu código, ganha quem escreve <strong>entradas claras e restrições explícitas</strong> — não quem faz o truque mais esperto.</p>
+        <h3>Código claro acima de código denso</h3>
+        <p style="margin-bottom:22px;">Num mundo em que a máquina também lê o seu código, ganha quem escreve <strong>entradas claras e restrições explícitas</strong> — não quem encadeia o truque mais denso.</p>
         <div class="chips"><span>intenção legível</span><span>contratos explícitos</span><span>menos opacidade</span></div>
       </div>
     </div>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">102</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">84</span></div>
   <aside class="notes">Duas mensagens de carreira. Primeira: o code review sobe de importância. Quando gerar SQL/ETL passa a ser barato, o gargalo e o valor mudam-se para validar — correção semântica, performance, intenção de negócio (fonte Monte Carlo: "code review vale mais, não menos"). Segunda: clareza > esperteza. Tanto humanos como LLMs trabalham melhor sobre código legível, com restrições explícitas e intenção clara; o código "esperto" e denso é agora um anti-padrão, porque é mais caro de validar e a máquina também o lê mal. A disciplina que isto premeia é a mesma que já era boa prática — só que agora paga mais.</aside>
 </section>
 
@@ -2756,7 +2250,7 @@ antes do bloqueio da conta…"</pre>
     </div>
     <p class="lead" style="margin:0 auto; text-align:center; max-width:84%;">Tudo o que vimos — contratos, validação, linhagem, olho crítico — é a <strong>fundação</strong> sobre a qual os agentes vão correr. Sem ela, automatizar é amplificar o erro.</p>
   </div>
-  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">103</span></div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">85</span></div>
   <aside class="notes">Teaser honesto, sem aprofundar — agentes são tema de outra aula (e está PARKED nas fontes). A ponte: o passo seguinte à GenAI-como-ferramenta é a GenAI-como-ator — agentes que propõem e executam mudanças no pipeline. Mas o gancho crítico fecha o arco da aula: um agente só é seguro sobre uma base de dados disciplinada — contratos, validação, políticas, linhagem. Automatizar sobre dados sem governança é amplificar a corrupção silenciosa. Por isso a aula de hoje (os alicerces) vem antes da dos agentes. Não vender futuro; ancorar no que construímos.</aside>
 </section>
 

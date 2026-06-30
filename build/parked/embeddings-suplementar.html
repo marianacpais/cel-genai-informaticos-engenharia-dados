@@ -1,0 +1,199 @@
+<!-- PARQUEADO 2026-06-30: bloco 'embeddings suplementar' (escolher e avaliar), removido da aula-completa
+     por ser demasiado nicho. Guardado para reuso. Slides: tipos/família de modelo (bi/cross-encoder),
+     dimensionalidade, Matryoshka, domínio/fine-tuning, multilingual/português, avaliar (leaderboard vs corpus),
+     métricas de retrieval. Estes NÃO são problemas de engenharia de dados — nota da formadora. -->
+
+      <!-- ============ C2 · EMBEDDINGS SUPLEMENTAR ============ -->
+<!-- ===== PARTE 2: EMBEDDINGS SUPLEMENTAR ===== -->
+<!-- (inserir DEPOIS do core existente: "A cadeia" → "O que distingue os dois") -->
+
+<!-- DIVIDER · EMBEDDINGS NA PRÁTICA -->
+<section class="section-divider" data-transition="fade" data-background-transition="fade">
+  <p class="label">Construir para a GenAI · embeddings · escolher e avaliar</p>
+  <h2>Já sabe como se produzem. Agora, qual escolher?</h2>
+  <aside class="notes">Abrimos a caixa dos embeddings: tokenização, matriz, atenção, pooling, treino contrastivo, e as consequências de engenharia. Tudo isso era o "como funciona". Esta segunda parte é o "como escolher e avaliar" — as decisões práticas que toma quando monta um sistema real: que família de modelo, que dimensão, modelo geral ou de domínio, e o português, e como medir se está a funcionar. Menos teoria, mais decisão de arquitetura.</aside>
+</section>
+
+<!-- TIPOS / FAMÍLIA DE MODELO -->
+<section class="content-slide">
+  <span class="label-tag">Tipos de modelo · 1</span>
+  <h2>De uma palavra-um-vetor a uma frase-um-vetor</h2>
+  <div class="separator"></div>
+  <div class="stage">
+    <div class="layers">
+      <div class="layer l1">word2vec / GloVe <span class="tag">2013 · estático · 1 vetor por palavra, sem contexto</span></div>
+      <div class="layer l2">BERT e descendentes <span class="tag">2018 · contextual · o vetor depende da frase</span></div>
+      <div class="layer l3">sentence-transformers <span class="tag">2019+ · frase &rarr; 1 vetor, pooling treinado para semelhança</span></div>
+    </div>
+    <p class="lead" style="max-width:90%;">O que põe num vector store é quase sempre da terceira camada: um <strong>sentence-transformer</strong>, BERT afinado com pooling para que a semelhança cosseno entre <em>frases</em> signifique algo.</p>
+  </div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">64</span></div>
+  <aside class="notes">Três gerações. Word2vec e GloVe, de 2013, são estáticos: cada palavra tem um vetor fixo, "banco" é sempre o mesmo independentemente da frase — vimos isto no core. BERT, 2018, trouxe o contextual: o vetor do token depende da frase à volta. Mas BERT cru dá um vetor por token e não é ótimo para comparar frases inteiras. Os sentence-transformers, de 2019 em diante, pegam num BERT e afinam-no especificamente para que o vetor da frase, depois do pooling, viva num espaço onde cosseno alto significa "querem dizer o mesmo". Esta terceira camada é o que usa em RAG. Quando alguém diz "modelo de embedding" hoje, quase sempre quer dizer um sentence-transformer. A distinção seguinte — bi-encoder vs cross-encoder — é dentro desta família.</aside>
+</section>
+
+<!-- BI-ENCODER VS CROSS-ENCODER -->
+<section class="content-slide">
+  <span class="label-tag">Tipos de modelo · 2</span>
+  <h2>Bi-encoder para procurar, cross-encoder para reordenar</h2>
+  <div class="separator"></div>
+  <div class="stage">
+    <div class="contrast">
+      <div class="c">
+        <h3>Bi-encoder</h3>
+        <p>codifica a query e o documento <strong>em separado</strong> — um vetor cada. Pré-calcula os vetores dos docs e indexa. Rápido, escala a milhões.</p>
+        <p style="font-size:17pt;color:var(--cel-slate);margin-top:14px;">é o que vai para o vector store · retrieval</p>
+      </div>
+      <div class="c weight">
+        <h3>Cross-encoder</h3>
+        <p>mete query <strong>e</strong> documento <strong>juntos</strong> no modelo e devolve uma pontuação de par. Muito mais preciso — e não indexável.</p>
+        <div class="chips"><span>preciso</span><span>lento</span><span>rerank do top-k</span></div>
+      </div>
+    </div>
+    <p class="why"><b>Padrão real:</b> bi-encoder recupera os top-50 (barato), cross-encoder reordena esses 50 (caro mas só 50). O melhor dos dois.</p>
+  </div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">65</span></div>
+  <aside class="notes">Esta distinção é decisiva para quem constrói RAG. O bi-encoder codifica a pergunta e cada documento separadamente — duas passagens independentes pelo modelo, um vetor cada. A grande vantagem: os vetores dos documentos pré-calculam-se e indexam-se, então no momento da query só codifica a pergunta e faz busca vetorial. Escala a milhões. A desvantagem: como nunca viu a pergunta e o documento ao mesmo tempo, perde interações finas. O cross-encoder faz o oposto: mete os dois juntos no modelo e produz uma pontuação de relevância do par. Muito mais preciso, mas não dá um vetor reutilizável — teria de correr o modelo para cada par query-documento, impossível a milhões. Por isso o padrão de produção é em duas fases: o bi-encoder recupera um top-50 barato, o cross-encoder reordena só esses 50. Recall barato, precisão onde importa.</aside>
+</section>
+
+<!-- DIMENSIONALIDADE -->
+<section class="content-slide">
+  <span class="label-tag">Dimensionalidade</span>
+  <h2>Mais dimensões: mais nuance, mais custo</h2>
+  <div class="separator"></div>
+  <div class="stage">
+    <div class="layers">
+      <div class="layer l1">384 <span class="tag">leve · índice barato · menos nuance</span></div>
+      <div class="layer l2">768 <span class="tag">o equilíbrio mais comum</span></div>
+      <div class="layer l3">1536 / 3072 <span class="tag">mais nuance · storage e índice HNSW caros</span></div>
+    </div>
+    <p class="lead" style="max-width:90%;">A dimensão multiplica <strong>tudo</strong>: storage do vector store, memória do índice, custo de cada comparação. A milhões de vetores, escolher 1536 quando 384 chegava é dinheiro a arder &mdash; <strong>decisão de arquitetura</strong>.</p>
+  </div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">66</span></div>
+  <aside class="notes">As dimensões típicas: 384, 768, 1024, 1536, e os grandes vão a 3072. Mais dimensões dão ao modelo mais eixos para codificar nuance, e em geral mais qualidade de retrieval. Mas a dimensão multiplica todos os custos: o storage do vector store é linear na dimensão, a memória do índice HNSW também, e cada cálculo de semelhança percorre o vetor inteiro. A milhões de vetores, a diferença entre 384 e 1536 é quatro vezes o storage e o custo de índice — pode ser a diferença entre caber na RAM ou não. Por isso isto é uma decisão de arquitetura, não um default. A pergunta certa é: a sua tarefa precisa mesmo da nuance extra, ou um modelo de 384 dimensões recupera igualmente bem no seu corpus? E isto liga ao próximo conceito, que parte este trade-off pela raiz: e se pudesse escolher a dimensão depois de treinar?</aside>
+</section>
+
+<!-- MATRYOSHKA / MRL -->
+<section class="content-slide">
+  <span class="label-tag">Matryoshka (MRL)</span>
+  <h2>Um vetor que se pode encurtar</h2>
+  <div class="separator"></div>
+  <div class="stage">
+    <div class="figure" style="max-width:1040px;">
+      <svg viewBox="0 0 1000 230" role="img" aria-label="Vetor Matryoshka cortado em 256, 768 e 1536">
+        <rect x="40" y="80" width="900" height="64" fill="#2F4E5E"/>
+        <rect x="40" y="80" width="150" height="64" fill="#6D6D3E"/>
+        <rect x="190" y="80" width="300" height="64" fill="#8a8a5a"/>
+        <line x1="190" y1="64" x2="190" y2="160" stroke="#3A3838" stroke-width="2" stroke-dasharray="4 4"/>
+        <line x1="490" y1="64" x2="490" y2="160" stroke="#3A3838" stroke-width="2" stroke-dasharray="4 4"/>
+        <text x="115" y="200" class="svg-label" text-anchor="middle">256</text>
+        <text x="340" y="200" class="svg-label" text-anchor="middle">768</text>
+        <text x="715" y="200" class="svg-label" text-anchor="middle">1536 (completo)</text>
+        <text x="115" y="64" class="svg-label muted" text-anchor="middle">barato</text>
+        <text x="715" y="64" class="svg-label muted" text-anchor="middle">máxima nuance</text>
+      </svg>
+    </div>
+    <p class="lead" style="max-width:92%;">Treinado para que os <strong>primeiros</strong> valores carreguem o essencial. Corta o vetor em 256 e ainda funciona — uma só geração, várias dimensões. Indexa curto para triagem, guarda longo para rerank.</p>
+  </div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">67</span></div>
+  <aside class="notes">Matryoshka Representation Learning, MRL, resolve o trade-off da dimensão de forma elegante — daí o nome das bonecas russas. O modelo é treinado com uma perda que obriga os primeiros 256 valores do vetor a já serem, sozinhos, um bom embedding; os primeiros 768 a serem melhores; e o vetor completo o melhor de todos. A consequência prática é poderosa: gera o vetor uma vez, em dimensão máxima, mas pode truncá-lo — literalmente cortar e renormalizar — para a dimensão que quiser, sem re-embeber. Isto permite um padrão muito eficiente: indexa a versão curta de 256 para fazer triagem rápida e barata sobre milhões, e guarda a versão longa para reordenar com precisão só o top que sobrou. Os modelos de embedding mais recentes da OpenAI e vários open-source suportam isto. É a resposta de engenharia ao slide anterior: já não tem de escolher a dimensão antes de saber se precisa dela.</aside>
+</section>
+
+<!-- DOMÍNIO E FINE-TUNING -->
+<section class="content-slide">
+  <span class="label-tag">Domínio e fine-tuning</span>
+  <h2>Quando o modelo geral não fala a sua língua</h2>
+  <div class="separator"></div>
+  <div class="stage">
+    <div class="sql-grid">
+      <div class="sql-card wrong">
+        <span class="tag">modelo geral</span>
+        <pre>cos("Java", "ilha tropical")
+  = 0.71
+
+cos("Java", "JVM, garbage
+            collector")
+  = 0.69</pre>
+        <p class="res">não separa <b>linguagem</b> de <b>ilha</b></p>
+      </div>
+      <div class="sql-card right">
+        <span class="tag">modelo de domínio / afinado</span>
+        <pre>cos("Java", "ilha tropical")
+  = 0.18
+
+cos("Java", "JVM, garbage
+            collector")
+  = 0.88</pre>
+        <p class="res">o jargão certo fica <b>perto</b></p>
+      </div>
+    </div>
+    <p class="why"><b>Lembre do core:</b> "parecido" é definido pelos pares de treino. Se o seu domínio (clínico, jurídico, código) tem semântica própria, ou usa um modelo de domínio, ou afina com os seus pares.</p>
+  </div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">68</span></div>
+  <aside class="notes">No core vimos o corolário honesto do treino contrastivo: "parecido" é exatamente o que os pares de treino disserem que é parecido. Um modelo geral foi treinado em texto da internet, onde "Java" tanto é ilha como linguagem como café, e ele coloca-os todos a uma distância morna. Para um motor de busca de documentação técnica, isso é mau — quero que "Java" puxe "JVM" e empurre "ilha tropical". A solução é modelo de domínio: ou existe um pré-treinado para a sua área (há modelos clínicos, jurídicos, de código), ou afina um modelo geral com pares seus — exemplos de "isto é parecido com aquilo no meu domínio". O fine-tuning de embeddings é dos mais acessíveis: alguns milhares de pares positivos do seu corpus chegam para mover o espaço. A decisão é de qualidade de dados: o modelo geral é fraco no seu jargão? Meça primeiro, antes de assumir que precisa de afinar.</aside>
+</section>
+
+<!-- MULTILINGUAL E O PORTUGUÊS -->
+<section class="content-slide">
+  <span class="label-tag">Multilingual · o português</span>
+  <h2>Cuidado com o seu português</h2>
+  <div class="separator"></div>
+  <div class="stage">
+    <div class="points two">
+      <div class="point"><span class="m"></span><p><b>Alinhamento cross-lingual</b><span class="sub">um bom modelo põe "hipertensão" e "hypertension" perto — busca numa língua, documentos noutra</span></p></div>
+      <div class="point"><span class="m"></span><p><b>Viés para o inglês</b><span class="sub">muitos modelos são fracos em PT; e PT-PT &ne; PT-BR no vocabulário</span></p></div>
+      <div class="point"><span class="m"></span><p><b>Tokenização infla</b><span class="sub">acentos e morfologia PT gastam mais tokens &rarr; cabe menos por chunk</span></p></div>
+      <div class="point"><span class="m"></span><p><b>Jargão clínico/jurídico PT</b><span class="sub">terminologia local raramente está bem no treino</span></p></div>
+    </div>
+    <div class="callout" style="max-width:88%; margin:0 auto;">
+      <span class="k">A regra</span>
+      <p>O leaderboard é quase todo em inglês. <strong>Teste no seu PT, com o seu domínio</strong> — não extrapole da pontuação em inglês.</p>
+    </div>
+  </div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">69</span></div>
+  <aside class="notes">O português tem armadilhas próprias. Do lado bom: um modelo multilingual decente alinha as línguas no mesmo espaço, então "hipertensão" e "hypertension" ficam perto, e pode pesquisar em português sobre um corpus em inglês — útil. Do lado mau: muitos modelos foram treinados esmagadoramente em inglês e são medíocres em português; e quando há português no treino, costuma ser PT-BR, que diverge do PT-PT em vocabulário ("rato" vs "mouse", termos clínicos, jurídicos). Há também um custo escondido: o português gasta mais tokens que o inglês — acentos, contrações, morfologia rica — então o mesmo texto enche mais a janela e cabe menos por chunk, o que muda as suas contas de chunking. E o jargão local — terminologia clínica ou jurídica portuguesa — raramente está bem representado. A conclusão prática: as tabelas de classificação de embeddings são quase todas em inglês; não extrapole. Meça no seu português, com o seu domínio. O que nos leva à última peça: como medir.</aside>
+</section>
+
+<!-- AVALIAR · MTEB E GOLDEN SET -->
+<section class="content-slide">
+  <span class="label-tag">Avaliar · 1</span>
+  <h2>Não acredite no leaderboard. Meça no seu corpus.</h2>
+  <div class="separator"></div>
+  <div class="stage">
+    <div class="contrast">
+      <div class="c">
+        <h3>MTEB</h3>
+        <p>benchmark público de embeddings, dezenas de tarefas. Bom para <strong>triagem</strong> — descartar os fracos.</p>
+        <p style="font-size:17pt;color:var(--cel-slate);margin-top:14px;">mas é em inglês, e não é o seu caso</p>
+      </div>
+      <div class="c weight">
+        <h3>O seu golden set</h3>
+        <p>50&ndash;100 queries reais, cada uma com o documento que <strong>devia</strong> ser recuperado. No seu idioma, no seu domínio.</p>
+        <div class="chips"><span>pequeno</span><span>real</span><span>versionado</span></div>
+      </div>
+    </div>
+    <p class="why"><b>Decisão:</b> use o MTEB para chegar a 3&ndash;4 candidatos; escolha entre eles com o <em>seu</em> golden set. A pontuação que conta é a do seu caso.</p>
+  </div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">70</span></div>
+  <aside class="notes">A tentação é abrir o leaderboard do MTEB — Massive Text Embedding Benchmark — pegar no número um e acabar. Não faça isso. O MTEB é útil como triagem: dezenas de tarefas, dá para excluir os modelos claramente fracos e ficar com uma mão-cheia de candidatos. Mas é maioritariamente inglês e nenhuma das suas tarefas é o seu problema. A decisão real faz-se com um golden set seu: 50 a 100 perguntas reais que os seus utilizadores fariam, cada uma anotada com o documento que deveria ser recuperado, no seu idioma e domínio. É pouco trabalho — uma tarde — e é o ativo mais valioso que tem, porque o deixa medir qualquer modelo, qualquer estratégia de chunking, qualquer dimensão, no que realmente importa. Versione-o como versiona código. O leaderboard escolhe os finalistas; o seu golden set escolhe o vencedor.</aside>
+</section>
+
+<!-- AVALIAR · MÉTRICAS -->
+<section class="content-slide">
+  <span class="label-tag">Avaliar · 2</span>
+  <h2>As métricas que dizem se o retrieval presta</h2>
+  <div class="separator"></div>
+  <div class="stage">
+    <div class="points two">
+      <div class="point"><span class="m sq2"></span><p><b>Recall@k</b><span class="sub">o documento certo está no top-k? A métrica-rei do RAG — se não recupera, o LLM não tem com que responder</span></p></div>
+      <div class="point"><span class="m sq2"></span><p><b>MRR</b><span class="sub">quão acima está o primeiro acerto (1/posição). Penaliza pôr o certo em 9º</span></p></div>
+      <div class="point"><span class="m sq2"></span><p><b>nDCG@k</b><span class="sub">ordenação ponderada por relevância graduada, não só sim/não</span></p></div>
+      <div class="point"><span class="m sq2"></span><p><b>Precision@k</b><span class="sub">quanto do top-k é lixo? Trade-off com o recall</span></p></div>
+    </div>
+    <div class="callout" style="max-width:88%; margin:0 auto;">
+      <span class="k">Para RAG, comece pelo recall@k</span>
+      <p>Suba o <span class="mono">k</span> até o recall ser alto o suficiente; depois use rerank (cross-encoder) para a precisão. Recuperar mal é falhar antes de o LLM abrir a boca.</p>
+    </div>
+  </div>
+  <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">71</span></div>
+  <aside class="notes">Quatro métricas, mas uma manda. Recall@k: dos documentos relevantes, quantos apanhou no top-k? Para RAG é a métrica-rei, porque o que não é recuperado simplesmente não chega ao LLM — ele não pode responder com o que não vê. MRR, mean reciprocal rank: olha para a posição do primeiro acerto, recompensa pô-lo em primeiro e penaliza pô-lo em nono. nDCG: o mais sofisticado, pondera por relevância graduada e pela posição, para quando "relevante" não é binário. Precision@k: a fração do top-k que é mesmo relevante — importa quando enche o contexto do LLM com ruído. A estratégia prática para RAG: foque-se primeiro no recall@k, suba o k até recuperar quase sempre o documento certo, e só depois traz um cross-encoder para reordenar e melhorar a precisão no topo. A ordem importa: recuperar mal é falhar antes de o gerador sequer começar.</aside>
+</section>
