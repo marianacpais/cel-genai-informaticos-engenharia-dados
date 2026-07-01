@@ -1,14 +1,13 @@
 # Notas de orador — GenAI na Engenharia de Dados (aula completa)
 
-_Guião gerado a partir do deck. O reveal.js mostra estas notas na **vista de orador**: abre o deck e carrega em **`S`** (2.ª janela com nota + próximo slide + cronómetro). Nos separadores de secção a nota é a deixa de transição._
+_O reveal.js mostra estas notas na **vista de orador**: abre o deck e carrega em **`S`** (2.ª janela com nota + próximo slide + cronómetro)._
 
 ## Como usar
 
-- **Não ler à letra.** Cada bloco é o *essencial a dizer* + as armadilhas a evitar.
-- **Ritmo flexível.** Ajustar conforme o aquecimento. Diz-me a duração total e ponho tempos por secção.
-- **Sessão remota:** interação por mão-no-ar do Zoom, chat ou microfone.
-- **Regras da casa:** erro/aviso em **azeitona, nunca vermelho**; tom adulto; exemplos fora da saúde de propósito.
-- **Sandboxes ao vivo (só 1, 2, 3):** há slides «Atividade · sandbox» com botão que abre em separador novo.
+- **Não ler à letra.** Essencial a dizer + armadilhas a evitar.
+- **Ritmo flexível**, conforme o aquecimento. **Sessão remota:** mão-no-ar do Zoom, chat ou microfone.
+- **Regras da casa:** erro/aviso em **azeitona, nunca vermelho**; tom adulto.
+- **Sandboxes ao vivo (só 1, 2, 3):** slides «Atividade · sandbox» com botão que abre em separador novo.
 
 
 > _GenAI na Engenharia de Dados:_ Arranque. Apresentar-me e enquadrar: Aula 5, GenAI para informáticos — do percurso dos dados às pipelines que alimentam a IA. Lembrar que é sessão remota; convidar a usar chat e microfone à vontade.
@@ -341,7 +340,7 @@ Mãos-à-obra (EX-2), a seguir aos exemplos e falhas do LLM-como-ETL. Vários ca
 
 ---
 
-## Construir para a GenAI · núcleo — Embeddings, a fundo
+## Construir para a GenAI · núcleo — Conceitos de embeddings
 
 > _transição:_ Abrimos a caixa dos embeddings: cinco passos, do texto ao vetor. Desmistificar o suficiente para usarem o Sandbox 3 — sem exigir que decorem nada.
 
@@ -383,7 +382,7 @@ Aterrar tudo na engenharia de dados. O vetor é um dado derivado, como uma colun
 
 **66. O que distingue os dois**  ·  <sub>Embeddings · síntese</sub>
 
-Fecho dos embeddings. A intuição (texto -> vetor, perto = parecido) chega para perceber o conceito; o que distingue o engenheiro é tratar o vetor como dado — versionado, com custo, com linhagem, que desatualiza. Ponte para o que vem a seguir: um RAG inteiro é um pipeline de dados.
+Fecho dos embeddings. Uma coisa é a intuição (texto -> vetor, perto = parecido); outra é tratar o vetor como dado — versionado, com custo, com linhagem, que desatualiza. É essa a mentalidade para o que vem a seguir: um RAG inteiro é um pipeline de dados.
 
 
 **67. Vamos experimentar: o espaço dos embeddings**  ·  <sub>Atividade · sandbox 3</sub>
@@ -395,10 +394,10 @@ Mãos-à-obra (EX-3), depois de explicar como se produzem os embeddings. Há 5 e
 
 ## Construir para a GenAI · RAG — Recuperar para gerar
 
-> _transição:_ RAG. A tese que atravessa a secção: um RAG é um problema de engenharia de dados disfarçado de IA — a parte de IA é a mais pequena e a mais resolvida.
+> _transição:_ RAG. A tese que atravessa a secção: um RAG é, sobretudo, um problema de engenharia de dados — a parte de IA é a mais pequena e a mais resolvida.
 
 
-**68. Disfarçado de IA**  ·  <sub>O sentimento de 2026</sub>
+**68. Sobretudo engenharia de dados**  ·  <sub>O sentimento de 2026</sub>
 
 Abrir o RAG com humildade: a parte "IA" é a mais pequena e a mais resolvida. O trabalho difícil — e o que distingue um RAG que funciona de um que mente — é tudo o que está antes do LLM. Tom: isto é território do engenheiro de dados, não do investigador de ML. A frase é sentimento da comunidade (ver SOURCES), usá-la como tal, sem aspas atribuídas.
 

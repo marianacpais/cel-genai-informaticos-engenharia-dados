@@ -1530,7 +1530,7 @@ resp = client.extract(texto, schema=NotaClinica)</pre>
 <!-- ===================== EMBEDDINGS (núcleo) ===================== -->
   <section class="section-divider" data-transition="fade" data-background-transition="fade">
     <p class="label">Construir para a GenAI · núcleo</p>
-    <h2>Embeddings, a fundo</h2>
+    <h2>Conceitos de embeddings</h2>
     <aside class="notes">Abrimos a caixa dos embeddings: cinco passos, do texto ao vetor. Desmistificar o suficiente para usarem o Sandbox 3 — sem exigir que decorem nada.</aside>
   </section>
 
@@ -1733,10 +1733,10 @@ resp = client.extract(texto, schema=NotaClinica)</pre>
           <div class="chips"><span>versionado</span><span>com custo</span><span>com linhagem</span><span>que desatualiza</span></div>
         </div>
       </div>
-      <p class="lead" style="max-width:88%;">A intuição chega para perceber o conceito; o que distingue o engenheiro é a card da direita. É a mentalidade que aplicamos a seguir: <strong>um RAG inteiro é um pipeline de dados</strong>.</p>
+      <p class="lead" style="max-width:88%;">Uma coisa é saber o que é um embedding; outra é tratá-lo como dado — versionado, com custo, com linhagem. É essa a mentalidade para o que vem a seguir: <strong>um RAG inteiro é um pipeline de dados</strong>.</p>
     </div>
     <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">66</span></div>
-    <aside class="notes">Fecho dos embeddings. A intuição (texto -> vetor, perto = parecido) chega para perceber o conceito; o que distingue o engenheiro é tratar o vetor como dado — versionado, com custo, com linhagem, que desatualiza. Ponte para o que vem a seguir: um RAG inteiro é um pipeline de dados.</aside>
+    <aside class="notes">Fecho dos embeddings. Uma coisa é a intuição (texto -> vetor, perto = parecido); outra é tratar o vetor como dado — versionado, com custo, com linhagem, que desatualiza. É essa a mentalidade para o que vem a seguir: um RAG inteiro é um pipeline de dados.</aside>
   </section>
 
   
@@ -1769,22 +1769,22 @@ resp = client.extract(texto, schema=NotaClinica)</pre>
 <section class="section-divider" data-transition="fade" data-background-transition="fade">
   <p class="label">Construir para a GenAI · RAG</p>
   <h2>Recuperar para gerar</h2>
-  <aside class="notes">RAG. A tese que atravessa a secção: um RAG é um problema de engenharia de dados disfarçado de IA — a parte de IA é a mais pequena e a mais resolvida.</aside>
+  <aside class="notes">RAG. A tese que atravessa a secção: um RAG é, sobretudo, um problema de engenharia de dados — a parte de IA é a mais pequena e a mais resolvida.</aside>
 </section>
 
 <!-- ZEITGEIST · RAG DISFARÇADO DE IA -->
 <section class="content-slide">
   <span class="label-tag">O sentimento de 2026</span>
-  <h2>Disfarçado de IA</h2>
+  <h2>Sobretudo engenharia de dados</h2>
   <div class="separator"></div>
   <div class="stage">
     <div class="zeitgeist">
-      <p class="quote">"RAG é um problema de engenharia de dados <em>disfarçado de IA</em>."</p>
+      <p class="quote">"RAG é, sobretudo, um problema de engenharia de dados."</p>
       <p class="src">frase-zeitgeist repetida em várias formulações pela comunidade de dados em 2025–26 · não atribuível a um autor único</p>
     </div>
     <div class="callout" style="max-width:82%; margin:0 auto;">
       <span class="k">Leia isto como aviso, não como slogan</span>
-      <p>Quando um RAG falha em produção, quase nunca é o modelo nem o prompt. É <strong>o pipeline que o alimenta</strong> — e esse pipeline é seu.</p>
+      <p>Quando um RAG falha em produção, muitas vezes não é o modelo nem o prompt — é <strong>o pipeline que o alimenta</strong>.</p>
     </div>
   </div>
   <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">68</span></div>
