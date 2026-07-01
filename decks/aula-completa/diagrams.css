@@ -237,3 +237,12 @@
 .zeitgeist .quote em { color: var(--cel-secondary); font-style: italic; }
 .zeitgeist .src { font-size: 16pt; color: var(--cel-slate); margin-top: 22px; }
 .cap.gen { color: var(--cel-secondary); }
+
+/* ---------- CTA de atividade (abrir sandbox em novo separador) ---------- */
+.sandbox-cta { display: inline-flex; align-items: center; gap: 14px; margin: 4px auto 0;
+  font-family: var(--heading-font); font-weight: 600; font-size: 23pt;
+  background: var(--cel-secondary); padding: 22px 44px; border-radius: 8px;
+  text-decoration: none; box-shadow: 0 4px 16px rgba(109,109,62,0.32); transition: transform .12s ease; }
+.reveal .sandbox-cta, .reveal a.sandbox-cta { color: #fff; }
+.sandbox-cta i { font-size: 21pt; }
+.reveal .sandbox-cta:hover { transform: translateY(-2px); }

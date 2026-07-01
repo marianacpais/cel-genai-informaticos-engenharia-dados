@@ -13,7 +13,8 @@
   <style>
     .mono { font-family: var(--mono); color: var(--cel-primary); }
     .hcenter { display: flex; align-items: center; }
-    .cap.gen { color: var(--cel-secondary); }
+    .cap.gen { color: var(--cel-secondary); font-weight: 600; }
+    .cap.gen i { display: block; font-size: 23pt; margin-bottom: 8px; color: var(--cel-secondary); }
   </style>
 </head>
 <body>
@@ -103,17 +104,17 @@
     <div class="separator"></div>
     <div class="stage">
       <div class="chain">
-        <div class="chain-col"><div class="chain-box fill">fontes</div><div class="cap gen">extrair estrutura de não-estruturado</div></div>
+        <div class="chain-col"><div class="chain-box fill">fontes</div><div class="cap gen"><i class="fa-solid fa-file-lines"></i>extrair estrutura de texto</div></div>
         <span class="arrow"></span>
-        <div class="chain-col"><div class="chain-box fill">ingestão</div><div class="cap gen">classificar e encaminhar</div></div>
+        <div class="chain-col"><div class="chain-box fill">ingestão</div><div class="cap gen"><i class="fa-solid fa-filter"></i>classificar e encaminhar</div></div>
         <span class="arrow"></span>
-        <div class="chain-col"><div class="chain-box fill">armazém</div><div class="cap gen">base de dados vetorial</div></div>
+        <div class="chain-col"><div class="chain-box fill">armazém</div><div class="cap gen"><i class="fa-solid fa-vector-square"></i>base de dados vetorial</div></div>
         <span class="arrow"></span>
-        <div class="chain-col"><div class="chain-box fill">transformar</div><div class="cap gen">text-to-SQL · dbt · o LLM como T</div></div>
+        <div class="chain-col"><div class="chain-box fill">transformar</div><div class="cap gen"><i class="fa-solid fa-wand-magic-sparkles"></i>text-to-SQL · o LLM como T</div></div>
         <span class="arrow"></span>
-        <div class="chain-col"><div class="chain-box fill">serviço</div><div class="cap gen">RAG · copilotos</div></div>
+        <div class="chain-col"><div class="chain-box fill">serviço</div><div class="cap gen"><i class="fa-solid fa-comments"></i>RAG e copilotos</div></div>
       </div>
-      <p class="lead" style="text-align:center; margin:0 auto; max-width:86%;">A azeitona marca onde a GenAI já entra hoje. Em cada etapa, de duas formas: como <strong>copiloto</strong> de quem constrói, e como <strong>novo consumidor</strong> para o qual se constrói.</p>
+      <p class="lead" style="text-align:center; margin:0 auto; max-width:82%;">Não é um apêndice no fim: entra em <strong>cada etapa</strong>, dos dois lados — como <strong>copiloto</strong> de quem constrói e como <strong>novo consumidor</strong> para quem se constrói.</p>
     </div>
     <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">04</span></div>
     <aside class="notes">Visão de conjunto antes do detalhe: a GenAI não é um apêndice no fim do pipeline, atravessa-o todo. Esta dualidade — copiloto de quem constrói, e consumidor novo para quem se constrói — é o que a sessão seguinte desenvolve. Aqui fica só o mapa.</aside>

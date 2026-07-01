@@ -11,8 +11,7 @@
   <link rel="stylesheet" href="cel-base.css">
   <link rel="stylesheet" href="diagrams.css">
   <style>
-    .ask { font-family: var(--mono); color: var(--cel-secondary); font-size: 18pt; }
-    .hand { font-size: 17pt; color: var(--cel-slate); text-align: center; margin: 6px auto 0; }
+    .hand { font-size: 17pt; color: var(--cel-slate); text-align: center; margin: 8px auto 0; }
     .hand i { color: var(--cel-secondary); margin-right: 8px; }
   </style>
 </head>
@@ -34,61 +33,52 @@
     <div class="separator"></div>
     <div class="stage">
       <div class="points">
-        <div class="point"><span class="m"></span><p>Cinco perguntas rápidas, de mão no ar e conversa. <b>Não há respostas certas.</b></p></div>
+        <div class="point"><span class="m"></span><p>Umas perguntas rápidas para vos conhecer. <b>Não há respostas certas.</b></p></div>
+        <div class="point"><span class="m"></span><p>Respondam como for mais fácil: <b>mão no ar</b> no Zoom, no <b>chat</b>, ou <b>abram o microfone</b>.</p></div>
         <div class="point"><span class="m"></span><p>Servem para calibrar o <b>ritmo</b> e escolher os <b>exemplos</b> ao que já fazem.</p></div>
-        <div class="point"><span class="m"></span><p>Quem vem mais de bases de dados, quem vem mais de ficheiros, quem já mexeu em IA — o percurso ajusta-se.</p></div>
       </div>
       <p class="lead" style="text-align:center; margin:0 auto; max-width:82%;">Conforme a sala, demoramo-nos mais nos fundamentos ou passamos por eles depressa.</p>
     </div>
     <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">01</span></div>
-    <aside class="notes">Abrir sem condescendência: o objetivo é genuinamente calibrar. A turma é mista — informáticos, mas com maturidades de dados muito diferentes. Estas cinco perguntas dizem-me se posso correr nos fundamentos (Introdução à Engenharia de Dados) ou se vale a pena demorar. Tomar nota mental das mãos por pergunta.</aside>
+    <aside class="notes">Sessão remota (Zoom/webinar) — não há sala física, por isso a interação é por mão-no-ar do Zoom, chat ou microfone. Abrir sem condescendência: o objetivo é genuinamente calibrar. A turma é mista — informáticos, mas com relações com dados muito diferentes, e talvez nem todos trabalhem com dados. Estas perguntas dizem-me se posso correr nos fundamentos ou se vale a pena demorar.</aside>
   </section>
 
-  <!-- 02 · PERGUNTA 1 · STACK -->
+  <!-- 02 · P1 · TRABALHAM COM DADOS? (prévia) -->
   <section class="content-slide">
-    <span class="label-tag">Pergunta 1 · a vossa stack</span>
-    <h2>Com que sistemas de dados trabalham?</h2>
+    <span class="label-tag">Pergunta 1 · o ponto de partida</span>
+    <h2>Trabalham com dados no dia-a-dia?</h2>
     <div class="separator"></div>
     <div class="stage">
-      <div class="tiles-grid">
-        <div class="tcard"><i class="fa-solid fa-database"></i><h4>Bases relacionais</h4><p>Postgres, MySQL, SQL Server, Oracle.</p></div>
-        <div class="tcard"><i class="fa-solid fa-layer-group"></i><h4>NoSQL</h4><p>Mongo, Redis, Cassandra, Elastic.</p></div>
-        <div class="tcard"><i class="fa-solid fa-warehouse"></i><h4>Warehouses / lakes</h4><p>BigQuery, Snowflake, Redshift, S3.</p></div>
-        <div class="tcard"><i class="fa-solid fa-bolt"></i><h4>Big data / streaming</h4><p>Spark, Hadoop, Kafka, Flink.</p></div>
+      <div class="points">
+        <div class="point"><span class="m"></span><p><b>É o centro do meu trabalho</b> — dados são o que faço.</p></div>
+        <div class="point"><span class="m"></span><p><b>Faz parte, às vezes</b> — toco em dados, mas não é o foco.</p></div>
+        <div class="point"><span class="m"></span><p><b>Pouco ou nada</b> — venho mais por curiosidade sobre GenAI.</p></div>
       </div>
-      <p class="hand"><i class="fa-regular fa-hand"></i>Mão no ar por cada um que usam no dia-a-dia.</p>
+      <p class="hand"><i class="fa-regular fa-hand"></i>Mão no ar no Zoom, ou digam no chat — qual é o vosso caso?</p>
     </div>
     <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">02</span></div>
-    <aside class="notes">Mapear a stack real. Quero perceber a escala: quem só toca em bases relacionais e quem já lida com volumes que exigem Spark/streaming. Se quase ninguém usa big data, não vale a pena puxar muito por esses exemplos; se a sala é sénior, posso ir mais fundo. Perguntar também qual o papel deles — dev de aplicação que toca na BD, analista, alguém de plataforma de dados.</aside>
+    <aside class="notes">A pergunta prévia que faltava: nem toda a gente que vem a "GenAI para informáticos" trabalha com dados. Isto muda tudo — se metade da sala não lida com dados, tenho de ancorar mais nos fundamentos e usar exemplos mais universais (vendas, suporte, texto) e menos de plataforma de dados. Se são quase todos de dados, posso ir mais fundo e mais depressa. É a primeira leitura da sala.</aside>
   </section>
 
-  <!-- 03 · PERGUNTA 2 · BASES VS FICHEIROS -->
+  <!-- 03 · P2 · EXPERIÊNCIA COM SISTEMAS DE DADOS -->
   <section class="content-slide">
-    <span class="label-tag">Pergunta 2 · de onde vêm os dados</span>
-    <h2>Mais bases de dados, ou mais ficheiros?</h2>
+    <span class="label-tag">Pergunta 2 · a vossa experiência</span>
+    <h2>Que experiência têm com sistemas de dados?</h2>
     <div class="separator"></div>
     <div class="stage">
-      <div class="doors">
-        <div class="door a">
-          <span class="kick">Bases de dados</span>
-          <h3>Modelar e consultar</h3>
-          <p>Esquemas, queries, transações, índices. O dado vive num sistema vivo.</p>
-          <div class="foot">SQL, modelação, performance</div>
-        </div>
-        <div class="door b">
-          <span class="kick">Ingestão de ficheiros</span>
-          <h3>Receber e processar</h3>
-          <p>CSV, Excel, Parquet, JSON, exportações e APIs. O dado chega de fora e é preciso limpá-lo.</p>
-          <div class="foot">ETL, parsing, validação</div>
-        </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:22px 40px; max-width:940px; margin:0 auto;">
+        <div class="feature"><i class="fa-solid fa-database"></i><h3>Bases relacionais</h3><p>Postgres, MySQL, SQL Server, Oracle — modelar e consultar em SQL.</p></div>
+        <div class="feature"><i class="fa-solid fa-layer-group"></i><h3>NoSQL, warehouses, lakes</h3><p>Mongo, Redis; BigQuery, Snowflake, S3 — outros modelos e a analítica.</p></div>
+        <div class="feature"><i class="fa-solid fa-file-csv"></i><h3>Ficheiros e APIs</h3><p>CSV, Excel, Parquet, JSON — receber, limpar e ingerir de fora.</p></div>
+        <div class="feature"><i class="fa-solid fa-bolt"></i><h3>Big data / streaming</h3><p>Spark, Hadoop, Kafka, Flink — volume e fluxo contínuo.</p></div>
       </div>
-      <p class="hand"><i class="fa-regular fa-hand"></i>Onde passam mais tempo? (vale dividir a sala)</p>
+      <p class="hand"><i class="fa-regular fa-hand"></i>Com quais já trabalharam <em>a sério</em>? Digam no chat.</p>
     </div>
     <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">03</span></div>
-    <aside class="notes">Esta distinção orienta muito a aula. Quem vive em bases de dados vai ligar-se mais ao bloco "construir com a GenAI" (SQL que mente, schema linking). Quem vive de ficheiros vai ligar-se ao "construir para a GenAI" (o LLM-como-ETL, extração de texto sujo). A maioria faz as duas coisas — mas o equilíbrio diz-me que exemplos pesam mais.</aside>
+    <aside class="notes">Quero a experiência real, não só "o que já ouviram falar". A diferença entre quem modela bases de dados todos os dias, quem só recebe ficheiros para processar, e quem já lidou com volumes que exigem Spark. Também me diz que exemplos pesam mais: quem vive de bases liga-se ao "SQL que mente"; quem vive de ficheiros liga-se ao "LLM-como-ETL". Espelha as fontes de dados que aparecem na Introdução — aqui é para os ouvir a eles.</aside>
   </section>
 
-  <!-- 04 · PERGUNTA 3 · ORQUESTRAÇÃO -->
+  <!-- 04 · P3 · ORQUESTRAÇÃO -->
   <section class="content-slide">
     <span class="label-tag">Pergunta 3 · automação</span>
     <h2>Como correm os vossos pipelines?</h2>
@@ -98,15 +88,15 @@
         <div class="point"><span class="m sq2"></span><p><b>À mão</b><span class="sub">corro o script quando preciso</span></p></div>
         <div class="point"><span class="m sq2"></span><p><b>Cron / agendador</b><span class="sub">corre a horas certas, sem dependências</span></p></div>
         <div class="point"><span class="m sq2"></span><p><b>Orquestrador</b><span class="sub">Airflow, Dagster, Prefect — com dependências e retries</span></p></div>
-        <div class="point"><span class="m sq2"></span><p><b>Ainda não tenho pipelines</b><span class="sub">trabalho mais pontual / exploratório</span></p></div>
+        <div class="point"><span class="m sq2"></span><p><b>Não tenho pipelines</b><span class="sub">trabalho mais pontual / exploratório</span></p></div>
       </div>
-      <p class="hand"><i class="fa-regular fa-hand"></i>Qual descreve melhor o vosso dia-a-dia?</p>
+      <p class="hand"><i class="fa-regular fa-hand"></i>Qual descreve melhor o vosso dia-a-dia? (a mais avançada, tudo bem se for "à mão")</p>
     </div>
     <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">04</span></div>
-    <aside class="notes">Termómetro de maturidade de engenharia de dados. Quem usa orquestrador já tem o vocabulário de DAG, idempotência, retries — posso ser breve nos fundamentos. Quem corre tudo à mão vai beneficiar do bloco de fundamentos por inteiro. É também a deixa para introduzir, mais tarde, porque a reprodutibilidade importa quando se mete um LLM (não-determinístico) no meio.</aside>
+    <aside class="notes">Termómetro de maturidade — a pergunta mais "profunda" das cinco, por isso vem depois das básicas sobre dados. Quem usa orquestrador já tem o vocabulário de DAG, idempotência, retries — posso ser breve nos fundamentos. Quem corre tudo à mão beneficia do bloco de fundamentos por inteiro. Sem julgamento: "à mão" é uma resposta perfeitamente legítima e comum.</aside>
   </section>
 
-  <!-- 05 · PERGUNTA 4 · FERRAMENTAS DE IA -->
+  <!-- 05 · P4 · FERRAMENTAS DE IA -->
   <section class="content-slide">
     <span class="label-tag">Pergunta 4 · ferramentas de IA</span>
     <h2>Já usaram ferramentas que geram código?</h2>
@@ -118,13 +108,13 @@
         <div class="tcard"><i class="fa-solid fa-terminal"></i><h4>Editores agênticos</h4><p>Cursor, Claude Code, Windsurf — agem no repositório.</p></div>
         <div class="tcard"><i class="fa-solid fa-cube"></i><h4>App-builders</h4><p>Lovable, v0, Bolt — da ideia à app.</p></div>
       </div>
-      <p class="hand"><i class="fa-regular fa-hand"></i>Quais já experimentaram — e para quê?</p>
+      <p class="hand"><i class="fa-regular fa-hand"></i>Quais já experimentaram — e para quê? (chat ou microfone)</p>
     </div>
     <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">05</span></div>
-    <aside class="notes">Saber o ponto de partida com IA generativa. Há uma diferença grande entre quem já tem o Copilot ligado todos os dias e quem só experimentou o ChatGPT uma vez. Quem usa editores agénticos (Cursor, Claude Code) já viveu o "escrever → orientar → validar" — posso apoiar-me nisso. Perguntar para que usam: gerar boilerplate, traduzir entre linguagens, explicar código alheio, escrever testes. Liga ao bloco "construir com a GenAI".</aside>
+    <aside class="notes">Ponto de partida com IA generativa. Há diferença grande entre quem tem o Copilot ligado todos os dias e quem só experimentou o ChatGPT. Quem usa editores agénticos já viveu o "escrever → orientar → validar". Perguntar para que usam: gerar boilerplate, traduzir entre linguagens, explicar código alheio, escrever testes. Liga ao bloco "construir com a GenAI".</aside>
   </section>
 
-  <!-- 06 · PERGUNTA 5 · PERSPETIVA -->
+  <!-- 06 · P5 · PERSPETIVA SOBRE LLMs -->
   <section class="content-slide">
     <span class="label-tag">Pergunta 5 · a vossa leitura</span>
     <h2>Qual é, para vocês, o papel dos LLMs no trabalho de dados?</h2>
@@ -132,35 +122,31 @@
     <div class="stage">
       <div class="points">
         <div class="point"><span class="m"></span><p>Onde já <b>confiam</b> num LLM hoje — e onde <b>nunca</b> confiariam?</p></div>
-        <div class="point"><span class="m"></span><p>Que parte do vosso trabalho de dados <b>imaginam</b> que um LLM poderia fazer — e que ainda não faz?</p></div>
+        <div class="point"><span class="m"></span><p>Que parte do vosso trabalho <b>imaginam</b> que um LLM poderia fazer — e ainda não faz?</p></div>
         <div class="point"><span class="m"></span><p>O que vos parece <b>exagero</b> no que se diz por aí sobre IA e dados?</p></div>
       </div>
       <div class="panel-dark" style="max-width:88%; margin:0 auto;">
         <p class="big">Não há resposta certa — é a conversa que interessa.</p>
-        <p class="tags">vamos guardar estas leituras e voltar a elas no fim</p>
+        <p class="tags">abram o microfone · vamos voltar a estas leituras no fim</p>
       </div>
     </div>
     <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">06</span></div>
-    <aside class="notes">Esta é a pergunta aberta, a mais valiosa. Deixar a sala falar. Recolher expetativas e ceticismos — vão servir de fio ao longo da aula e fechamos voltando a elas. Pontos a fazer emergir, sem os impor: o LLM brilha em texto livre e desambiguação, falha em garantias (determinismo, números, auditoria); o trabalho de dados por baixo é o que faz a diferença. Mas hoje só ouço — não corrijo.</aside>
+    <aside class="notes">A pergunta aberta, a mais valiosa — aqui vale mesmo abrir microfones. Deixar a sala falar; recolher expetativas e ceticismos, que servem de fio ao longo da aula e fechamos voltando a elas. Sem corrigir agora: só ouço. Se ninguém arrancar, lançar eu um exemplo ("confiariam num LLM para classificar tickets? e para calcular a faturação?").</aside>
   </section>
 
-  <!-- 07 · FECHO / PONTE -->
+  <!-- 07 · PERGUNTA GERAL DE CONVERSA -->
   <section class="content-slide">
-    <span class="label-tag">A seguir</span>
-    <h2>Com isto, ajustamos o resto da sessão</h2>
+    <span class="label-tag">Para pensarmos juntos</span>
+    <h2>Um dataset pronto para análise não nasce pronto</h2>
     <div class="separator"></div>
     <div class="stage">
-      <div class="chain">
-        <div class="chain-col"><div class="chain-box fill">conhecer a sala</div><div class="cap">onde estamos</div></div>
-        <span class="arrow"></span>
-        <div class="chain-col"><div class="chain-box fill">o percurso dos dados</div><div class="cap">fundamentos</div></div>
-        <span class="arrow"></span>
-        <div class="chain-col"><div class="chain-box fill">GenAI na engenharia de dados</div><div class="cap">as duas formas</div></div>
+      <div class="panel-dark" style="max-width:90%; margin:0 auto;">
+        <p class="big">Na vossa cabeça, como é que um dado "em bruto" chega a estar limpo e pronto a usar — e onde é que isso pode correr mal?</p>
       </div>
-      <p class="lead" style="text-align:center; margin:0 auto; max-width:86%;">A seguir, o percurso dos dados de ponta a ponta — mais ou menos demorado, conforme a sala. Depois, as duas formas de a GenAI entrar nele: <strong>construir com</strong> e <strong>construir para</strong>.</p>
+      <p class="lead" style="text-align:center; margin:0 auto; max-width:86%;">Sem respostas certas — quero só a vossa <strong>imagem</strong> de como as coisas funcionam. É exatamente por aí que vamos entrar a seguir.</p>
     </div>
     <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">07</span></div>
-    <aside class="notes">Fechar o aquecimento e abrir a sessão. Se a sala for sénior (orquestradores, big data, já usam IA), corro depressa pela Introdução à Engenharia de Dados e dou mais tempo ao deck principal. Se for mais júnior, faço a Introdução com calma. A ponte para o deck seguinte é literal: "o percurso dos dados".</aside>
+    <aside class="notes">Fecho do aquecimento com uma pergunta aberta que estimula a conversa e sonda o modelo mental da sala — sem lhes explicar nada ainda. As respostas dizem-me o que já intuem sobre o percurso dos dados (fontes, limpeza, o que pode falhar). Ligação natural, não forçada, para a Introdução à Engenharia de Dados, que começa precisamente com "o percurso dos dados". Não preciso de um slide a dizer "vamos ajustar" — isso acontece sozinho.</aside>
   </section>
 
 </div></div>
