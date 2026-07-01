@@ -1506,6 +1506,7 @@ resp = client.extract(texto, schema=NotaClinica)</pre>
       <p class="chain-hint">Cinco passos, do texto livre a um vetor. Abrimos cada um a seguir.</p>
     </div>
     <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">56</span></div>
+    <aside class="notes">O mapa do que vem a seguir. Cinco passos, do texto livre a um vetor único: tokenização (partir o texto em peças), matriz (cada peça tem um vetor), atenção (o vetor passa a depender do contexto), pooling (juntar tudo num só) e treino (porque perto = parecido). Ninguém tem de decorar isto — o objetivo é desmistificar o suficiente para usarem o Sandbox 3 com confiança.</aside>
   </section>
 
   <!-- tokenização -->
@@ -1532,6 +1533,7 @@ resp = client.extract(texto, schema=NotaClinica)</pre>
       <p class="why"><b>E não há um só tokenizador.</b> Modelos diferentes partem o mesmo texto de formas diferentes — e isso tem consequências: o português e o código são muitas vezes partidos em mais peças do que o inglês, o que gasta mais contexto e custa mais por token.</p>
     </div>
     <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">57</span></div>
+    <aside class="notes">O modelo não processa palavras nem letras — processa TOKENS, peças de um vocabulário fixo (dezenas de milhares). As palavras comuns são um token; as raras partem-se em sub-palavras reutilizáveis, e é assim que o modelo lida com palavras que nunca viu. O ponto que quero deixar: não há um só tokenizador — modelos diferentes partem o mesmo texto de formas diferentes. Consequência prática: o português e o código costumam gastar mais tokens do que o inglês, o que custa mais e enche a janela de contexto mais depressa. (Se alguém souber, é o BPE/WordPiece — mas não é preciso nomear.)</aside>
   </section>
 
   <!-- matriz / estático -->
@@ -1556,6 +1558,7 @@ resp = client.extract(texto, schema=NotaClinica)</pre>
       </div>
     </div>
     <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">58</span></div>
+    <aside class="notes">Há uma tabela (vocabulário x dimensões, ex. 50 000 x 768): cada token tem uma linha, o seu vetor inicial. Ir buscá-lo é um lookup, não um cálculo. O problema: 'banco' tem UM só vetor, seja o do dinheiro ou o do jardim. Este é o nível word2vec, de 2013 — estático, um sentido por palavra. Durante anos foi assim; o salto vem no slide seguinte.</aside>
   </section>
 
   <!-- banco contextual -->
@@ -1579,6 +1582,7 @@ resp = client.extract(texto, schema=NotaClinica)</pre>
       <p class="lead" style="margin:0 auto; text-align:center; max-width:88%;">É a <strong>self-attention</strong> — o mecanismo do Transformer (2017) — que faz cada palavra depender das vizinhas. O mesmo "banco", dois contextos, dois vetores distantes.</p>
     </div>
     <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">59</span></div>
+    <aside class="notes">O salto: com a self-attention — o mecanismo do Transformer, do paper 'Attention Is All You Need' (2017), a mesma arquitetura por trás dos GPTs e dos modelos de embeddings de hoje — cada token passa a 'olhar' para os vizinhos, e o seu vetor passa a depender da frase toda. 'Banco' em 'levantar dinheiro' e 'banco' no 'jardim' ficam com vetores distantes (cosseno baixo). Isto confirma-se ao vivo no Sandbox 3: pôr as duas frases do 'banco' e ver a distância. É esta contextualização que torna a busca semântica possível.</aside>
   </section>
 
   <!-- média dilui -->
@@ -1605,6 +1609,7 @@ resp = client.extract(texto, schema=NotaClinica)</pre>
       <p class="lead" style="margin:0 auto; text-align:center; max-width:86%;">O modelo dá <strong>um vetor por token</strong>; para pesquisar precisamos de <strong>um por frase</strong>, e juntam-se por <strong>média</strong>. Mas a média trata todas as palavras por igual: um texto com muitos assuntos fica "morno", no centro de tudo e perto de nada.</p>
     </div>
     <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">60</span></div>
+    <aside class="notes">A atenção dá um vetor POR TOKEN; mas para pesquisar precisamos de um vetor por frase/chunk. Juntam-se, tipicamente, pela MÉDIA dos vetores dos tokens. E a média trata todas as palavras por igual — por isso um texto com muitos assuntos fica 'morno', no centro de tudo e perto de nada. É a ponte direta para o chunking do RAG: como se parte o texto decide se a busca funciona. No Sandbox 3, o bloco 'a média dilui' mostra um chunk focado a ficar perto e um chunk enorme a afastar-se.</aside>
   </section>
 
   <!-- treino contrastivo -->
@@ -1641,6 +1646,7 @@ resp = client.extract(texto, schema=NotaClinica)</pre>
       </div>
     </div>
     <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">61</span></div>
+    <aside class="notes">A pergunta que fecha a intuição: porque é que textos parecidos ficam perto? Não é emergente nem mágico — é o OBJETIVO DE TREINO. Treino contrastivo: mostram-se pares que devem ficar PERTO (uma pergunta e a resposta certa, uma frase e a sua paráfrase) e pares que devem ficar LONGE (textos sem relação); o modelo ajusta os vetores para puxar os positivos e afastar os negativos. Logo 'perto = parecido' é verdade por construção — e 'parecido' é exatamente o que os dados de treino disseram que era. Deixa para a consequência: se o vosso domínio tem outra noção de parecido, o modelo geral está errado para vocês.</aside>
   </section>
 
   <!-- consequências DE -->
@@ -1658,6 +1664,7 @@ resp = client.extract(texto, schema=NotaClinica)</pre>
       </div>
     </div>
     <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">62</span></div>
+    <aside class="notes">Aterrar tudo na engenharia de dados. O vetor é um dado derivado, como uma coluna calculada — e traz obrigações: trocar de modelo obriga a re-embeber TUDO (espaços de modelos diferentes não se misturam); a dimensão custa (storage e índice escalam); a versão do modelo faz parte da linhagem (com que modelo foi feito cada vetor?); os vetores desatualizam quando a fonte muda; e o idioma/domínio importam. Nenhuma destas é uma questão de ML — são todas de dados. É a mentalidade que levamos para o RAG.</aside>
   </section>
 
   <!-- fecho embeddings -->
@@ -1677,6 +1684,7 @@ resp = client.extract(texto, schema=NotaClinica)</pre>
       <p class="lead" style="max-width:88%;">A intuição chega para perceber o conceito; o que distingue o engenheiro é a card da direita. É a mentalidade que aplicamos a seguir: <strong>um RAG inteiro é um pipeline de dados</strong>.</p>
     </div>
     <div class="footer"><img class="footer-logo" src="assets/logo-cel-horizontal.svg" alt=""><span class="slide-num">63</span></div>
+    <aside class="notes">Fecho dos embeddings. A intuição (texto -> vetor, perto = parecido) chega para perceber o conceito; o que distingue o engenheiro é tratar o vetor como dado — versionado, com custo, com linhagem, que desatualiza. Ponte para o que vem a seguir: um RAG inteiro é um pipeline de dados.</aside>
   </section>
 
   
